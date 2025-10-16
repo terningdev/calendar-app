@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { departmentService } from '../services/departmentService';
 import { technicianService } from '../services/technicianService';
+import { statusService } from '../services/statusService';
 import { useTranslation } from '../utils/translations';
 
 const Administrator = () => {
@@ -48,6 +49,13 @@ const Administrator = () => {
     absence: localStorage.getItem('color-absence') || '#e67e22',
     vakt: localStorage.getItem('color-vakt') || '#9b59b6'
   });
+
+  // System status state
+  const [systemStatus, setSystemStatus] = useState({
+    backend: { status: 'checking', message: 'Checking connection...' },
+    database: { status: 'checking', message: 'Checking connection...' }
+  });
+  const [statusLoading, setStatusLoading] = useState(false);
 
   // Technician filter state
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -307,9 +315,55 @@ const Administrator = () => {
     });
   };
 
+  // System status functions
+  const checkSystemStatus = async () => {
+    setStatusLoading(true);
+    try {
+      const status = await statusService.getSystemStatus();
+      setSystemStatus(status);
+    } catch (error) {
+      console.error('Error checking system status:', error);
+      setSystemStatus({
+        backend: { status: 'error', message: 'Failed to check backend status' },
+        database: { status: 'unknown', message: 'Backend unreachable' }
+      });
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'connected':
+        return '🟢';
+      case 'disconnected':
+      case 'error':
+        return '🔴';
+      case 'checking':
+        return '🟡';
+      default:
+        return '⚪';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'connected':
+        return '#27ae60';
+      case 'disconnected':
+      case 'error':
+        return '#e74c3c';
+      case 'checking':
+        return '#f39c12';
+      default:
+        return '#95a5a6';
+    }
+  };
+
   // Settings functions
   const openSettingsModal = () => {
     setShowSettingsModal(true);
+    checkSystemStatus(); // Check status when settings modal opens
   };
 
   const closeSettingsModal = () => {
@@ -794,6 +848,89 @@ const Administrator = () => {
                   <option value="en">{t('english')}</option>
                   <option value="no">{t('norwegian')}</option>
                 </select>
+              </div>
+
+              {/* System Status Section */}
+              <div className="form-group">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <label className="form-label">System Status</label>
+                  <button 
+                    className="btn btn-sm" 
+                    onClick={checkSystemStatus}
+                    disabled={statusLoading}
+                    style={{ 
+                      padding: '4px 8px', 
+                      fontSize: '12px',
+                      opacity: statusLoading ? 0.6 : 1 
+                    }}
+                  >
+                    {statusLoading ? '⟳' : '🔄'} Refresh
+                  </button>
+                </div>
+                
+                <div style={{ 
+                  border: '1px solid var(--border-color)', 
+                  borderRadius: '6px', 
+                  padding: '12px',
+                  backgroundColor: 'var(--card-background)'
+                }}>
+                  {/* Backend Status */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    marginBottom: '8px',
+                    fontSize: '14px'
+                  }}>
+                    <span style={{ marginRight: '8px' }}>{getStatusIcon(systemStatus.backend.status)}</span>
+                    <span style={{ fontWeight: '500', marginRight: '8px' }}>Backend:</span>
+                    <span style={{ 
+                      color: getStatusColor(systemStatus.backend.status),
+                      fontWeight: '500',
+                      flex: 1 
+                    }}>
+                      {systemStatus.backend.status === 'connected' ? 'Connected' : 
+                       systemStatus.backend.status === 'error' ? 'Error' : 
+                       systemStatus.backend.status === 'checking' ? 'Checking...' : 'Disconnected'}
+                    </span>
+                  </div>
+                  
+                  {/* Database Status */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    fontSize: '14px'
+                  }}>
+                    <span style={{ marginRight: '8px' }}>{getStatusIcon(systemStatus.database.status)}</span>
+                    <span style={{ fontWeight: '500', marginRight: '8px' }}>Database:</span>
+                    <span style={{ 
+                      color: getStatusColor(systemStatus.database.status),
+                      fontWeight: '500',
+                      flex: 1 
+                    }}>
+                      {systemStatus.database.status === 'connected' ? 'Connected' : 
+                       systemStatus.database.status === 'error' ? 'Error' : 
+                       systemStatus.database.status === 'checking' ? 'Checking...' : 'Disconnected'}
+                    </span>
+                  </div>
+                  
+                  {/* Status Messages */}
+                  {(systemStatus.backend.message || systemStatus.database.message) && (
+                    <div style={{ 
+                      marginTop: '8px', 
+                      fontSize: '12px', 
+                      color: 'var(--text-muted)',
+                      borderTop: '1px solid var(--border-color)',
+                      paddingTop: '8px'
+                    }}>
+                      {systemStatus.backend.message && (
+                        <div>Backend: {systemStatus.backend.message}</div>
+                      )}
+                      {systemStatus.database.message && (
+                        <div>Database: {systemStatus.database.message}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">

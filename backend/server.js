@@ -67,6 +67,75 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// System status endpoint
+app.get('/api/status', async (req, res) => {
+  try {
+    const status = {
+      backend: {
+        status: 'connected',
+        message: 'Backend server is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT
+      },
+      database: {
+        status: 'unknown',
+        message: 'Database status check failed'
+      }
+    };
+
+    // Check database connection
+    try {
+      if (mongoose.connection.readyState === 1) {
+        // Test database with a simple operation
+        await mongoose.connection.db.admin().ping();
+        status.database = {
+          status: 'connected',
+          message: 'MongoDB connection is healthy',
+          connectionState: 'connected',
+          databaseName: mongoose.connection.name || 'Unknown'
+        };
+      } else {
+        status.database = {
+          status: 'disconnected',
+          message: 'MongoDB connection is not established',
+          connectionState: getConnectionState(mongoose.connection.readyState)
+        };
+      }
+    } catch (dbError) {
+      status.database = {
+        status: 'error',
+        message: `Database error: ${dbError.message}`,
+        connectionState: getConnectionState(mongoose.connection.readyState)
+      };
+    }
+
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({
+      backend: {
+        status: 'error',
+        message: `Server error: ${error.message}`
+      },
+      database: {
+        status: 'unknown',
+        message: 'Could not check database status due to server error'
+      }
+    });
+  }
+});
+
+// Helper function to get readable connection state
+function getConnectionState(state) {
+  const states = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+  return states[state] || 'unknown';
+}
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
