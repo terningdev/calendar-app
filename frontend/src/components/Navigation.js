@@ -63,6 +63,13 @@ const Navigation = () => {
         
         {/* Navigation links - desktop always visible, mobile in overlay */}
         <ul className={`nav-links ${isMenuOpen ? 'nav-links-open' : ''}`}>
+          {/* Close button for mobile menu */}
+          <li className="mobile-only nav-close-item">
+            <button className="nav-close-btn" onClick={closeMenu}>
+              ✕ Close Menu
+            </button>
+          </li>
+          
           <li>
             <Link to="/" className={isActive('/')} onClick={closeMenu}>
               {t('dashboard')}
@@ -78,21 +85,17 @@ const Navigation = () => {
               {t('tickets')}
             </Link>
           </li>
-          <li className="desktop-only">
-            <Link to="/absences" className={isActive('/absences')} onClick={closeMenu}>
+          <li>
+            <Link to="/absences" className={`${isActive('/absences')} mobile-show`} onClick={closeMenu}>
               {t('absenceVakt')}
             </Link>
           </li>
-          <li className="desktop-only">
-            <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
-              {t('administrator')}
-            </Link>
-          </li>
           
-          {/* Mobile-only administrator link at bottom */}
-          <li className="mobile-only nav-bottom-item">
+          {/* Administrator link - fixed positioning for mobile */}
+          <li className="nav-admin-item">
             <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
-              ⚙️ {t('administrator')}
+              <span className="desktop-only">{t('administrator')}</span>
+              <span className="mobile-only">⚙️ {t('administrator')}</span>
             </Link>
           </li>
         </ul>
