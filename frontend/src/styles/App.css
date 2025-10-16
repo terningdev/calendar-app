@@ -731,11 +731,12 @@ body {
     flex-direction: column;
     gap: 0;
     margin: 0;
-    padding: 0;
+    padding: 0 0 80px 0; /* Add bottom padding to prevent hiding behind mobile UI */
     transition: left 0.3s ease;
     z-index: 1000;
     overflow-y: auto;
     display: flex;
+    box-sizing: border-box; /* Include padding in height calculation */
   }
   
   .nav-links-open {
@@ -780,12 +781,17 @@ body {
   .nav-admin-item {
     margin-top: auto;
     border-top: 2px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 0; /* Ensure it stays at bottom but above padding */
   }
   
   .nav-admin-item a {
     background-color: rgba(52, 152, 219, 0.1);
     border-bottom: none;
     font-weight: 500;
+    padding: 15px 18px; /* Slightly larger padding for better mobile touch */
+    min-height: 50px; /* Ensure minimum touch target size */
+    display: flex;
+    align-items: center;
   }
   
   .nav-admin-item a:hover {
