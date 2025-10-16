@@ -6,8 +6,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// Middleware - Configure CORS for production
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',  // Local development
+    'https://terning.info',   // Your domain
+    'https://planlegger.terning.info', // Your subdomain
+    'https://www.terning.info' // www version
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Database connection
@@ -61,6 +72,16 @@ app.use('/api/departments', require('./routes/departments'));
 app.use('/api/technicians', require('./routes/technicians'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/absences', require('./routes/absences'));
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Calendar API Server',
+    status: 'Running',
+    timestamp: new Date().toISOString(),
+    endpoints: ['/api/health', '/api/status', '/api/tickets', '/api/departments', '/api/technicians', '/api/absences']
+  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
