@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Day View Format Test</title>
+    <style>
+        .test-event {
+            background-color: #3174ad;
+            color: white;
+            padding: 8px;
+            margin: 10px;
+            border-radius: 3px;
+            width: 200px;
+        }
+        
+        .test-event div {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>3-Day View Format Test</h1>
+    
+    <div class="test-event" id="test1">
+        John Doe - Install Network Equipment
+AC001 - Install new router and switches
+15/10 - 17/10
+    </div>
+
+    <script>
+        // Simulate the DOM manipulation approach
+        setTimeout(() => {
+            const element = document.getElementById('test1');
+            const text = element.textContent;
+            
+            console.log('Original text:', text);
+            
+            if (text && text.includes('\n')) {
+                const lines = text.split('\n').filter(line => line.trim());
+                console.log('Lines:', lines);
+                
+                if (lines.length >= 3) {
+                    element.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 1px; color: white; font-size: 10px;">${lines[0]}</div>
+                        <div style="margin-bottom: 1px; color: white; font-size: 10px;">${lines[1]}</div>
+                        <div style="font-style: italic; color: #ccc; font-size: 9px;">${lines[2]}</div>
+                    `;
+                    console.log('Formatted successfully');
+                }
+            }
+        }, 100);
+    </script>
+</body>
+</html>
