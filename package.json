@@ -4,14 +4,15 @@
   "description": "Professional Calendar & Ticket Management System",
   "main": "backend/server.js",
   "scripts": {
-    "start": "cd backend && npm start",
+    "start": "node backend/server.js",
     "build": "cd backend && npm install",
-    "heroku-postbuild": "cd backend && npm install"
+    "postinstall": "cd backend && npm install"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/terningdev/calendar-app.git"
