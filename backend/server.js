@@ -6,19 +6,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware - Configure CORS for production
-const corsOptions = {
-  origin: [
-    'http://localhost:3000',  // Local development
-    'https://terning.info',   // Your domain
-    'https://planlegger.terning.info', // Your subdomain
-    'https://www.terning.info' // www version
-  ],
+// Middleware - Configure CORS to allow all origins for now (debugging)
+app.use(cors({
+  origin: true,
   credentials: true,
   optionsSuccessStatus: 200
-};
+}));
 
-app.use(cors(corsOptions));
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'none'}`);
+  next();
+});
+
 app.use(express.json());
 
 // Database connection
