@@ -4,8 +4,12 @@ import { departmentService } from '../services/departmentService';
 import { technicianService } from '../services/technicianService';
 import { statusService } from '../services/statusService';
 import { useTranslation } from '../utils/translations';
+import { useAuth } from '../contexts/AuthContext';
+import authService from '../services/authService';
 
 const Administrator = () => {
+  const { canApproveUsers } = useAuth();
+
   // Department state
   const [departments, setDepartments] = useState([]);
   const [showDepartmentModal, setShowDepartmentModal] = useState(false);
@@ -15,6 +19,11 @@ const Administrator = () => {
     description: '',
     isActive: true
   });
+
+  // Pending users state
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [showPendingUsersModal, setShowPendingUsersModal] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // Technician state
   const [technicians, setTechnicians] = useState([]);
@@ -144,6 +153,11 @@ const Administrator = () => {
           setSelectedDepartment(trondheimDept._id);
         }
       }
+
+      // Load pending users if user can approve
+      if (canApproveUsers()) {
+        await loadPendingUsers();
+      }
     } catch (error) {
       toast.error('Error loading data');
       console.error('Error loading data:', error);
@@ -267,6 +281,57 @@ const Administrator = () => {
         toast.error('Error deleting technician');
       }
     }
+  };
+
+  // Pending users functions
+  const loadPendingUsers = async () => {
+    if (!canApproveUsers()) return;
+    
+    try {
+      setLoadingUsers(true);
+      const response = await authService.getPendingUsers();
+      if (response.success) {
+        setPendingUsers(response.pendingUsers || []);
+      }
+    } catch (error) {
+      console.error('Error loading pending users:', error);
+      toast.error('Error loading pending users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const handleApproveUser = async (phone) => {
+    try {
+      const response = await authService.approveUser(phone);
+      if (response.success) {
+        toast.success(response.message || 'User approved successfully');
+        await loadPendingUsers(); // Reload the list
+      }
+    } catch (error) {
+      console.error('Error approving user:', error);
+      toast.error(error.message || 'Error approving user');
+    }
+  };
+
+  const handleRejectUser = async (phone) => {
+    if (window.confirm('Are you sure you want to reject this user registration?')) {
+      try {
+        const response = await authService.rejectUser(phone);
+        if (response.success) {
+          toast.success(response.message || 'User registration rejected');
+          await loadPendingUsers(); // Reload the list
+        }
+      } catch (error) {
+        console.error('Error rejecting user:', error);
+        toast.error(error.message || 'Error rejecting user');
+      }
+    }
+  };
+
+  const openPendingUsersModal = () => {
+    setShowPendingUsersModal(true);
+    loadPendingUsers();
   };
 
   const openCreateTechnicianModal = () => {
@@ -454,6 +519,19 @@ const Administrator = () => {
       <div className="page-header">
         <h1 className="page-title">{t('administrator')}</h1>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {canApproveUsers() && (
+            <button 
+              className="btn btn-warning" 
+              onClick={openPendingUsersModal}
+              title="Pending User Registrations"
+              style={{ position: 'relative' }}
+            >
+              👥 Pending Users
+              {pendingUsers.length > 0 && (
+                <span className="badge-notification">{pendingUsers.length}</span>
+              )}
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={openSettingsModal} title={t('settings')}>
             ⚙️ {t('settings')}
           </button>
@@ -811,6 +889,70 @@ const Administrator = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Pending Users Modal */}
+      {showPendingUsersModal && (
+        <div className="modal">
+          <div className="modal-content" style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">Pending User Registrations</h2>
+              <button className="modal-close" onClick={() => setShowPendingUsersModal(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              {loadingUsers ? (
+                <div className="loading-container">
+                  <div className="spinner"></div>
+                  <p>Loading pending users...</p>
+                </div>
+              ) : pendingUsers.length === 0 ? (
+                <div className="empty-state">
+                  <p>No pending user registrations</p>
+                </div>
+              ) : (
+                <div className="pending-users-list">
+                  {pendingUsers.map((user) => (
+                    <div key={user.phone} className="pending-user-card">
+                      <div className="user-info">
+                        <div className="user-name">{user.fullName}</div>
+                        <div className="user-phone">+47 {user.phone}</div>
+                        <div className="user-date">
+                          Registered: {new Date(user.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="user-actions">
+                        <button 
+                          className="btn btn-success btn-sm"
+                          onClick={() => handleApproveUser(user.phone)}
+                          title="Approve Registration"
+                        >
+                          ✓ Approve
+                        </button>
+                        <button 
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleRejectUser(user.phone)}
+                          title="Reject Registration"
+                        >
+                          ✗ Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowPendingUsersModal(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

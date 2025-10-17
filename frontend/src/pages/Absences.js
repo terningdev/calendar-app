@@ -195,9 +195,18 @@ const Absences = () => {
     <div className="page-container">
       <div className="page-header">
         <h1>{t('absenceVakt')}</h1>
-        <button className="btn btn-primary" onClick={() => openCreateModal('absence')}>
-          {t('createAbsenceOrVakt')}
-        </button>
+        <div className="page-header-actions">
+          <button className="btn btn-primary" onClick={() => openCreateModal('absence')}>
+            {t('createAbsenceOrVakt')}
+          </button>
+          {/* Mobile Filter Toggle - moved next to create button */}
+          <button 
+            className="btn btn-secondary mobile-only mobile-filter-toggle"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+          >
+            {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        </div>
       </div>
 
       {/* Desktop Filters */}
@@ -222,17 +231,9 @@ const Absences = () => {
         </div>
       </div>
 
-      {/* Mobile Filter Toggle */}
-      <div className="mobile-only" style={{ marginBottom: '20px' }}>
-        <button 
-          className="btn btn-secondary mobile-filter-toggle"
-          onClick={() => setShowMobileFilters(!showMobileFilters)}
-        >
-          {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
-        </button>
-        
-        {showMobileFilters && (
-          <div className="card" style={{ marginTop: '10px' }}>
+      {/* Mobile Filter Content */}
+      {showMobileFilters && (
+        <div className="card mobile-only" style={{ marginBottom: '20px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Technician</label>
@@ -252,10 +253,7 @@ const Absences = () => {
               </div>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Absences Table */}
+        )}      {/* Absences Table */}
       <div className="table-container">
         <table className="table">
           <thead>

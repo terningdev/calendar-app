@@ -14,12 +14,17 @@ const Tickets = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [showOldActivitiesModal, setShowOldActivitiesModal] = useState(false);
+  const [showDepartmentSelector, setShowDepartmentSelector] = useState(false);
+  const [showTechnicianSelector, setShowTechnicianSelector] = useState(false);
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
+  const [showFilterDepartmentSelector, setShowFilterDepartmentSelector] = useState(false);
+  const [showFilterTechnicianSelector, setShowFilterTechnicianSelector] = useState(false);
   const [selectedOldTickets, setSelectedOldTickets] = useState([]);
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
-    assignedTo: '',
-    department: ''
+    assignedTo: [],
+    department: []
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
@@ -90,7 +95,7 @@ const Tickets = () => {
       // Set default department to Trondheim if it exists
       const trondheimDept = departments.find(d => d.name === 'Trondheim' && d.isActive);
       if (trondheimDept) {
-        setFilters(prev => ({ ...prev, department: trondheimDept._id }));
+        setFilters(prev => ({ ...prev, department: [trondheimDept._id] }));
       }
     } catch (error) {
       toast.error('Error loading data');
@@ -284,10 +289,12 @@ const Tickets = () => {
   // Get technicians filtered by selected department
   const getFilteredTechnicians = () => {
     let filteredTechnicians;
-    if (!filters.department) {
+    if (!filters.department || filters.department.length === 0) {
       filteredTechnicians = technicians;
     } else {
-      filteredTechnicians = technicians.filter(tech => tech.department && tech.department._id === filters.department);
+      filteredTechnicians = technicians.filter(tech => 
+        tech.department && filters.department.includes(tech.department._id)
+      );
     }
     
     // Sort technicians alphabetically by first name
@@ -313,13 +320,53 @@ const Tickets = () => {
     );
   };
 
-  // Handle department change and reset technician filter
+  // Handle department change and reset technician filter (for legacy support)
   const handleDepartmentChange = (departmentId) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      department: departmentId,
-      assignedTo: '' // Reset technician filter when department changes
-    }));
+    if (departmentId === '') {
+      setFilters(prev => ({ 
+        ...prev, 
+        department: [],
+        assignedTo: [] // Reset technician filter when department changes
+      }));
+    } else {
+      setFilters(prev => ({ 
+        ...prev, 
+        department: [departmentId],
+        assignedTo: [] // Reset technician filter when department changes
+      }));
+    }
+  };
+
+  // Handle filter department multi-selection
+  const handleFilterDepartmentChange = (departmentId) => {
+    setFilters(prev => {
+      const currentDepartments = prev.department || [];
+      let newDepartments;
+      
+      if (currentDepartments.includes(departmentId)) {
+        newDepartments = currentDepartments.filter(id => id !== departmentId);
+      } else {
+        newDepartments = [...currentDepartments, departmentId];
+      }
+      
+      return { ...prev, department: newDepartments };
+    });
+  };
+
+  // Handle filter technician multi-selection
+  const handleFilterTechnicianChange = (technicianId) => {
+    setFilters(prev => {
+      const currentTechnicians = prev.assignedTo || [];
+      let newTechnicians;
+      
+      if (currentTechnicians.includes(technicianId)) {
+        newTechnicians = currentTechnicians.filter(id => id !== technicianId);
+      } else {
+        newTechnicians = [...currentTechnicians, technicianId];
+      }
+      
+      return { ...prev, assignedTo: newTechnicians };
+    });
   };
 
   // Handle form department change and reset selected technicians
@@ -520,7 +567,7 @@ const Tickets = () => {
     }
     
     // Filter by department
-    if (filters.department) {
+    if (filters.department && filters.department.length > 0) {
       filtered = filtered.filter(ticket => {
         if (!ticket.assignedTo || (Array.isArray(ticket.assignedTo) && ticket.assignedTo.length === 0)) {
           return true; // Include unassigned tickets
@@ -528,30 +575,36 @@ const Tickets = () => {
         
         if (Array.isArray(ticket.assignedTo)) {
           return ticket.assignedTo.some(tech => 
-            tech.department && tech.department._id === filters.department
+            tech.department && filters.department.includes(tech.department._id)
           );
         } else {
           return ticket.assignedTo.department && 
-                 ticket.assignedTo.department._id === filters.department;
+                 filters.department.includes(ticket.assignedTo.department._id);
         }
       });
     }
     
     // Filter by assigned technician
-    if (filters.assignedTo) {
-      if (filters.assignedTo === 'unassigned') {
-        filtered = filtered.filter(ticket => 
-          !ticket.assignedTo || (Array.isArray(ticket.assignedTo) && ticket.assignedTo.length === 0)
-        );
-      } else {
-        filtered = filtered.filter(ticket => {
+    if (filters.assignedTo && filters.assignedTo.length > 0) {
+      filtered = filtered.filter(ticket => {
+        // Check for unassigned filter
+        if (filters.assignedTo.includes('unassigned')) {
+          const isUnassigned = !ticket.assignedTo || (Array.isArray(ticket.assignedTo) && ticket.assignedTo.length === 0);
+          if (isUnassigned) return true;
+        }
+        
+        // Check for specific technician filters
+        const technicianIds = filters.assignedTo.filter(id => id !== 'unassigned');
+        if (technicianIds.length > 0) {
           if (Array.isArray(ticket.assignedTo)) {
-            return ticket.assignedTo.some(tech => tech._id === filters.assignedTo);
+            return ticket.assignedTo.some(tech => technicianIds.includes(tech._id));
           } else {
-            return ticket.assignedTo && ticket.assignedTo._id === filters.assignedTo;
+            return ticket.assignedTo && technicianIds.includes(ticket.assignedTo._id);
           }
-        });
-      }
+        }
+        
+        return false;
+      });
     }
     
     // Sort by start date
@@ -677,64 +730,56 @@ const Tickets = () => {
         </div>
       </div>
 
-      {/* Mobile Filters */}
+      {/* Mobile Filters - Compact Single Line */}
       <div className="mobile-only" style={{ marginBottom: '12px' }}>
-        <div className="card" style={{ padding: '15px' }}>
-          {/* Search and Create Button Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', marginBottom: '12px', alignItems: 'center' }}>
-            <div className="search-input">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search tickets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ fontSize: '16px' }} // Prevents zoom on iOS
-              />
-            </div>
-            <button 
-              className="btn btn-primary" 
-              onClick={openCreateModal}
-              style={{ whiteSpace: 'nowrap', padding: '8px 10px', fontSize: '13px' }}
-            >
-              {t('createTicket')}
-            </button>
-          </div>
+        <div className="mobile-tickets-toolbar">
+          <button 
+            className="mobile-toolbar-btn mobile-search-btn"
+            onClick={() => setShowSearchPopup(true)}
+          >
+            <span className="btn-icon">🔍</span>
+            <span className="btn-text">Search</span>
+          </button>
           
-          {/* Department and Technician Filters Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <select
-                className="form-control"
-                value={filters.department}
-                onChange={(e) => handleDepartmentChange(e.target.value)}
-                style={{ fontSize: '14px', padding: '8px' }}
-              >
-                <option value="">{t('allDepartments')}</option>
-                {departments.map(dept => (
-                  <option key={dept._id} value={dept._id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <select
-                className="form-control"
-                value={filters.assignedTo}
-                onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
-                style={{ fontSize: '14px', padding: '8px' }}
-              >
-                <option value="">{t('allTechnicians')}</option>
-                <option value="unassigned">{t('unassigned')}</option>
-                {getFilteredTechnicians().map(tech => (
-                  <option key={tech._id} value={tech._id}>
-                    {tech.fullName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <button
+            className="mobile-filter-selector"
+            onClick={() => setShowFilterDepartmentSelector(true)}
+          >
+            <span className="mobile-selector-text">
+              {filters.department.length === 0 
+                ? "📋 None selected" 
+                : filters.department.length === 1
+                  ? `📋 ${departments.find(d => d._id === filters.department[0])?.name || 'Department'}`
+                  : `📋 ${filters.department.length} selected`
+              }
+            </span>
+            <span className="mobile-selector-arrow">▶</span>
+          </button>
+          
+          <button
+            className="mobile-filter-selector"
+            onClick={() => setShowFilterTechnicianSelector(true)}
+          >
+            <span className="mobile-selector-text">
+              {filters.assignedTo.length === 0 
+                ? "👥 None selected"
+                : filters.assignedTo.length === 1
+                  ? filters.assignedTo[0] === 'unassigned'
+                    ? "👥 Unassigned"
+                    : `👥 ${technicians.find(t => t._id === filters.assignedTo[0])?.fullName || 'Technician'}`
+                  : `👥 ${filters.assignedTo.length} selected`
+              }
+            </span>
+            <span className="mobile-selector-arrow">▶</span>
+          </button>
+          
+          <button 
+            className="mobile-toolbar-btn mobile-create-btn"
+            onClick={openCreateModal}
+          >
+            <span className="btn-icon">+</span>
+            <span className="btn-text">Create</span>
+          </button>
         </div>
       </div>
 
@@ -966,99 +1011,138 @@ const Tickets = () => {
               <div className="form-row-50-50">
                 <div className="form-group">
                   <label className="form-label">Department</label>
-                  <div className="department-selection" style={{ 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px', 
-                    padding: '6px', 
-                    height: '150px', 
-                    overflowY: 'auto' 
-                  }}>
-                    <div style={{ marginBottom: '6px', fontWeight: 'bold', fontSize: '0.85rem', color: '#666' }}>
-                      Select departments (multiple allowed):
-                    </div>
-                    {departments.map(dept => (
-                      <label key={dept._id} style={{ 
-                        display: 'block', 
-                        marginBottom: '3px', 
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        padding: '2px 0'
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={formData.department.includes(dept._id)}
-                          onChange={() => handleFormDepartmentChange(dept._id)}
-                          style={{ marginRight: '6px' }}
-                        />
-                        {dept.name}
-                      </label>
-                    ))}
-                    {formData.department.length > 0 && (
-                      <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#666' }}>
-                        Selected: {formData.department.length} department{formData.department.length !== 1 ? 's' : ''}
+                  
+                  {/* Desktop Version - Scrollable Checkbox List */}
+                  <div className="desktop-selector">
+                    <div className="desktop-checkbox-container">
+                      <div className="desktop-checkbox-header">
+                        📋 Departments 
+                        <span className="selection-count">({formData.department.length} selected)</span>
                       </div>
-                    )}
+                      {departments.length === 0 ? (
+                        <div className="desktop-checkbox-empty">No departments available</div>
+                      ) : (
+                        <div className="desktop-checkbox-list">
+                          {departments.map(dept => (
+                            <div key={dept._id} className="desktop-checkbox-item">
+                              <input
+                                type="checkbox"
+                                id={`dept-${dept._id}`}
+                                checked={formData.department.includes(dept._id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      department: [...formData.department, dept._id]
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      department: formData.department.filter(id => id !== dept._id),
+                                      assignedTo: formData.assignedTo.filter(techId => {
+                                        const tech = getFormFilteredTechnicians().find(t => t._id === techId);
+                                        return tech && tech.department._id !== dept._id;
+                                      })
+                                    });
+                                  }
+                                }}
+                                className="desktop-checkbox-input"
+                              />
+                              <label htmlFor={`dept-${dept._id}`} className="desktop-checkbox-label">
+                                {dept.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Version - Popup Button */}
+                  <div className="mobile-selector">
+                    <button
+                      type="button"
+                      className="mobile-selector-button"
+                      onClick={() => setShowDepartmentSelector(true)}
+                    >
+                      <span className="mobile-selector-text">
+                        {formData.department.length === 0 
+                          ? "📋 Select departments..." 
+                          : `📋 ${formData.department.length} department${formData.department.length !== 1 ? 's' : ''} selected`
+                        }
+                      </span>
+                      <span className="mobile-selector-arrow">▶</span>
+                    </button>
                   </div>
                 </div>
                 
                 <div className="form-group">
                   <label className="form-label">Assigned To</label>
-                  <div className="technician-selection" style={{ 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px', 
-                    padding: '6px', 
-                    height: '150px', 
-                    overflowY: 'auto' 
-                  }}>
-                    <div style={{ marginBottom: '6px', fontWeight: 'bold', fontSize: '0.85rem', color: '#666' }}>
-                      Select technicians (multiple allowed):
-                    </div>
-                    {formData.department && formData.department.length > 0 ? (
-                      getFormFilteredTechnicians().length > 0 ? (
-                        getFormFilteredTechnicians().map(tech => (
-                          <label key={tech._id} style={{ 
-                            display: 'block', 
-                            marginBottom: '3px', 
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            padding: '2px 0'
-                          }}>
-                            <input
-                              type="checkbox"
-                              checked={formData.assignedTo.includes(tech._id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFormData({ 
-                                    ...formData, 
-                                    assignedTo: [...formData.assignedTo, tech._id] 
-                                  });
-                                } else {
-                                  setFormData({ 
-                                    ...formData, 
-                                    assignedTo: formData.assignedTo.filter(id => id !== tech._id) 
-                                  });
-                                }
-                              }}
-                              style={{ marginRight: '6px' }}
-                            />
-                            {tech.fullName}
-                          </label>
-                        ))
+                  
+                  {/* Desktop Version - Scrollable Checkbox List */}
+                  <div className="desktop-selector">
+                    <div className="desktop-checkbox-container">
+                      <div className="desktop-checkbox-header">
+                        👥 Technicians 
+                        <span className="selection-count">({formData.assignedTo.length} selected)</span>
+                      </div>
+                      {formData.department.length === 0 ? (
+                        <div className="desktop-checkbox-empty">Please select departments first</div>
+                      ) : getFormFilteredTechnicians().length === 0 ? (
+                        <div className="desktop-checkbox-empty">No technicians available in selected departments</div>
                       ) : (
-                        <div style={{ color: '#999', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                          No technicians available in selected departments
+                        <div className="desktop-checkbox-list">
+                          {getFormFilteredTechnicians().map(tech => (
+                            <div key={tech._id} className="desktop-checkbox-item">
+                              <input
+                                type="checkbox"
+                                id={`tech-${tech._id}`}
+                                checked={formData.assignedTo.includes(tech._id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      assignedTo: [...formData.assignedTo, tech._id]
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      assignedTo: formData.assignedTo.filter(id => id !== tech._id)
+                                    });
+                                  }
+                                }}
+                                className="desktop-checkbox-input"
+                              />
+                              <label htmlFor={`tech-${tech._id}`} className="desktop-checkbox-label">
+                                {tech.fullName}
+                                {tech.department && <span className="tech-department">({tech.department.name})</span>}
+                              </label>
+                            </div>
+                          ))}
                         </div>
-                      )
-                    ) : (
-                      <div style={{ color: '#999', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                        Please select at least one department first
-                      </div>
-                    )}
-                    {formData.assignedTo.length > 0 && (
-                      <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#666' }}>
-                        Selected: {formData.assignedTo.length} technician{formData.assignedTo.length !== 1 ? 's' : ''}
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Version - Popup Button */}
+                  <div className="mobile-selector">
+                    <button
+                      type="button"
+                      className="mobile-selector-button"
+                      onClick={() => setShowTechnicianSelector(true)}
+                      disabled={formData.department.length === 0}
+                    >
+                      <span className="mobile-selector-text">
+                        {formData.assignedTo.length === 0 
+                          ? (formData.department.length === 0 
+                              ? "👥 Select departments first..." 
+                              : "👥 Select technicians..."
+                            )
+                          : `👥 ${formData.assignedTo.length} technician${formData.assignedTo.length !== 1 ? 's' : ''} selected`
+                        }
+                      </span>
+                      <span className="mobile-selector-arrow">▶</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1242,6 +1326,211 @@ const Tickets = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Mobile Department Selector Modal */}
+      {showDepartmentSelector && (
+        <div className="mobile-selector-overlay" onClick={() => setShowDepartmentSelector(false)}>
+          <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-selector-header">
+              <h3>📋 Select Departments</h3>
+              <button 
+                className="mobile-selector-close"
+                onClick={() => setShowDepartmentSelector(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mobile-selector-content">
+              {departments.map(dept => (
+                <div 
+                  key={dept._id} 
+                  className={`mobile-selector-item ${formData.department.includes(dept._id) ? 'selected' : ''}`}
+                  onClick={() => handleFormDepartmentChange(dept._id)}
+                >
+                  <span className="mobile-selector-check">
+                    {formData.department.includes(dept._id) ? '✓' : '○'}
+                  </span>
+                  <span className="mobile-selector-name">{dept.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mobile-selector-footer">
+              <button 
+                className="mobile-selector-done"
+                onClick={() => setShowDepartmentSelector(false)}
+              >
+                Done ({formData.department.length} selected)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Technician Selector Modal */}
+      {showTechnicianSelector && (
+        <div className="mobile-selector-overlay" onClick={() => setShowTechnicianSelector(false)}>
+          <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-selector-header">
+              <h3>👥 Select Technicians</h3>
+              <button 
+                className="mobile-selector-close"
+                onClick={() => setShowTechnicianSelector(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mobile-selector-content">
+              {formData.department && formData.department.length > 0 ? (
+                getFormFilteredTechnicians().length > 0 ? (
+                  getFormFilteredTechnicians().map(tech => (
+                    <div 
+                      key={tech._id} 
+                      className={`mobile-selector-item ${formData.assignedTo.includes(tech._id) ? 'selected' : ''}`}
+                      onClick={() => {
+                        if (formData.assignedTo.includes(tech._id)) {
+                          setFormData({ 
+                            ...formData, 
+                            assignedTo: formData.assignedTo.filter(id => id !== tech._id) 
+                          });
+                        } else {
+                          setFormData({ 
+                            ...formData, 
+                            assignedTo: [...formData.assignedTo, tech._id] 
+                          });
+                        }
+                      }}
+                    >
+                      <span className="mobile-selector-check">
+                        {formData.assignedTo.includes(tech._id) ? '✓' : '○'}
+                      </span>
+                      <span className="mobile-selector-name">{tech.fullName}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="mobile-selector-empty">
+                    No technicians available in selected departments
+                  </div>
+                )
+              ) : (
+                <div className="mobile-selector-empty">
+                  Please select departments first
+                </div>
+              )}
+            </div>
+            <div className="mobile-selector-footer">
+              <button 
+                className="mobile-selector-done"
+                onClick={() => setShowTechnicianSelector(false)}
+              >
+                Done ({formData.assignedTo.length} selected)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Search Popup */}
+      {showSearchPopup && (
+        <div className="mobile-search-overlay" onClick={() => setShowSearchPopup(false)}>
+          <div className="mobile-search-container" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="text"
+              className="mobile-search-input-simple"
+              placeholder="Search tickets..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Filter Department Selector */}
+      {showFilterDepartmentSelector && (
+        <div className="mobile-selector-overlay" onClick={() => setShowFilterDepartmentSelector(false)}>
+          <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-selector-header">
+              <h3>📋 Select Departments</h3>
+              <button 
+                className="mobile-selector-close"
+                onClick={() => setShowFilterDepartmentSelector(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mobile-selector-content">
+              {departments.map(dept => (
+                <div 
+                  key={dept._id} 
+                  className={`mobile-selector-item ${filters.department.includes(dept._id) ? 'selected' : ''}`}
+                  onClick={() => handleFilterDepartmentChange(dept._id)}
+                >
+                  <span className="mobile-selector-check">
+                    {filters.department.includes(dept._id) ? '✓' : '○'}
+                  </span>
+                  <span className="mobile-selector-name">{dept.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mobile-selector-footer">
+              <button 
+                className="mobile-selector-done"
+                onClick={() => setShowFilterDepartmentSelector(false)}
+              >
+                Done ({filters.department.length} selected)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Technician Selector */}
+      {showFilterTechnicianSelector && (
+        <div className="mobile-selector-overlay" onClick={() => setShowFilterTechnicianSelector(false)}>
+          <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-selector-header">
+              <h3>👥 Select Technicians</h3>
+              <button 
+                className="mobile-selector-close"
+                onClick={() => setShowFilterTechnicianSelector(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mobile-selector-content">
+              <div 
+                className={`mobile-selector-item ${filters.assignedTo.includes('unassigned') ? 'selected' : ''}`}
+                onClick={() => handleFilterTechnicianChange('unassigned')}
+              >
+                <span className="mobile-selector-check">
+                  {filters.assignedTo.includes('unassigned') ? '✓' : '○'}
+                </span>
+                <span className="mobile-selector-name">Unassigned</span>
+              </div>
+              {getFilteredTechnicians().map(tech => (
+                <div 
+                  key={tech._id} 
+                  className={`mobile-selector-item ${filters.assignedTo.includes(tech._id) ? 'selected' : ''}`}
+                  onClick={() => handleFilterTechnicianChange(tech._id)}
+                >
+                  <span className="mobile-selector-check">
+                    {filters.assignedTo.includes(tech._id) ? '✓' : '○'}
+                  </span>
+                  <span className="mobile-selector-name">{tech.fullName}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mobile-selector-footer">
+              <button 
+                className="mobile-selector-done"
+                onClick={() => setShowFilterTechnicianSelector(false)}
+              >
+                Done ({filters.assignedTo.length} selected)
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

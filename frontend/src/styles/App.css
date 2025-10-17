@@ -1,8 +1,44 @@
-/* Global Styles */
+﻿/* Global Styles with Responsive Scaling */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* Root font size scaling for different screen sizes */
+html {
+  /* Default desktop font size */
+  font-size: 16px;
+}
+
+/* Responsive font scaling based on viewport width */
+@media screen and (max-width: 1200px) {
+  html { font-size: 15px; } /* Large tablets */
+}
+
+@media screen and (max-width: 992px) {
+  html { font-size: 14px; } /* Tablets */
+}
+
+@media screen and (max-width: 768px) {
+  html { font-size: 13px; } /* Large phones/small tablets */
+}
+
+@media screen and (max-width: 576px) {
+  html { font-size: 12px; } /* Medium phones */
+}
+
+@media screen and (max-width: 480px) {
+  html { font-size: 11px; } /* Small phones */
+}
+
+@media screen and (max-width: 375px) {
+  html { font-size: 10px; } /* Very small phones */
+}
+
+/* Dynamic scaling based on viewport dimensions */
+@media screen and (max-width: 320px) {
+  html { font-size: 9px; } /* Very old/small phones */
 }
 
 body {
@@ -21,12 +57,13 @@ body {
   flex-direction: column;
 }
 
-/* Navigation Styles */
+/* Navigation Styles - Clean & Professional */
 .navigation {
   background-color: #2c3e50;
   color: white;
   padding: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #34495e;
 }
 
 .nav-container {
@@ -34,35 +71,52 @@ body {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   height: 60px;
-}
-
-.nav-brand {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-decoration: none;
-  color: white;
 }
 
 .nav-links {
   display: flex;
   list-style: none;
-  gap: 30px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
 }
 
 .nav-links a {
   color: white;
   text-decoration: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  min-width: 100px;
+  text-align: center;
+  white-space: nowrap;
 }
 
-.nav-links a:hover,
-.nav-links a.active {
+.nav-links a:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: #3498db;
+}
+
+.nav-links a.active {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-bottom-color: #3498db;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 /* Mobile Navigation Styles */
@@ -718,25 +772,39 @@ body {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center; /* Center the content */
+  }
+  
+  .hamburger-btn {
+    position: absolute; /* Position absolutely to avoid affecting centering */
+    left: 20px;
+    z-index: 999; /* Lower than menu z-index to stay behind */
+  }
+  
+  .nav-title {
+    display: block;
+    flex: 1;
+    text-align: center;
+    font-size: 1.4rem; /* Increased from 1.2rem for better mobile visibility */
+    font-weight: bold;
   }
   
   .nav-links {
     position: fixed;
     top: 0;
     left: -100%;
-    width: 260px;
+    width: 280px; /* Reduced from full width to allow outside tapping */
     height: 100vh;
     background-color: #2c3e50;
     flex-direction: column;
     gap: 0;
     margin: 0;
-    padding: 0 0 80px 0; /* Add bottom padding to prevent hiding behind mobile UI */
+    padding: 0 0 calc(60px + var(--safe-area-inset-bottom)) 0; /* Viewport-aware bottom padding */
     transition: left 0.3s ease;
     z-index: 1000;
     overflow-y: auto;
     display: flex;
-    box-sizing: border-box; /* Include padding in height calculation */
+    box-sizing: border-box;
   }
   
   .nav-links-open {
@@ -749,54 +817,35 @@ body {
   
   .nav-links a {
     display: block;
-    padding: 12px 18px;
+    padding: 16px 18px; /* Increased padding for better touch targets */
     border-radius: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     width: 100%;
-    font-size: 0.9rem;
-  }
-  
-  /* Mobile close button */
-  .nav-close-item {
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2) !important;
-  }
-  
-  .nav-close-btn {
-    width: 100%;
-    padding: 15px 18px;
-    background: rgba(231, 76, 60, 0.1);
-    color: #e74c3c;
-    border: none;
-    font-size: 16px;
+    font-size: 1.1rem; /* Increased from 0.9rem for better mobile visibility */
     font-weight: 500;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Administrator button - positioned at bottom of mobile menu */
+  .nav-admin-item {
+    margin-top: auto; /* Push to bottom */
+    margin-bottom: calc(20px + var(--safe-area-inset-bottom)); /* Viewport-aware bottom margin */
+    border-top: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-bottom: none !important;
+  }
+  
+  .nav-admin-item a {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    font-weight: 600;
+    font-size: 1.1rem; /* Consistent with other menu items */
+    padding: 18px 18px; /* Extra padding for bottom item */
   }
   
   .nav-close-btn:hover {
     background: rgba(231, 76, 60, 0.2);
   }
   
-  /* Administrator link - always visible at bottom */
-  .nav-admin-item {
-    margin-top: auto;
-    border-top: 2px solid rgba(255, 255, 255, 0.2);
-    margin-bottom: 0; /* Ensure it stays at bottom but above padding */
-  }
-  
-  .nav-admin-item a {
-    background-color: rgba(52, 152, 219, 0.1);
-    border-bottom: none;
-    font-weight: 500;
-    padding: 15px 18px; /* Slightly larger padding for better mobile touch */
-    min-height: 50px; /* Ensure minimum touch target size */
-    display: flex;
-    align-items: center;
-  }
-  
-  .nav-admin-item a:hover {
-    background-color: rgba(52, 152, 219, 0.2);
-  }
+  /* Remove administrator special positioning - now it's a regular menu item */
   
   /* Show mobile-specific content */
   .mobile-show {
@@ -805,6 +854,114 @@ body {
   
   .nav-overlay {
     display: block;
+  }
+
+  /* Comprehensive Mobile Scaling */
+  .main-content {
+    padding: 0.75rem; /* Using rem for responsive scaling */
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .page-header {
+    padding: 1rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem; /* Will scale with root font-size */
+    margin-bottom: 0.5rem;
+  }
+
+  /* Cards and containers */
+  .card, .section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Forms and inputs */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 1rem;
+    padding: 0.75rem;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid #ddd;
+    min-height: 44px; /* Apple's recommended minimum touch target */
+  }
+
+  /* Buttons */
+  .btn {
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    min-height: 44px;
+    border-radius: 0.375rem;
+    touch-action: manipulation; /* Disable double-tap zoom on buttons */
+  }
+
+  .btn-sm {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    min-height: 40px;
+  }
+
+  /* Tables */
+  .table {
+    font-size: 0.875rem;
+    width: 100%;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+    min-width: 80px;
+  }
+
+  /* Modals and overlays */
+  .modal-content {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  /* Calendar and scheduling components */
+  .calendar-grid {
+    font-size: 0.75rem;
+  }
+
+  .calendar-day {
+    min-height: 2rem;
+    padding: 0.25rem;
+  }
+
+  /* Lists and items */
+  .list-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.375rem;
+  }
+
+  /* Status badges and tags */
+  .badge, .tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
   }
 
   .main-content {
@@ -1136,13 +1293,179 @@ body {
   }
 }
 
+/* Enhanced responsive scaling for smaller devices */
 @media (max-width: 480px) {
+  /* Further reduce scaling for small phones */
   .page-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .nav-links {
-    width: 100%;
+    width: 75%; /* Don't cover entire screen on small phones */
+    max-width: 280px;
+  }
+
+  /* Compact form elements */
+  .main-content {
+    padding: 0.5rem;
+  }
+
+  .page-header {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .card, .section {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Smaller buttons for tiny screens */
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.625rem 1.25rem;
+  }
+
+  .btn-sm {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  /* Tables become more compact */
+  .table {
+    font-size: 0.8rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.375rem 0.2rem;
+    min-width: 60px;
+  }
+
+  /* Navigation adjustments */
+  .nav-container {
+    height: 50px;
+    padding: 0 15px;
+  }
+
+  .nav-title {
+    font-size: 1rem;
+  }
+}
+
+/* Very small devices (old phones, narrow screens) */
+@media (max-width: 375px) {
+  .main-content {
+    padding: 0.375rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .card, .section {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 0.9rem;
+    padding: 0.625rem;
+  }
+
+  .nav-container {
+    height: 48px;
+    padding: 0 12px;
+  }
+
+  .hamburger-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger-line {
+    width: 20px;
+    height: 2px;
+  }
+}
+
+/* Ultra-small devices */
+@media (max-width: 320px) {
+  .main-content {
+    padding: 0.25rem;
+  }
+
+  .page-header {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .card, .section {
+    padding: 0.375rem;
+    margin-bottom: 0.375rem;
+    border-radius: 0.25rem;
+  }
+
+  .btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .nav-container {
+    height: 45px;
+    padding: 0 10px;
+  }
+
+  .nav-title {
+    font-size: 0.9rem;
+  }
+
+  .hamburger-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hamburger-line {
+    width: 18px;
+    height: 2px;
+  }
+
+  /* Tables become scrollable cards on very small screens */
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  /* Extra specific checkbox control for tiny screens */
+  .modal input[type="checkbox"],
+  .modal-content input[type="checkbox"],
+  .modal-dialog input[type="checkbox"] {
+    width: 14px !important;
+    height: 14px !important;
+    transform: none !important;
   }
 
   .nav-links a {
@@ -1858,14 +2181,418 @@ body {
   }
   
   .toolbar-btn {
-    padding: 6px 10px;
-    font-size: 0.85rem;
+    padding: 4px 8px; /* Smaller padding */
+    font-size: 0.8rem; /* Smaller font */
   }
   
   .toolbar-arrow-btn {
-    padding: 8px 16px;
+    padding: 6px 10px; /* Much smaller padding */
+    font-size: 0.85rem; /* Smaller font */
+    min-width: 35px; /* Smaller width */
+    height: 32px; /* Fixed smaller height */
+    border-radius: 6px; /* Smaller border radius */
+    background: linear-gradient(135deg, #3498db, #2980b9); /* Better visual design */
+    color: white;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
+    transition: all 0.2s ease; /* Smooth transitions */
+  }
+
+  .toolbar-arrow-btn:hover {
+    transform: translateY(-1px); /* Subtle lift effect */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    background: linear-gradient(135deg, #3498db, #2471a3);
+  }
+
+  .toolbar-arrow-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  /* Calendar mobile improvements */
+  .rbc-month-view .rbc-date-cell a {
+    font-size: 0.8rem; /* Smaller date numbers in month view */
+    padding: 2px 4px;
+  }
+
+  /* Week view header improvements - stack weekday and date */
+  .rbc-time-view .rbc-header {
+    font-size: 0.75rem;
+    padding: 4px 2px;
+    line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .rbc-time-view .rbc-header span {
+    display: block;
+    text-align: center;
+  }
+
+  /* Smaller calendar grid cells */
+  .rbc-calendar {
+    font-size: 0.8rem;
+  }
+
+  .rbc-month-view .rbc-row {
+    min-height: 40px; /* Smaller row height */
+  }
+
+  /* Tickets page mobile improvements */
+  .search-input .form-control {
+    padding-left: 12px; /* Remove extra left padding since no icon */
+    background-image: none; /* Remove magnifying glass icon */
+    font-size: 0.9rem;
+  }
+
+  /* Fix alignment between search field and create button */
+  .mobile-only .search-input .form-control {
+    height: 40px !important; /* Fixed height to match button */
+    padding: 10px 12px !important; /* Consistent padding */
+    margin: 0 !important; /* Remove any margin */
+    font-size: 16px !important; /* Override inline style and prevent zoom */
+    border-radius: 6px;
+    line-height: 1.2;
+  }
+
+  .mobile-only .btn-primary {
+    height: 40px !important; /* Match search field height */
+    padding: 10px 12px !important; /* Override inline styles */
+    font-size: 0.85rem !important; /* Override inline font size */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    border-radius: 6px;
+    line-height: 1.2;
+  }
+
+  /* Smaller buttons on tickets page */
+  .btn-primary {
+    padding: 0.5rem 1rem; /* Smaller create ticket button */
+    font-size: 0.9rem;
+  }
+
+  /* Smaller dropdowns */
+  .form-select,
+  .form-control select {
+    padding: 0.4rem 0.75rem; /* Reduced vertical padding */
+    font-size: 0.9rem;
+    height: 36px; /* Fixed smaller height */
+  }
+
+  /* Smaller action buttons in ticket list */
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Modal dropdown improvements - smaller checkboxes */
+  .modal .checkbox-container input[type="checkbox"],
+  .modal .checkbox-label input[type="checkbox"],
+  .modal input[type="checkbox"] {
+    width: 16px !important; /* Much smaller checkboxes */
+    height: 16px !important;
+    transform: scale(1) !important; /* Remove any scaling */
+    margin: 0 8px 0 0 !important; /* Consistent margin */
+    flex-shrink: 0 !important; /* Prevent shrinking */
+  }
+
+  .modal .checkbox-label {
+    font-size: 0.85rem;
+    padding-left: 0; /* Remove padding since checkbox has margin */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Ensure modal checkboxes stay small on all mobile sizes */
+  .modal-content input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+  }
+
+  /* Page header actions for mobile */
+  .page-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .page-header-actions .btn {
+    flex-shrink: 0;
+  }
+
+  /* Hide the empty mobile filter container */
+  .mobile-only[style*="display: none"] {
+    display: none !important;
+  }
+
+  /* Mobile Dropdown Redesign - Ultra User-Friendly */
+  .mobile-dropdown-container {
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+  }
+
+  /* Mobile Selector Button */
+  .mobile-selector-button {
+    width: 100%;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 1rem;
-    min-width: 45px;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 56px;
+  }
+
+  .mobile-selector-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+  }
+
+  .mobile-selector-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f8f9fa;
+  }
+
+  .mobile-selector-text {
+    flex: 1;
+    text-align: left;
+    font-weight: 500;
+  }
+
+  .mobile-selector-arrow {
+    color: #007bff;
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+  }
+
+  /* Mobile Selector Modal */
+  .mobile-selector-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-end;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .mobile-selector-modal {
+    width: 100%;
+    max-height: 80vh;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .mobile-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .mobile-selector-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .mobile-selector-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #666;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-selector-close:hover {
+    background: #e9ecef;
+    color: #333;
+  }
+
+  .mobile-selector-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-selector-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f3f4;
+    min-height: 60px;
+  }
+
+  .mobile-selector-item:hover {
+    background: #f8f9fa;
+  }
+
+  .mobile-selector-item.selected {
+    background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+    border-color: #4caf50;
+  }
+
+  .mobile-selector-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-selector-item.selected .mobile-selector-check {
+    background: #4caf50;
+    border-color: #4caf50;
+    color: white;
+  }
+
+  .mobile-selector-name {
+    flex: 1;
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .mobile-selector-empty {
+    padding: 40px 24px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+  }
+
+  .mobile-selector-footer {
+    padding: 16px 24px 24px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .mobile-selector-done {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-selector-done:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+  }
+
+  .mobile-selector-done:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+  }
+
+  /* Hide old dropdown styles on mobile */
+  .mobile-dropdown-header,
+  .mobile-checkbox-list,
+  .mobile-checkbox-item,
+  .mobile-checkbox,
+  .mobile-checkbox-label,
+  .mobile-dropdown-empty,
+  .mobile-dropdown-summary {
+    display: none;
+  }
+
+  /* Enhanced mobile form improvements */
+  @media (max-width: 768px) {
+    .modal-content {
+      margin: 10px;
+      max-height: calc(100vh - 20px);
+      border-radius: 16px;
+    }
+
+    .form-row-50-50 {
+      display: block !important; /* Stack form elements vertically on mobile */
+    }
+
+    .form-row-50-50 .form-group {
+      margin-bottom: 20px;
+    }
+
+    /* Better form labels */
+    .form-label {
+      font-size: 1rem !important;
+      font-weight: 600 !important;
+      color: #333 !important;
+      margin-bottom: 12px !important;
+      display: block !important;
+    }
+
+    /* Improve overall touch experience */
+    .mobile-checkbox-item {
+      -webkit-tap-highlight-color: rgba(33, 150, 243, 0.2);
+      -webkit-touch-callout: none;
+    }
+
+    /* Smooth scrolling for dropdown lists */
+    .mobile-checkbox-list {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
   }
 }
 
@@ -2896,4 +3623,652 @@ body {
 
 [data-theme="dark"] .skill-remove:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========================================
+   RESPONSIVE SELECTOR SYSTEM
+   Desktop: Normal dropdowns/checkboxes
+   Mobile: Popup modal system
+   ======================================== */
+
+/* Desktop Selector Styles (768px+) */
+.desktop-selector {
+  display: block;
+}
+
+.mobile-selector {
+  display: none;
+}
+
+.desktop-checkbox-container {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  min-height: 120px;
+  max-height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.desktop-checkbox-header {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.desktop-checkbox-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+  background: #fafafa;
+}
+
+.desktop-checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.desktop-checkbox-item:last-child {
+  border-bottom: none;
+}
+
+.desktop-checkbox-item:hover {
+  background-color: #f1f5f9;
+}
+
+.desktop-checkbox-item:has(.desktop-checkbox-input:checked) {
+  background-color: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
+.desktop-checkbox-input {
+  width: 14px !important;
+  height: 14px !important;
+  margin: 0 10px 0 0 !important;
+  accent-color: #3b82f6;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.desktop-checkbox-label {
+  font-size: 0.85rem;
+  color: #374151;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.desktop-checkbox-empty {
+  padding: 20px 14px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.8rem;
+  background: white;
+  font-style: italic;
+}
+
+.tech-department {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+/* Selection counter styling */
+.desktop-checkbox-header .selection-count {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+/* ========================================
+   RESPONSIVE NAVIGATION IMPROVEMENTS
+   ======================================== */
+
+/* CSS custom properties for safe area handling */
+:root {
+  --safe-area-inset-bottom: 0px;
+}
+
+/* Support for devices with safe area insets (iPhone X+, etc.) */
+@supports (padding: max(0px)) {
+  :root {
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ========================================
+   MOBILE TICKETS TOOLBAR
+   Compact single-line layout for mobile
+   ======================================== */
+
+.mobile-tickets-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e5e5e5;
+}
+
+.mobile-toolbar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #f8f9fa;
+  color: #495057;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  height: 42px; /* Match dropdown height */
+}
+
+.mobile-toolbar-btn .btn-icon {
+  font-size: 14px;
+  margin-bottom: 1px;
+}
+
+.mobile-toolbar-btn .btn-text {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.mobile-search-btn {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+  color: white;
+}
+
+.mobile-create-btn {
+  background: linear-gradient(135deg, #28a745, #20923a);
+  color: white;
+}
+
+.mobile-toolbar-btn:active {
+  transform: translateY(1px);
+}
+
+.mobile-toolbar-select {
+  flex: 1;
+  padding: 8px 6px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.8rem;
+  color: #495057;
+  min-width: 0;
+  height: 42px; /* Match button height */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.mobile-toolbar-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.mobile-toolbar-select option {
+  padding: 8px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile filter selector buttons in toolbar */
+.mobile-filter-selector {
+  flex: 1;
+  height: 42px;
+  padding: 6px 8px;
+  margin: 0;
+  min-width: 0;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-filter-selector .mobile-selector-text {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+}
+
+.mobile-filter-selector .mobile-selector-arrow {
+  font-size: 0.7rem;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   MOBILE SEARCH POPUP - SIMPLIFIED
+   ======================================== */
+
+.mobile-search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 20px;
+}
+
+.mobile-search-container {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  width: 90%;
+  max-width: 400px;
+  position: sticky;
+  top: 20px;
+}
+
+.mobile-search-input-simple {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 16px; /* Prevents zoom on iOS */
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.mobile-search-input-simple:focus {
+  outline: none;
+  border-color: #007bff;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+}
+
+/* Mobile Responsive - Switch to popup system */
+@media (max-width: 768px) {
+  .desktop-selector {
+    display: none;
+  }
+  
+  .mobile-selector {
+    display: block;
+  }
+}
+
+/* Login Modal Styles */
+.login-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.login-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-modal-header {
+  padding: 30px 30px 20px;
+  text-align: center;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.login-modal-header h2 {
+  margin: 0 0 10px;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.login-modal-subtitle {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.login-form {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group input:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.phone-input-group:focus-within {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.country-code {
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #e9ecef;
+  color: #495057;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.phone-input {
+  border: none !important;
+  box-shadow: none !important;
+  flex: 1;
+}
+
+.pin-input {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 5px;
+  color: #6c757d;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border: 1px solid #f5c6cb;
+  font-size: 0.9rem;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border: 1px solid #c3e6cb;
+  font-size: 0.9rem;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.login-button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.login-footer {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.switch-mode-button {
+  background: none;
+  border: none;
+  color: #3498db;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.switch-mode-button:hover:not(:disabled) {
+  color: #2980b9;
+}
+
+.switch-mode-button:disabled {
+  color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Authentication Loading Styles */
+.auth-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: #2c3e50;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e9ecef;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Navigation Authentication Styles */
+.nav-user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-left: auto;
+}
+
+.user-greeting {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.logout-btn {
+  background-color: rgba(231, 76, 60, 0.8);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #e74c3c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.nav-logout-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.logout-btn-mobile {
+  width: 100%;
+  background-color: rgba(231, 76, 60, 0.8);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.logout-btn-mobile:hover {
+  background-color: #e74c3c;
+}
+
+/* Mobile responsive login modal */
+@media (max-width: 768px) {
+  .login-modal {
+    margin: 10px;
+    max-width: none;
+  }
+  
+  .login-modal-header {
+    padding: 20px 20px 15px;
+  }
+  
+  .login-modal-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .login-form {
+    padding: 20px;
+  }
+  
+  .form-group input {
+    padding: 10px 12px;
+  }
+  
+  .country-code {
+    padding: 10px 12px;
+    min-width: 50px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop responsive navigation authentication */
+@media (min-width: 769px) {
+  .nav-container {
+    position: relative;
+  }
+  
+  .nav-user-info {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }

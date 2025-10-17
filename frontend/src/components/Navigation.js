@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../utils/translations';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
   const location = useLocation();
   const { t } = useTranslation();
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isActive = (path) => {
@@ -17,6 +19,15 @@ const Navigation = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      closeMenu();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Get current page title based on route
@@ -51,25 +62,21 @@ const Navigation = () => {
           <span className="hamburger-line"></span>
         </button>
         
-        {/* App brand - desktop only */}
-        <Link to="/" className="nav-brand desktop-only">
-          {t('appName')}
-        </Link>
-        
         {/* Current page title - mobile only */}
         <div className="nav-title mobile-only">
           {getCurrentPageTitle()}
         </div>
+
+        {/* User info - desktop only */}
+        <div className="nav-user-info desktop-only">
+          <span className="user-greeting">Welcome, {user?.fullName}</span>
+          <button className="logout-btn" onClick={handleLogout} title="Logout">
+            Logout
+          </button>
+        </div>
         
         {/* Navigation links - desktop always visible, mobile in overlay */}
         <ul className={`nav-links ${isMenuOpen ? 'nav-links-open' : ''}`}>
-          {/* Close button for mobile menu */}
-          <li className="mobile-only nav-close-item">
-            <button className="nav-close-btn" onClick={closeMenu}>
-              ✕ Close Menu
-            </button>
-          </li>
-          
           <li>
             <Link to="/" className={isActive('/')} onClick={closeMenu}>
               {t('dashboard')}
@@ -91,12 +98,19 @@ const Navigation = () => {
             </Link>
           </li>
           
-          {/* Administrator link - fixed positioning for mobile */}
+          {/* Administrator link - moved to bottom on mobile */}
           <li className="nav-admin-item">
             <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
               <span className="desktop-only">{t('administrator')}</span>
               <span className="mobile-only">⚙️ {t('administrator')}</span>
             </Link>
+          </li>
+
+          {/* Mobile logout button */}
+          <li className="nav-logout-item mobile-only">
+            <button className="logout-btn-mobile" onClick={handleLogout}>
+              🚪 Logout ({user?.fullName})
+            </button>
           </li>
         </ul>
         

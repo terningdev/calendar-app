@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const session = require('express-session');
 require('dotenv').config();
 
 const app = express();
@@ -21,46 +22,92 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'calendar-app-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true in production with HTTPS
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
 // Database connection
 const connectDB = async () => {
   try {
     let connectionString = process.env.MONGODB_URI;
     
-    // If no MongoDB URI is provided, create a persistent local database
-    if (!connectionString || connectionString.includes('mongodb://localhost:27017/ticket_management')) {
-      // Try to use a persistent local file database first
-      connectionString = `mongodb://localhost:27017/ticket_management_persistent`;
-      
-      try {
-        await mongoose.connect(connectionString, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        });
-        console.log('Connected to local MongoDB (persistent)');
-        return;
-      } catch (localError) {
-        console.log('Local MongoDB not available, using in-memory database');
-        // Fall back to in-memory if local MongoDB is not available
-        const { MongoMemoryServer } = require('mongodb-memory-server');
-        const mongod = new MongoMemoryServer({
-          instance: {
-            dbPath: './data/db', // This will create a persistent data folder
-          }
-        });
-        await mongod.start();
-        connectionString = mongod.getUri();
-        console.log('Using persistent in-memory MongoDB with file storage');
-      }
+    console.log('Environment check:');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('MONGODB_URI exists:', !!connectionString);
+    
+    if (!connectionString) {
+      console.log('No MONGODB_URI provided, using in-memory database for development');
+      // Use in-memory database when no URI is provided
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      const mongod = new MongoMemoryServer({
+        instance: {
+          dbPath: './data/db',
+        }
+      });
+      await mongod.start();
+      connectionString = mongod.getUri();
+      console.log('✅ Using in-memory MongoDB with file persistence');
+    } else if (connectionString.includes('mongodb+srv://')) {
+      console.log('Using MongoDB Atlas connection (may fail behind corporate firewall)');
+    } else if (connectionString.includes('localhost')) {
+      console.log('Using local MongoDB connection');
+    } else {
+      console.log('Using custom MongoDB connection');
     }
     
+    console.log('Attempting to connect to MongoDB...');
     await mongoose.connect(connectionString, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000, // 10 second timeout for faster failure
+      socketTimeoutMS: 45000,
+      family: 4 // Use IPv4, skip trying IPv6
     });
     
-    console.log('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB successfully');
+    console.log('Database name:', mongoose.connection.name);
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('❌ MongoDB connection error:', error.message);
+    
+    // If Atlas connection fails (likely due to firewall), fall back to local/in-memory
+    if (error.message.includes('Could not connect to any servers') || 
+        error.message.includes('ENOTFOUND') ||
+        error.message.includes('timeout')) {
+      console.log('🔄 Atlas connection failed (likely corporate firewall). Falling back to in-memory database...');
+      
+      try {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        const mongod = new MongoMemoryServer({
+          instance: {
+            dbPath: './data/db',
+          }
+        });
+        await mongod.start();
+        const fallbackUri = mongod.getUri();
+        
+        await mongoose.connect(fallbackUri, {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        });
+        
+        console.log('✅ Successfully connected to fallback in-memory database');
+        console.log('📝 Note: Data will persist in ./data/db folder');
+        return;
+      } catch (fallbackError) {
+        console.error('❌ Fallback database connection also failed:', fallbackError.message);
+        process.exit(1);
+      }
+    }
+    
+    console.error('Full error details:', error);
     process.exit(1);
   }
 };
@@ -68,6 +115,7 @@ const connectDB = async () => {
 connectDB();
 
 // Routes
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/departments', require('./routes/departments'));
 app.use('/api/technicians', require('./routes/technicians'));
 app.use('/api/tickets', require('./routes/tickets'));
