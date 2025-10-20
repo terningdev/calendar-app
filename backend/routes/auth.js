@@ -300,7 +300,7 @@ router.delete('/reject/:phone', (req, res) => {
     }
 });
 
-// Update user PIN
+// Update user password
 router.post('/update-pin', (req, res) => {
     try {
         // Check if user is authenticated
@@ -310,73 +310,67 @@ router.post('/update-pin', (req, res) => {
                 message: 'Authentication required.' 
             });
         }
-            let currentUser;
-            if (req.session.user.username) {
-                currentUser = findUserByUsername(req.session.user.username);
-            } else {
-                currentUser = findUserByEmail(req.session.user.email);
-            }
-        const { currentPin, newPin } = req.body;
 
-        // Validate input
-        if (!currentPin || !newPin) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Current PIN and new PIN are required.' 
-            });
-            const userIndex = users.findIndex(u => u.email === req.params.email);
-
-        if (!User.isValidPin(newPin)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid new PIN. Must be 4 digits.' 
-            });
+        // Find current user
+        let currentUser;
+        if (req.session.user.username) {
+            currentUser = findUserByUsername(req.session.user.username);
+        } else {
+            currentUser = findUserByEmail(req.session.user.email);
         }
 
-        if (!User.isValidPin(currentPin)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid current PIN format.' 
-            });
-        }
-
-        if (currentPin === newPin) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'New PIN must be different from current PIN.' 
-            });
-        }
-
-        // Find user
-        const user = findUserByPhone(req.session.user.phone);
-        if (!user) {
+        if (!currentUser) {
             return res.status(404).json({ 
                 success: false, 
                 message: 'User not found.' 
             });
         }
 
-        // Verify current PIN
-        if (user.pin !== currentPin) {
+        const { currentPassword, newPassword } = req.body;
+
+        // Validate input
+        if (!currentPassword || !newPassword) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Current PIN is incorrect.' 
+                message: 'Current password and new password are required.' 
             });
         }
 
-        // Update PIN
-        user.pin = newPin;
+        if (!User.isValidPassword(newPassword)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid new password. Must be at least 6 characters.' 
+            });
+        }
+
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'New password must be different from current password.' 
+            });
+        }
+
+        // Verify current password
+        if (currentUser.password !== currentPassword) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Current password is incorrect.' 
+            });
+        }
+
+        // Update password
+        currentUser.password = newPassword;
 
         res.json({
             success: true,
-            message: 'PIN updated successfully.'
+            message: 'Password updated successfully.'
         });
 
     } catch (error) {
-        console.error('Update PIN error:', error);
+        console.error('Update password error:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Server error updating PIN.' 
+            message: 'Server error updating password.' 
         });
     }
 });
