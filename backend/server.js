@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 require('dotenv').config();
 
 const app = express();
@@ -22,26 +23,37 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Session configuration
-app.use(session({
+// Session configuration with MongoDB store
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'calendar-app-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || process.env.MONGODB_URI_ATLAS || 'mongodb://localhost:27017/ticket_management_dev',
+    touchAfter: 24 * 3600, // lazy session update (24 hours)
+    crypto: {
+      secret: process.env.SESSION_SECRET || 'calendar-app-secret-key-change-in-production'
+    }
+  }),
   cookie: {
-    secure: false, // Set to true in production with HTTPS
-    httpOnly: false, // Changed to false to allow client-side debugging
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax', // Allow cookies in cross-origin requests
+    secure: process.env.NODE_ENV === 'production', // true in production with HTTPS
+    httpOnly: true, // Prevent XSS attacks
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site in production
     path: '/'
   }
-}));
+};
 
-// Debug middleware to log session info
-app.use((req, res, next) => {
-  console.log('📋 Session ID:', req.sessionID);
-  console.log('👤 Session user:', req.session.user ? req.session.user.email || req.session.user.username : 'none');
-  next();
-});
+app.use(session(sessionConfig));
+
+// Debug middleware to log session info (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log('📋 Session ID:', req.sessionID);
+    console.log('👤 Session user:', req.session.user ? req.session.user.email || req.session.user.username : 'none');
+    next();
+  });
+}
 
 // Database connection
 const connectDB = async () => {
