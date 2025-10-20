@@ -1,9 +1,22 @@
 class User {
-    constructor({ phone, pin, fullName, role = 'user', approved = false, createdAt = new Date() }) {
+    constructor({
+        username, // for sysadmin only
+        password,
+        firstName,
+        lastName,
+        phone,
+        email,
+        role = 'user',
+        approved = false,
+        createdAt = new Date()
+    }) {
+        this.username = username; // only for sysadmin
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.phone = phone;
-        this.pin = pin;
-        this.fullName = fullName;
-        this.role = role; // 'user', 'administrator', 'sysadmin'
+        this.email = email;
+        this.role = role;
         this.approved = approved;
         this.createdAt = createdAt;
     }
@@ -11,9 +24,12 @@ class User {
     // Convert to plain object for storage
     toObject() {
         return {
+            username: this.username,
+            password: this.password,
+            firstName: this.firstName,
+            lastName: this.lastName,
             phone: this.phone,
-            pin: this.pin,
-            fullName: this.fullName,
+            email: this.email,
             role: this.role,
             approved: this.approved,
             createdAt: this.createdAt
@@ -25,21 +41,26 @@ class User {
         return new User(obj);
     }
 
+    // Validate email
+    static isValidEmail(email) {
+        const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        return emailRegex.test(email);
+    }
+
+    // Validate password (min 6 chars)
+    static isValidPassword(password) {
+        return typeof password === 'string' && password.length >= 6;
+    }
+
+    // Validate first/last name
+    static isValidName(name) {
+        return name && name.trim().length >= 2;
+    }
+
     // Validate phone number (Norwegian format)
     static isValidPhone(phone) {
         const phoneRegex = /^[0-9]{8}$/;
         return phoneRegex.test(phone);
-    }
-
-    // Validate PIN code (4 digits)
-    static isValidPin(pin) {
-        const pinRegex = /^[0-9]{4}$/;
-        return pinRegex.test(pin);
-    }
-
-    // Validate full name
-    static isValidName(name) {
-        return name && name.trim().length >= 2;
     }
 
     // Check if user can approve registrations
@@ -49,7 +70,8 @@ class User {
 
     // Check if user is approved and can login
     canLogin() {
-        return this.approved && (this.role === 'sysadmin' || this.approved);
+        if (this.role === 'sysadmin') return true;
+        return this.approved;
     }
 }
 

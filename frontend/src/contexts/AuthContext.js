@@ -23,18 +23,22 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
         try {
+            console.log('🔍 Checking auth status...');
             setLoading(true);
             const response = await authService.checkAuth();
+            console.log('🔍 Auth check response:', response);
             
             if (response.success && response.authenticated) {
+                console.log('✅ User authenticated:', response.user);
                 setUser(response.user);
                 setAuthenticated(true);
             } else {
+                console.log('❌ User not authenticated');
                 setUser(null);
                 setAuthenticated(false);
             }
         } catch (error) {
-            console.error('Auth check failed:', error);
+            console.error('🚨 Auth check failed:', error);
             setUser(null);
             setAuthenticated(false);
         } finally {
@@ -44,9 +48,12 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
+            console.log('🔐 Attempting login...');
             const response = await authService.login(credentials);
+            console.log('🔐 Login response:', response);
             
             if (response.success) {
+                console.log('✅ Login successful, setting user state:', response.user);
                 setUser(response.user);
                 setAuthenticated(true);
                 return response;
@@ -54,7 +61,7 @@ export const AuthProvider = ({ children }) => {
                 throw new Error(response.message || 'Login failed');
             }
         } catch (error) {
-            console.error('Login failed:', error);
+            console.error('🚨 Login failed:', error);
             throw error;
         }
     };
@@ -81,6 +88,21 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const updateUserPin = async (currentPin, newPin) => {
+        try {
+            const response = await authService.updatePin(currentPin, newPin);
+            if (response.success) {
+                // Optionally refresh user data
+                return response;
+            } else {
+                throw new Error(response.message || 'Failed to update PIN');
+            }
+        } catch (error) {
+            console.error('PIN update failed:', error);
+            throw error;
+        }
+    };
+
     // Check if user has specific role
     const hasRole = (role) => {
         return user && user.role === role;
@@ -88,7 +110,11 @@ export const AuthProvider = ({ children }) => {
 
     // Check if user can approve registrations
     const canApproveUsers = () => {
-        return user && (user.role === 'administrator' || user.role === 'sysadmin');
+        console.log('🔍 canApproveUsers check - user:', user);
+        console.log('🔍 canApproveUsers check - user role:', user?.role);
+        const result = user && (user.role === 'administrator' || user.role === 'sysadmin');
+        console.log('🔍 canApproveUsers result:', result);
+        return result;
     };
 
     // Check if user is system admin
@@ -103,6 +129,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateUserPin,
         checkAuthStatus,
         hasRole,
         canApproveUsers,

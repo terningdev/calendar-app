@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import UserMenu from './UserMenu';
 
 const Navigation = () => {
   const location = useLocation();
@@ -67,12 +68,9 @@ const Navigation = () => {
           {getCurrentPageTitle()}
         </div>
 
-        {/* User info - desktop only */}
+        {/* User menu - desktop only */}
         <div className="nav-user-info desktop-only">
-          <span className="user-greeting">Welcome, {user?.fullName}</span>
-          <button className="logout-btn" onClick={handleLogout} title="Logout">
-            Logout
-          </button>
+          <UserMenu />
         </div>
         
         {/* Navigation links - desktop always visible, mobile in overlay */}

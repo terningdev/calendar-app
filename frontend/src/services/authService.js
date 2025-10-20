@@ -64,9 +64,9 @@ const authService = {
     },
 
     // Approve user registration (admin only)
-    async approveUser(phone) {
+    async approveUser(email) {
         try {
-            const response = await api.post(`/auth/approve/${phone}`);
+            const response = await api.post(`/auth/approve/${email}`);
             return response.data;
         } catch (error) {
             if (error.response && error.response.data) {
@@ -77,9 +77,9 @@ const authService = {
     },
 
     // Reject user registration (admin only)
-    async rejectUser(phone) {
+    async rejectUser(email) {
         try {
-            const response = await api.delete(`/auth/reject/${phone}`);
+            const response = await api.delete(`/auth/reject/${email}`);
             return response.data;
         } catch (error) {
             if (error.response && error.response.data) {
@@ -89,15 +89,35 @@ const authService = {
         }
     },
 
+    // Update user PIN
+    async updatePin(currentPin, newPin) {
+        try {
+            const response = await api.post('/auth/update-pin', {
+                currentPin,
+                newPin
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response && error.response.data) {
+                throw new Error(error.response.data.message);
+            }
+            throw new Error('Failed to update PIN.');
+        }
+    },
+
     // Validation helpers
     isValidPhone(phone) {
         const phoneRegex = /^[0-9]{8}$/;
         return phoneRegex.test(phone);
     },
 
-    isValidPin(pin) {
-        const pinRegex = /^[0-9]{4}$/;
-        return pinRegex.test(pin);
+    isValidEmail(email) {
+        const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        return emailRegex.test(email);
+    },
+
+    isValidPassword(password) {
+        return typeof password === 'string' && password.length >= 6;
     },
 
     isValidName(name) {

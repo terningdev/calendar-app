@@ -155,8 +155,12 @@ const Administrator = () => {
       }
 
       // Load pending users if user can approve
+      console.log('🔄 Initial load - canApproveUsers():', canApproveUsers());
       if (canApproveUsers()) {
+        console.log('✅ Loading pending users on initial load');
         await loadPendingUsers();
+      } else {
+        console.log('❌ Cannot approve users, skipping pending users load');
       }
     } catch (error) {
       toast.error('Error loading data');
@@ -285,16 +289,25 @@ const Administrator = () => {
 
   // Pending users functions
   const loadPendingUsers = async () => {
-    if (!canApproveUsers()) return;
+    console.log('🔄 loadPendingUsers called');
+    console.log('🔄 canApproveUsers():', canApproveUsers());
+    
+    if (!canApproveUsers()) {
+      console.log('❌ User cannot approve users, skipping load');
+      return;
+    }
     
     try {
+      console.log('🔄 Loading pending users...');
       setLoadingUsers(true);
       const response = await authService.getPendingUsers();
+      console.log('🔄 Pending users response:', response);
       if (response.success) {
+        console.log('✅ Setting pending users:', response.pendingUsers || []);
         setPendingUsers(response.pendingUsers || []);
       }
     } catch (error) {
-      console.error('Error loading pending users:', error);
+      console.error('🚨 Error loading pending users:', error);
       toast.error('Error loading pending users');
     } finally {
       setLoadingUsers(false);
@@ -899,9 +912,19 @@ const Administrator = () => {
           <div className="modal-content" style={{ maxWidth: '600px' }}>
             <div className="modal-header">
               <h2 className="modal-title">Pending User Registrations</h2>
-              <button className="modal-close" onClick={() => setShowPendingUsersModal(false)}>
-                ×
-              </button>
+              <div className="modal-header-actions">
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  onClick={loadPendingUsers}
+                  disabled={loadingUsers}
+                  title="Refresh pending users list"
+                >
+                  🔄 Refresh
+                </button>
+                <button className="modal-close" onClick={() => setShowPendingUsersModal(false)}>
+                  ×
+                </button>
+              </div>
             </div>
             <div className="modal-body">
               {loadingUsers ? (
@@ -916,9 +939,10 @@ const Administrator = () => {
               ) : (
                 <div className="pending-users-list">
                   {pendingUsers.map((user) => (
-                    <div key={user.phone} className="pending-user-card">
+                    <div key={user.email} className="pending-user-card">
                       <div className="user-info">
-                        <div className="user-name">{user.fullName}</div>
+                        <div className="user-name">{user.firstName} {user.lastName}</div>
+                        <div className="user-email">{user.email}</div>
                         <div className="user-phone">+47 {user.phone}</div>
                         <div className="user-date">
                           Registered: {new Date(user.createdAt).toLocaleDateString()}
@@ -927,14 +951,14 @@ const Administrator = () => {
                       <div className="user-actions">
                         <button 
                           className="btn btn-success btn-sm"
-                          onClick={() => handleApproveUser(user.phone)}
+                          onClick={() => handleApproveUser(user.email)}
                           title="Approve Registration"
                         >
                           ✓ Approve
                         </button>
                         <button 
                           className="btn btn-danger btn-sm"
-                          onClick={() => handleRejectUser(user.phone)}
+                          onClick={() => handleRejectUser(user.email)}
                           title="Reject Registration"
                         >
                           ✗ Reject

@@ -8,17 +8,16 @@ let nextId = 1;
 
 // Initialize default sysadmin user
 const initializeDefaultUser = () => {
-    const existingSysadmin = users.find(user => user.phone === '99999999');
+    const existingSysadmin = users.find(user => user.username === 'sysadmin');
     if (!existingSysadmin) {
         const sysadmin = new User({
-            phone: '99999999',
-            pin: '6969',
-            fullName: 'System Administrator',
+            username: 'sysadmin',
+            password: '696969',
             role: 'sysadmin',
             approved: true
         });
         users.push(sysadmin);
-        console.log('Default sysadmin user created: 99999999 / 6969');
+        console.log('Default sysadmin user created: sysadmin / 696969');
     }
 };
 
@@ -26,54 +25,54 @@ const initializeDefaultUser = () => {
 initializeDefaultUser();
 
 // Helper function to find user by phone
-const findUserByPhone = (phone) => {
-    return users.find(user => user.phone === phone);
+const findUserByEmail = (email) => {
+    return users.find(user => user.email === email);
+};
+
+const findUserByUsername = (username) => {
+    return users.find(user => user.username === username);
 };
 
 // Register new user
 router.post('/register', (req, res) => {
     try {
-        const { phone, pin, fullName } = req.body;
+        const { firstName, lastName, phone, email, password, password2 } = req.body;
 
         // Validate input
+        if (!User.isValidName(firstName)) {
+            return res.status(400).json({ success: false, message: 'First name must be at least 2 characters.' });
+        }
+        if (!User.isValidName(lastName)) {
+            return res.status(400).json({ success: false, message: 'Last name must be at least 2 characters.' });
+        }
         if (!User.isValidPhone(phone)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid phone number. Must be 8 digits.' 
-            });
+            return res.status(400).json({ success: false, message: 'Invalid phone number. Must be 8 digits.' });
+        }
+        if (!User.isValidEmail(email)) {
+            return res.status(400).json({ success: false, message: 'Valid email is required.' });
+        }
+        if (!User.isValidPassword(password)) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+        }
+        if (password !== password2) {
+            return res.status(400).json({ success: false, message: 'Passwords do not match.' });
         }
 
-        if (!User.isValidPin(pin)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid PIN. Must be 4 digits.' 
-            });
-        }
-
-        if (!User.isValidName(fullName)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Full name must be at least 2 characters.' 
-            });
-        }
-
-        // Check if user already exists
-        if (findUserByPhone(phone)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Phone number already registered.' 
-            });
+        // Check if email already exists
+        if (users.find(u => u.email === email)) {
+            return res.status(400).json({ success: false, message: 'Email already registered.' });
         }
 
         // Create new user (awaiting approval)
         const newUser = new User({
+            firstName,
+            lastName,
             phone,
-            pin,
-            fullName,
+            email,
+            password,
             role: 'user',
             approved: false
         });
-
         users.push(newUser);
 
         res.json({
@@ -84,63 +83,49 @@ router.post('/register', (req, res) => {
 
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Server error during registration.' 
-        });
+        res.status(500).json({ success: false, message: 'Server error during registration.' });
     }
 });
 
 // Login user
 router.post('/login', (req, res) => {
     try {
-        const { phone, pin } = req.body;
+        const { email, password, username } = req.body;
 
-        // Find user
-        const user = findUserByPhone(phone);
-        if (!user) {
-            return res.status(401).json({ 
-                success: false, 
-                message: 'Invalid phone number or PIN.' 
-            });
-        }
-
-        // Check PIN
-        if (user.pin !== pin) {
-            return res.status(401).json({ 
-                success: false, 
-                message: 'Invalid phone number or PIN.' 
-            });
-        }
-
-        // Check if user is approved (sysadmin is always approved)
-        if (!user.approved) {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Account pending approval from administrator.' 
-            });
+        let user;
+        if (username) {
+            // Sysadmin login
+            user = users.find(u => u.username === username && u.role === 'sysadmin');
+            if (!user || user.password !== password) {
+                return res.status(401).json({ success: false, message: 'Invalid username or password.' });
+            }
+        } else {
+            // Regular user login
+            user = users.find(u => u.email === email);
+            if (!user || user.password !== password) {
+                return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+            }
+            if (!user.approved) {
+                return res.status(403).json({ success: false, message: 'Account pending approval from administrator.' });
+            }
         }
 
         // Create session
         req.session.user = {
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
             phone: user.phone,
-            fullName: user.fullName,
+            email: user.email,
             role: user.role,
             approved: user.approved
         };
 
-        res.json({
-            success: true,
-            message: 'Login successful.',
-            user: req.session.user
-        });
+        res.json({ success: true, message: 'Login successful.', user: req.session.user });
 
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Server error during login.' 
-        });
+        res.status(500).json({ success: false, message: 'Server error during login.' });
     }
 });
 
@@ -188,22 +173,25 @@ router.get('/pending', (req, res) => {
         }
 
         // Check permissions
-        const currentUser = findUserByPhone(req.session.user.phone);
+        let currentUser;
+        if (req.session.user.username) {
+            currentUser = findUserByUsername(req.session.user.username);
+        } else {
+            currentUser = findUserByEmail(req.session.user.email);
+        }
         if (!currentUser || !currentUser.canApproveUsers()) {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Administrator privileges required.' 
-            });
+            return res.status(403).json({ success: false, message: 'Administrator privileges required.' });
         }
 
         // Get pending users
         const pendingUsers = users.filter(user => !user.approved && user.role !== 'sysadmin');
-        
         res.json({
             success: true,
             pendingUsers: pendingUsers.map(user => ({
+                firstName: user.firstName,
+                lastName: user.lastName,
                 phone: user.phone,
-                fullName: user.fullName,
+                email: user.email,
                 createdAt: user.createdAt
             }))
         });
@@ -229,36 +217,26 @@ router.post('/approve/:phone', (req, res) => {
         }
 
         // Check permissions
-        const currentUser = findUserByPhone(req.session.user.phone);
+        let currentUser;
+        if (req.session.user.username) {
+            currentUser = findUserByUsername(req.session.user.username);
+        } else {
+            currentUser = findUserByEmail(req.session.user.email);
+        }
         if (!currentUser || !currentUser.canApproveUsers()) {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Administrator privileges required.' 
-            });
+            return res.status(403).json({ success: false, message: 'Administrator privileges required.' });
         }
 
-        // Find and approve user
-        const userToApprove = findUserByPhone(req.params.phone);
+        // Find and approve user by email
+        const userToApprove = findUserByEmail(req.params.email);
         if (!userToApprove) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'User not found.' 
-            });
+            return res.status(404).json({ success: false, message: 'User not found.' });
         }
-
         if (userToApprove.approved) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'User already approved.' 
-            });
+            return res.status(400).json({ success: false, message: 'User already approved.' });
         }
-
         userToApprove.approved = true;
-
-        res.json({
-            success: true,
-            message: `User ${userToApprove.fullName} approved successfully.`
-        });
+        res.json({ success: true, message: `User ${userToApprove.email} approved successfully.` });
 
     } catch (error) {
         console.error('Approve user error:', error);
@@ -318,6 +296,87 @@ router.delete('/reject/:phone', (req, res) => {
         res.status(500).json({ 
             success: false, 
             message: 'Server error rejecting user.' 
+        });
+    }
+});
+
+// Update user PIN
+router.post('/update-pin', (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.session.user) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Authentication required.' 
+            });
+        }
+            let currentUser;
+            if (req.session.user.username) {
+                currentUser = findUserByUsername(req.session.user.username);
+            } else {
+                currentUser = findUserByEmail(req.session.user.email);
+            }
+        const { currentPin, newPin } = req.body;
+
+        // Validate input
+        if (!currentPin || !newPin) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Current PIN and new PIN are required.' 
+            });
+            const userIndex = users.findIndex(u => u.email === req.params.email);
+
+        if (!User.isValidPin(newPin)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid new PIN. Must be 4 digits.' 
+            });
+        }
+
+        if (!User.isValidPin(currentPin)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid current PIN format.' 
+            });
+        }
+
+        if (currentPin === newPin) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'New PIN must be different from current PIN.' 
+            });
+        }
+
+        // Find user
+        const user = findUserByPhone(req.session.user.phone);
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found.' 
+            });
+        }
+
+        // Verify current PIN
+        if (user.pin !== currentPin) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Current PIN is incorrect.' 
+            });
+        }
+
+        // Update PIN
+        user.pin = newPin;
+
+        res.json({
+            success: true,
+            message: 'PIN updated successfully.'
+        });
+
+    } catch (error) {
+        console.error('Update PIN error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error updating PIN.' 
         });
     }
 });

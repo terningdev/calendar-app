@@ -11,10 +11,12 @@ const LoginModal = ({ onAuthSuccess }) => {
     
     // Form state
     const [formData, setFormData] = useState({
-        phone: '',
-        pin: '',
-        fullName: '',
-        countryCode: '+47'
+    email: '',
+    password: '',
+    password2: '',
+    firstName: '',
+    lastName: '',
+    phone: ''
     });
 
     const handleInputChange = (e) => {
@@ -23,10 +25,6 @@ const LoginModal = ({ onAuthSuccess }) => {
         if (name === 'phone') {
             // Only allow digits, max 8 characters
             const cleanedValue = value.replace(/\D/g, '').substring(0, 8);
-            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
-        } else if (name === 'pin') {
-            // Only allow digits, max 4 characters
-            const cleanedValue = value.replace(/\D/g, '').substring(0, 4);
             setFormData(prev => ({ ...prev, [name]: cleanedValue }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
@@ -38,21 +36,50 @@ const LoginModal = ({ onAuthSuccess }) => {
     };
 
     const validateForm = () => {
-        if (!authService.isValidPhone(formData.phone)) {
-            setError('Phone number must be 8 digits');
-            return false;
+        if (isLogin) {
+            // Accept 'sysadmin' as a valid input in the email field
+            if (formData.email === 'sysadmin') {
+                if (!formData.password) {
+                    setError('Password required');
+                    return false;
+                }
+            } else {
+                if (!authService.isValidEmail(formData.email)) {
+                    setError('Valid email required');
+                    return false;
+                }
+                if (!authService.isValidPassword(formData.password)) {
+                    setError('Password must be at least 6 characters');
+                    return false;
+                }
+            }
+        } else {
+            // Registration
+            if (!authService.isValidName(formData.firstName)) {
+                setError('First name must be at least 2 characters');
+                return false;
+            }
+            if (!authService.isValidName(formData.lastName)) {
+                setError('Last name must be at least 2 characters');
+                return false;
+            }
+            if (!authService.isValidPhone(formData.phone)) {
+                setError('Phone number must be 8 digits');
+                return false;
+            }
+            if (!authService.isValidEmail(formData.email)) {
+                setError('Valid email required');
+                return false;
+            }
+            if (!authService.isValidPassword(formData.password)) {
+                setError('Password must be at least 6 characters');
+                return false;
+            }
+            if (formData.password !== formData.password2) {
+                setError('Passwords do not match');
+                return false;
+            }
         }
-        
-        if (!authService.isValidPin(formData.pin)) {
-            setError('PIN must be 4 digits');
-            return false;
-        }
-        
-        if (!isLogin && !authService.isValidName(formData.fullName)) {
-            setError('Full name must be at least 2 characters');
-            return false;
-        }
-        
         return true;
     };
 
@@ -67,35 +94,39 @@ const LoginModal = ({ onAuthSuccess }) => {
         
         try {
             if (isLogin) {
-                // Login using AuthContext
-                const result = await login({
-                    phone: formData.phone,
-                    pin: formData.pin
-                });
-                
+                let result;
+                if (formData.email === 'sysadmin') {
+                    // Sysadmin login
+                    result = await login({ username: 'sysadmin', password: formData.password });
+                } else {
+                    // Regular user login
+                    result = await login({ email: formData.email, password: formData.password });
+                }
                 if (result.success) {
                     setSuccess('Login successful!');
-                    setTimeout(() => {
-                        onAuthSuccess();
-                    }, 500);
+                    setTimeout(() => { onAuthSuccess(); }, 500);
                 }
             } else {
                 // Register
                 const result = await authService.register({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
                     phone: formData.phone,
-                    pin: formData.pin,
-                    fullName: formData.fullName
+                    email: formData.email,
+                    password: formData.password,
+                    password2: formData.password2
                 });
-                
                 if (result.success) {
                     setSuccess('Registration submitted! Awaiting administrator approval.');
-                    // Clear form and switch to login after registration
                     setTimeout(() => {
                         setFormData({
+                            email: '',
+                            password: '',
+                            password2: '',
+                            firstName: '',
+                            lastName: '',
                             phone: '',
-                            pin: '',
-                            fullName: '',
-                            countryCode: '+47'
+                            username: ''
                         });
                         setIsLogin(true);
                     }, 2000);
@@ -113,10 +144,12 @@ const LoginModal = ({ onAuthSuccess }) => {
         setError('');
         setSuccess('');
         setFormData({
-            phone: '',
-            pin: '',
-            fullName: '',
-            countryCode: '+47'
+            email: '',
+            password: '',
+            password2: '',
+            firstName: '',
+            lastName: '',
+            phone: ''
         });
     };
 
@@ -134,58 +167,117 @@ const LoginModal = ({ onAuthSuccess }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="login-form">
-                    {!isLogin && (
-                        <div className="form-group">
-                            <label htmlFor="fullName">Full Name</label>
-                            <input
-                                type="text"
-                                id="fullName"
-                                name="fullName"
-                                value={formData.fullName}
-                                onChange={handleInputChange}
-                                placeholder="Enter your full name"
-                                required={!isLogin}
-                                disabled={loading}
-                            />
-                        </div>
+                    {isLogin ? (
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    type="text"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    placeholder="Email"
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="password">Password</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    placeholder="Password"
+                                    disabled={loading}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="firstName">First Name</label>
+                                <input
+                                    type="text"
+                                    id="firstName"
+                                    name="firstName"
+                                    value={formData.firstName}
+                                    onChange={handleInputChange}
+                                    placeholder="First Name"
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="lastName">Last Name</label>
+                                <input
+                                    type="text"
+                                    id="lastName"
+                                    name="lastName"
+                                    value={formData.lastName}
+                                    onChange={handleInputChange}
+                                    placeholder="Last Name"
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="phone">Phone Number</label>
+                                <input
+                                    type="text"
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
+                                    placeholder="12345678"
+                                    maxLength="8"
+                                    required
+                                    disabled={loading}
+                                />
+                                <small className="form-hint">Norwegian phone number (8 digits)</small>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    placeholder="user@email.com"
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="password">Password</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    placeholder="Password"
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="password2">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    id="password2"
+                                    name="password2"
+                                    value={formData.password2}
+                                    onChange={handleInputChange}
+                                    placeholder="Repeat Password"
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                        </>
                     )}
-
-                    <div className="form-group">
-                        <label htmlFor="phone">Phone Number</label>
-                        <div className="phone-input-group">
-                            <span className="country-code">{formData.countryCode}</span>
-                            <input
-                                type="text"
-                                id="phone"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                                placeholder="12345678"
-                                maxLength="8"
-                                required
-                                disabled={loading}
-                                className="phone-input"
-                            />
-                        </div>
-                        <small className="form-hint">Norwegian phone number (8 digits)</small>
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="pin">PIN Code</label>
-                        <input
-                            type="password"
-                            id="pin"
-                            name="pin"
-                            value={formData.pin}
-                            onChange={handleInputChange}
-                            placeholder="0000"
-                            maxLength="4"
-                            required
-                            disabled={loading}
-                            className="pin-input"
-                        />
-                        <small className="form-hint">4-digit PIN code</small>
-                    </div>
 
                     {error && <div className="error-message">{error}</div>}
                     {success && <div className="success-message">{success}</div>}
