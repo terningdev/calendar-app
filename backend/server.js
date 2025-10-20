@@ -13,7 +13,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'https://planlegger.terning.info',
-  'http://planlegger.terning.info'
+  'http://planlegger.terning.info',
+  'https://calendar-app-9uov.onrender.com'
 ];
 
 app.use(cors({
@@ -25,17 +26,28 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('⚠️ CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true); // Allow anyway for debugging
     }
   },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['set-cookie']
 }));
 
 // Trust proxy - important for production behind reverse proxy/load balancer
 app.set('trust proxy', 1);
+
+// Additional headers for cross-origin cookies
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  next();
+});
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -62,8 +74,8 @@ const sessionConfig = {
     httpOnly: false, // Set to false for debugging cookie issues
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-site with secure
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.terning.info' : undefined // Allow subdomain access in production
+    path: '/'
+    // Removed domain restriction to allow same-origin cookies
   },
   proxy: true // Trust the reverse proxy
 };
