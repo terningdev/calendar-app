@@ -8,16 +8,38 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware - Configure CORS to allow all origins for now (debugging)
+// Middleware - Configure CORS with proper origin handling
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'https://planlegger.terning.info',
+  'http://planlegger.terning.info'
+];
+
 app.use(cors({
-  origin: true,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.log('⚠️ CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Trust proxy - important for production behind reverse proxy/load balancer
+app.set('trust proxy', 1);
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'none'}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'none'} - Protocol: ${req.protocol}`);
   next();
 });
 
@@ -37,23 +59,25 @@ const sessionConfig = {
   }),
   cookie: {
     secure: process.env.NODE_ENV === 'production', // true in production with HTTPS
-    httpOnly: true, // Prevent XSS attacks
+    httpOnly: false, // Set to false for debugging cookie issues
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site in production
-    path: '/'
-  }
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-site with secure
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.terning.info' : undefined // Allow subdomain access in production
+  },
+  proxy: true // Trust the reverse proxy
 };
 
 app.use(session(sessionConfig));
 
-// Debug middleware to log session info (only in development)
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log('📋 Session ID:', req.sessionID);
-    console.log('👤 Session user:', req.session.user ? req.session.user.email || req.session.user.username : 'none');
-    next();
-  });
-}
+// Session debugging middleware
+app.use((req, res, next) => {
+  const logPrefix = process.env.NODE_ENV === 'production' ? '[PROD]' : '[DEV]';
+  console.log(`${logPrefix} 📋 Session ID:`, req.sessionID);
+  console.log(`${logPrefix} 👤 Session user:`, req.session.user ? req.session.user.email || req.session.user.username : 'none');
+  console.log(`${logPrefix} 🍪 Cookies:`, req.headers.cookie ? 'present' : 'missing');
+  next();
+});
 
 // Database connection
 const connectDB = async () => {
