@@ -29,11 +29,19 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: false, // Set to true in production with HTTPS
-    httpOnly: true,
+    httpOnly: false, // Changed to false to allow client-side debugging
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax' // Allow cookies in cross-origin requests
+    sameSite: 'lax', // Allow cookies in cross-origin requests
+    path: '/'
   }
 }));
+
+// Debug middleware to log session info
+app.use((req, res, next) => {
+  console.log('📋 Session ID:', req.sessionID);
+  console.log('👤 Session user:', req.session.user ? req.session.user.email || req.session.user.username : 'none');
+  next();
+});
 
 // Database connection
 const connectDB = async () => {

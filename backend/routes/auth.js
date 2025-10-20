@@ -121,7 +121,16 @@ router.post('/login', (req, res) => {
             approved: user.approved
         };
 
-        res.json({ success: true, message: 'Login successful.', user: req.session.user });
+        // Save session explicitly
+        req.session.save((err) => {
+            if (err) {
+                console.error('❌ Session save error:', err);
+                return res.status(500).json({ success: false, message: 'Failed to save session.' });
+            }
+            console.log('✅ Session saved for user:', user.email || user.username);
+            console.log('📋 Session ID:', req.sessionID);
+            res.json({ success: true, message: 'Login successful.', user: req.session.user });
+        });
 
     } catch (error) {
         console.error('Login error:', error);
