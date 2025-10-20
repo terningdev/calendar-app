@@ -58,12 +58,25 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // Session configuration with MongoDB store
+const getMongoUrl = () => {
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGODB_URI_ATLAS;
+  
+  // Validate the connection string
+  if (mongoUri && (mongoUri.startsWith('mongodb://') || mongoUri.startsWith('mongodb+srv://'))) {
+    console.log('✅ Valid MongoDB URI found for session store');
+    return mongoUri;
+  }
+  
+  console.log('⚠️ No valid MongoDB URI, using fallback for session store');
+  return 'mongodb://localhost:27017/ticket_management_dev';
+};
+
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'calendar-app-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || process.env.MONGODB_URI_ATLAS || 'mongodb://localhost:27017/ticket_management_dev',
+    mongoUrl: getMongoUrl(),
     touchAfter: 24 * 3600, // lazy session update (24 hours)
     crypto: {
       secret: process.env.SESSION_SECRET || 'calendar-app-secret-key-change-in-production'
@@ -99,6 +112,7 @@ const connectDB = async () => {
     console.log('Environment check:');
     console.log('NODE_ENV:', process.env.NODE_ENV);
     console.log('MONGODB_URI exists:', !!connectionString);
+    console.log('MONGODB_URI first 20 chars:', connectionString ? connectionString.substring(0, 20) + '...' : 'undefined');
     
     if (!connectionString) {
       console.log('No MONGODB_URI provided, using in-memory database for development');
