@@ -216,7 +216,7 @@ router.get('/matrix', isAuthenticated, async (req, res) => {
         const products = await SkillProduct.find({ categoryId }).sort({ name: 1 });
 
         // Get all technicians in the department
-        const technicians = await Technician.find({ departmentId }).sort({ name: 1 });
+        const technicians = await Technician.find({ department: departmentId }).sort({ firstName: 1, lastName: 1 });
 
         // Get all skill levels for these technicians and products
         const productIds = products.map(p => p._id);
@@ -234,10 +234,19 @@ router.get('/matrix', isAuthenticated, async (req, res) => {
             skillMap[key] = skill;
         });
 
+        // Add name field to technicians for frontend display
+        const techniciansWithNames = technicians.map(tech => ({
+            _id: tech._id,
+            name: `${tech.firstName} ${tech.lastName}`,
+            firstName: tech.firstName,
+            lastName: tech.lastName,
+            email: tech.email
+        }));
+
         res.json({ 
             success: true, 
             products,
-            technicians,
+            technicians: techniciansWithNames,
             skillLevels: skillMap
         });
     } catch (error) {
