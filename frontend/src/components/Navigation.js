@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../utils/translations';
-import { useAuth } from '../contexts/AuthContext';
 import UserMenu from './UserMenu';
 
 const Navigation = () => {
   const location = useLocation();
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isActive = (path) => {
@@ -20,15 +18,6 @@ const Navigation = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      closeMenu();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
   };
 
   // Get current page title based on route
@@ -104,11 +93,9 @@ const Navigation = () => {
             </Link>
           </li>
 
-          {/* Mobile logout button */}
-          <li className="nav-logout-item mobile-only">
-            <button className="logout-btn-mobile" onClick={handleLogout}>
-              🚪 Logout ({user?.fullName})
-            </button>
+          {/* Mobile user menu */}
+          <li className="nav-user-item mobile-only">
+            <UserMenu />
           </li>
         </ul>
         
