@@ -906,7 +906,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewDashboard || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewDashboard || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewDashboard', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -924,7 +924,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewCalendar || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewCalendar || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewCalendar', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -942,7 +942,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewTickets || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewTickets || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewTickets', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -960,7 +960,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewAdministrator || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewAdministrator || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewAdministrator', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -978,7 +978,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewAbsences || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewAbsences || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewAbsences', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -996,7 +996,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewSkills || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewSkills || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewSkills', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1029,7 +1029,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].approveUsers || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].approveUsers || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'approveUsers', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1047,7 +1047,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].manageUsers || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].manageUsers || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'manageUsers', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1065,7 +1065,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].managePermissions || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].managePermissions || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'managePermissions', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1083,7 +1083,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewSystemStatus || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewSystemStatus || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'viewSystemStatus', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1116,7 +1116,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].createTickets || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].createTickets || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'createTickets', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1134,7 +1134,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].editOwnTickets || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].editOwnTickets || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'editOwnTickets', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1152,7 +1152,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].editAllTickets || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].editAllTickets || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'editAllTickets', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1170,7 +1170,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].deleteTickets || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].deleteTickets || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'deleteTickets', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1188,7 +1188,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].assignTickets || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].assignTickets || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'assignTickets', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1221,7 +1221,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].manageDepartments || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].manageDepartments || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'manageDepartments', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
@@ -1239,7 +1239,7 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].manageTechnicians || false}
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].manageTechnicians || false)}
                               onChange={(e) => handlePermissionChange(selectedRole, 'manageTechnicians', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
