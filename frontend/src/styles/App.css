@@ -247,18 +247,16 @@ body {
   background: white;
   border-radius: 8px;
   padding: 0;
-  max-width: 600px;
+  max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  min-width: 480px;
 }
 
 @media (max-width: 768px) {
   .user-menu-modal-content {
-    min-width: auto;
     width: 95%;
-    max-width: 100%;
+    max-width: 95%;
   }
 }
 
