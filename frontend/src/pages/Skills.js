@@ -227,91 +227,98 @@ const Skills = () => {
         backgroundColor: '#f8f9fa',
         borderRadius: '8px'
       }}>
-        <h2 style={{ marginBottom: '20px' }}>📚 Categories & Products</h2>
-        
-        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <h2 style={{ margin: 0 }}>📚 Categories & Products</h2>
           <button onClick={() => openCategoryModal()} className="btn btn-primary">
             ➕ Add Category
           </button>
-          <button onClick={() => openProductModal()} className="btn btn-primary">
-            ➕ Add Product
-          </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          {categories.map(category => {
-            const categoryProducts = products.filter(p => 
-              (p.categoryId._id || p.categoryId) === category._id
-            );
-            
-            return (
-              <div key={category._id} style={{
-                padding: '15px',
-                backgroundColor: 'white',
-                borderRadius: '6px',
-                border: '1px solid #dee2e6'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{category.name}</h3>
-                  <div>
-                    <button 
-                      onClick={() => openCategoryModal(category)}
-                      className="btn btn-sm"
-                      style={{ marginRight: '5px', padding: '2px 8px' }}
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteCategory(category._id)}
-                      className="btn btn-sm btn-danger"
-                      style={{ padding: '2px 8px' }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-                
-                {category.description && (
-                  <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
-                    {category.description}
-                  </p>
-                )}
-                
-                <div style={{ borderTop: '1px solid #eee', paddingTop: '10px' }}>
-                  <strong style={{ fontSize: '0.9rem' }}>Products ({categoryProducts.length}):</strong>
-                  {categoryProducts.length > 0 ? (
-                    <ul style={{ marginTop: '5px', paddingLeft: '20px' }}>
-                      {categoryProducts.map(product => (
-                        <li key={product._id} style={{ fontSize: '0.9rem', marginBottom: '5px' }}>
-                          {product.name}
-                          <button 
-                            onClick={() => openProductModal(product)}
-                            style={{ marginLeft: '10px', border: 'none', background: 'none', cursor: 'pointer' }}
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteProduct(product._id)}
-                            style={{ marginLeft: '5px', border: 'none', background: 'none', cursor: 'pointer', color: '#e74c3c' }}
-                          >
-                            🗑️
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p style={{ fontSize: '0.9rem', color: '#999', marginTop: '5px' }}>No products yet</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {categories.length === 0 && (
+        {categories.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
             No categories yet. Click "Add Category" to get started.
           </p>
+        ) : (
+          <div style={{ backgroundColor: 'white', borderRadius: '6px', border: '1px solid #dee2e6' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                <tr>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Category</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Products</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', fontWeight: '600', width: '150px' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category, index) => {
+                  const categoryProducts = products.filter(p => 
+                    (p.categoryId._id || p.categoryId) === category._id
+                  );
+                  
+                  return (
+                    <tr 
+                      key={category._id} 
+                      style={{ 
+                        borderBottom: index < categories.length - 1 ? '1px solid #dee2e6' : 'none'
+                      }}
+                    >
+                      <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
+                        <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{category.name}</div>
+                        {category.description && (
+                          <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '2px' }}>
+                            {category.description}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
+                        {categoryProducts.length > 0 ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {categoryProducts.map(product => (
+                              <span 
+                                key={product._id}
+                                style={{
+                                  display: 'inline-block',
+                                  padding: '4px 10px',
+                                  backgroundColor: '#e7f3ff',
+                                  border: '1px solid #b8daff',
+                                  borderRadius: '4px',
+                                  fontSize: '0.85rem',
+                                  color: '#004085'
+                                }}
+                              >
+                                {product.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>
+                            No products
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 15px', textAlign: 'right', verticalAlign: 'top' }}>
+                        <button 
+                          onClick={() => openCategoryModal(category)}
+                          className="btn btn-sm"
+                          style={{ marginRight: '5px', padding: '6px 12px' }}
+                          title="Edit category & products"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCategory(category._id)}
+                          className="btn btn-sm btn-danger"
+                          style={{ padding: '6px 12px' }}
+                          title="Delete category"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -513,10 +520,10 @@ const Skills = () => {
       {/* Category Modal */}
       {showCategoryModal && (
         <div className="modal" style={{ display: 'block' }}>
-          <div className="modal-content">
+          <div className="modal-content" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
               <h2 className="modal-title">
-                {editingCategory ? 'Edit Category' : 'Add Category'}
+                {editingCategory ? `Edit Category: ${editingCategory.name}` : 'Add Category'}
               </h2>
               <button className="modal-close" onClick={() => setShowCategoryModal(false)}>×</button>
             </div>
@@ -538,16 +545,121 @@ const Skills = () => {
                     className="form-control"
                     value={categoryForm.description}
                     onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                    rows="3"
+                    rows="2"
                   />
                 </div>
+
+                {/* Products Section - Only show when editing a category */}
+                {editingCategory && (
+                  <>
+                    <hr style={{ margin: '20px 0', borderColor: '#dee2e6' }} />
+                    <div style={{ marginBottom: '15px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600' }}>Products in this Category</h3>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setProductForm({ name: '', categoryId: editingCategory._id, description: '' });
+                            setEditingProduct(null);
+                            setShowProductModal(true);
+                          }}
+                          className="btn btn-sm btn-primary"
+                          style={{ padding: '4px 10px', fontSize: '0.85rem' }}
+                        >
+                          ➕ Add Product
+                        </button>
+                      </div>
+                      
+                      {products.filter(p => (p.categoryId._id || p.categoryId) === editingCategory._id).length > 0 ? (
+                        <div style={{ 
+                          maxHeight: '200px', 
+                          overflowY: 'auto',
+                          border: '1px solid #dee2e6',
+                          borderRadius: '4px',
+                          backgroundColor: '#f8f9fa'
+                        }}>
+                          {products
+                            .filter(p => (p.categoryId._id || p.categoryId) === editingCategory._id)
+                            .map(product => (
+                              <div 
+                                key={product._id}
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '8px 12px',
+                                  borderBottom: '1px solid #dee2e6',
+                                  backgroundColor: 'white'
+                                }}
+                              >
+                                <span style={{ fontSize: '0.9rem' }}>{product.name}</span>
+                                <div>
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingProduct(product);
+                                      setProductForm({ 
+                                        name: product.name, 
+                                        categoryId: product.categoryId._id || product.categoryId,
+                                        description: product.description || '' 
+                                      });
+                                      setShowProductModal(true);
+                                    }}
+                                    style={{ 
+                                      marginRight: '5px', 
+                                      border: 'none', 
+                                      background: 'none', 
+                                      cursor: 'pointer',
+                                      padding: '4px 8px',
+                                      fontSize: '0.9rem'
+                                    }}
+                                    title="Edit product"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleDeleteProduct(product._id)}
+                                    style={{ 
+                                      border: 'none', 
+                                      background: 'none', 
+                                      cursor: 'pointer', 
+                                      color: '#e74c3c',
+                                      padding: '4px 8px',
+                                      fontSize: '0.9rem'
+                                    }}
+                                    title="Delete product"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p style={{ 
+                          fontSize: '0.9rem', 
+                          color: '#999', 
+                          fontStyle: 'italic',
+                          padding: '15px',
+                          textAlign: 'center',
+                          backgroundColor: '#f8f9fa',
+                          border: '1px solid #dee2e6',
+                          borderRadius: '4px'
+                        }}>
+                          No products in this category yet
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingCategory ? 'Update' : 'Create'}
+                  {editingCategory ? 'Update Category' : 'Create Category'}
                 </button>
               </div>
             </form>
