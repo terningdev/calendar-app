@@ -13,7 +13,9 @@ export const useAdmin = () => {
       openManageUsersModal: null,
       setOpenManageUsersModal: () => {},
       openSystemStatusModal: null,
-      setOpenSystemStatusModal: () => {}
+      setOpenSystemStatusModal: () => {},
+      openManagePermissionsModal: null,
+      setOpenManagePermissionsModal: () => {}
     };
   }
   return context;
@@ -24,6 +26,7 @@ export const AdminProvider = ({ children }) => {
   const [openPendingUsersModal, setOpenPendingUsersModal] = useState(null);
   const [openManageUsersModal, setOpenManageUsersModal] = useState(null);
   const [openSystemStatusModal, setOpenSystemStatusModal] = useState(null);
+  const [openManagePermissionsModal, setOpenManagePermissionsModal] = useState(null);
 
   const handleOpenPendingUsers = useCallback(() => {
     if (openPendingUsersModal) {
@@ -43,6 +46,12 @@ export const AdminProvider = ({ children }) => {
     }
   }, [openSystemStatusModal]);
 
+  const handleOpenManagePermissions = useCallback(() => {
+    if (openManagePermissionsModal) {
+      openManagePermissionsModal();
+    }
+  }, [openManagePermissionsModal]);
+
   const value = {
     pendingUserCount,
     setPendingUserCount,
@@ -51,7 +60,9 @@ export const AdminProvider = ({ children }) => {
     openManageUsersModal: handleOpenManageUsers,
     setOpenManageUsersModal,
     openSystemStatusModal: handleOpenSystemStatus,
-    setOpenSystemStatusModal
+    setOpenSystemStatusModal,
+    openManagePermissionsModal: handleOpenManagePermissions,
+    setOpenManagePermissionsModal
   };
 
   return (

@@ -153,6 +153,12 @@ const connectDB = async () => {
     if (authRoutes.initializeDefaultUser) {
       await authRoutes.initializeDefaultUser();
     }
+    
+    // Initialize default role permissions after DB connection
+    const { initializeDefaultPermissions } = require('./models/PermissionsModel');
+    if (initializeDefaultPermissions) {
+      await initializeDefaultPermissions();
+    }
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
     
@@ -185,6 +191,12 @@ const connectDB = async () => {
         if (authRoutes.initializeDefaultUser) {
           await authRoutes.initializeDefaultUser();
         }
+        
+        // Initialize default role permissions after DB connection
+        const { initializeDefaultPermissions } = require('./models/PermissionsModel');
+        if (initializeDefaultPermissions) {
+          await initializeDefaultPermissions();
+        }
         return;
       } catch (fallbackError) {
         console.error('❌ Fallback database connection also failed:', fallbackError.message);
@@ -205,6 +217,7 @@ app.use('/api/departments', require('./routes/departments'));
 app.use('/api/technicians', require('./routes/technicians'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/absences', require('./routes/absences'));
+app.use('/api/permissions', require('./routes/permissions'));
 
 // Root endpoint
 app.get('/', (req, res) => {

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../utils/translations';
 
-const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus }) => {
+const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus, onOpenManagePermissions }) => {
   const { user, logout, updateUserPin } = useAuth();
   const { language, changeLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -176,6 +176,14 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
                 onOpenManageUsers();
               }}>
                 👥 Manage Users
+              </div>
+            )}
+            {onOpenManagePermissions && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
+              <div className="user-menu-item" onClick={() => { 
+                setIsMenuOpen(false); 
+                onOpenManagePermissions();
+              }}>
+                🔐 Manage Permissions
               </div>
             )}
             {onOpenSystemStatus && (

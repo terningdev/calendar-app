@@ -6,14 +6,16 @@ import { useAuth } from '../contexts/AuthContext';
 import userService from '../services/userService';
 import authService from '../services/authService';
 import { statusService } from '../services/statusService';
+import permissionsService from '../services/permissionsService';
 
 const GlobalModals = () => {
   const { user } = useAuth();
-  const { setPendingUserCount, setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal } = useAdmin();
+  const { setPendingUserCount, setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal } = useAdmin();
   
   const [showPendingUsersModal, setShowPendingUsersModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [showSystemStatusModal, setShowSystemStatusModal] = useState(false);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [pendingUsers, setPendingUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -24,6 +26,11 @@ const GlobalModals = () => {
     database: { status: 'checking', message: 'Checking connection...' }
   });
   const [statusLoading, setStatusLoading] = useState(false);
+  
+  // Permissions modal state
+  const [allPermissions, setAllPermissions] = useState([]);
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [editedPermissions, setEditedPermissions] = useState({});
   
   // Edit user modal state
   const [editingUser, setEditingUser] = useState(null);
@@ -62,6 +69,12 @@ const GlobalModals = () => {
     console.log('GlobalModals: Opening System Status Modal');
     setShowSystemStatusModal(true);
     checkSystemStatus();
+  };
+
+  const openPermissionsModal = () => {
+    console.log('GlobalModals: Opening Manage Permissions Modal');
+    setShowPermissionsModal(true);
+    loadAllPermissions();
   };
 
   const checkSystemStatus = async () => {
@@ -143,18 +156,42 @@ const GlobalModals = () => {
     }
   };
 
+  const loadAllPermissions = async () => {
+    try {
+      setLoadingPermissions(true);
+      const response = await permissionsService.getAllPermissions();
+      console.log('getAllPermissions response:', response);
+      const permissionsArray = Array.isArray(response) ? response : (response?.permissions || []);
+      setAllPermissions(permissionsArray);
+      // Initialize editedPermissions state
+      const initialEdited = {};
+      permissionsArray.forEach(rolePerms => {
+        initialEdited[rolePerms.role] = { ...rolePerms.permissions };
+      });
+      setEditedPermissions(initialEdited);
+    } catch (error) {
+      toast.error('Failed to load permissions');
+      console.error('Error loading permissions:', error);
+      setAllPermissions([]);
+    } finally {
+      setLoadingPermissions(false);
+    }
+  };
+
   // Register modal openers with AdminContext
   useEffect(() => {
     setOpenPendingUsersModal(() => openPendingUsersModal);
     setOpenManageUsersModal(() => openUsersModal);
     setOpenSystemStatusModal(() => openSystemStatusModal);
+    setOpenManagePermissionsModal(() => openPermissionsModal);
     
     return () => {
       setOpenPendingUsersModal(null);
       setOpenManageUsersModal(null);
       setOpenSystemStatusModal(null);
+      setOpenManagePermissionsModal(null);
     };
-  }, [setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal]);
+  }, [setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal]);
 
   // Load pending users count on mount
   useEffect(() => {
@@ -219,6 +256,39 @@ const GlobalModals = () => {
       role: 'user',
       requirePasswordReset: false
     });
+  };
+
+  const handlePermissionChange = (role, permissionKey, value) => {
+    setEditedPermissions(prev => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [permissionKey]: value
+      }
+    }));
+  };
+
+  const handleSavePermissions = async (role) => {
+    try {
+      await permissionsService.updateRolePermissions(role, editedPermissions[role]);
+      toast.success(`Permissions updated for ${role} role`);
+      loadAllPermissions(); // Reload to get updated data
+    } catch (error) {
+      toast.error(error.message || 'Failed to update permissions');
+    }
+  };
+
+  const handleResetPermissions = async (role) => {
+    if (!window.confirm(`Reset ${role} permissions to defaults? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await permissionsService.resetRolePermissions(role);
+      toast.success(`Permissions reset to defaults for ${role} role`);
+      loadAllPermissions(); // Reload to get updated data
+    } catch (error) {
+      toast.error(error.message || 'Failed to reset permissions');
+    }
   };
 
   const handleUserFormChange = (e) => {
@@ -665,6 +735,293 @@ const GlobalModals = () => {
               <button
                 type="button"
                 onClick={() => setShowSystemStatusModal(false)}
+                className="btn btn-secondary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Manage Permissions Modal */}
+      {showPermissionsModal && ReactDOM.createPortal(
+        <div 
+          className="modal" 
+          style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
+        >
+          <div className="modal-content" style={{ 
+            maxWidth: '900px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div className="modal-header">
+              <h2 className="modal-title">🔐 Manage Role Permissions</h2>
+              <button className="modal-close" onClick={() => setShowPermissionsModal(false)}>×</button>
+            </div>
+
+            <div className="modal-body">
+              {loadingPermissions ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <p>Loading permissions...</p>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ marginBottom: '20px', color: '#666' }}>
+                    Configure what each role can view and do in the application. Changes take effect immediately for all users with that role.
+                  </p>
+
+                  {allPermissions.map((rolePerms) => (
+                    <div 
+                      key={rolePerms.role}
+                      style={{
+                        marginBottom: '30px',
+                        padding: '20px',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '8px',
+                        backgroundColor: '#f9f9f9'
+                      }}
+                    >
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        marginBottom: '15px'
+                      }}>
+                        <h3 style={{ 
+                          margin: 0,
+                          textTransform: 'capitalize',
+                          fontSize: '1.2rem'
+                        }}>
+                          {rolePerms.role === 'technician' && '🔧 '}
+                          {rolePerms.role === 'administrator' && '👑 '}
+                          {rolePerms.role === 'sysadmin' && '⚙️ '}
+                          {rolePerms.role}
+                        </h3>
+                        <div>
+                          <button
+                            onClick={() => handleSavePermissions(rolePerms.role)}
+                            className="btn btn-primary"
+                            style={{ marginRight: '10px' }}
+                          >
+                            💾 Save
+                          </button>
+                          <button
+                            onClick={() => handleResetPermissions(rolePerms.role)}
+                            className="btn btn-secondary"
+                          >
+                            🔄 Reset to Defaults
+                          </button>
+                        </div>
+                      </div>
+
+                      {editedPermissions[rolePerms.role] && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
+                          {/* Tab/Page Visibility Section */}
+                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>📊 Tab Visibility</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewDashboard || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewDashboard', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View Dashboard
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewCalendar || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewCalendar', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View Calendar
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewTickets || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewTickets', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View Tickets
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewTechnicians || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewTechnicians', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View Technicians
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewDepartments || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewDepartments', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View Departments
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Ticket Permissions Section */}
+                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>🎫 Ticket Permissions</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].createTickets || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'createTickets', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Create Tickets
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].editOwnTickets || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'editOwnTickets', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Edit Own Tickets
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].editAllTickets || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'editAllTickets', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Edit All Tickets
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].deleteTickets || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'deleteTickets', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Delete Tickets
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].assignTickets || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'assignTickets', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Assign Tickets
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* User Management Permissions Section */}
+                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>👥 User Management</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewUsers || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewUsers', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View Users
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].manageUsers || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'manageUsers', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Manage Users
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].approveUsers || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'approveUsers', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Approve Users
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Administrative Permissions Section */}
+                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>⚙️ Administrative</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].manageDepartments || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'manageDepartments', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Manage Departments
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].manageTechnicians || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'manageTechnicians', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Manage Technicians
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].viewSystemStatus || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewSystemStatus', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                View System Status
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editedPermissions[rolePerms.role].managePermissions || false}
+                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'managePermissions', e.target.checked)}
+                                  style={{ marginRight: '8px' }}
+                                />
+                                Manage Permissions
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => setShowPermissionsModal(false)}
                 className="btn btn-secondary"
               >
                 Close
