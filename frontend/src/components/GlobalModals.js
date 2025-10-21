@@ -39,7 +39,7 @@ const GlobalModals = () => {
   const loadPendingUsersCount = async () => {
     try {
       const response = await authService.getPendingUsers();
-      const usersArray = Array.isArray(response) ? response : (response?.users || []);
+      const usersArray = Array.isArray(response) ? response : (response?.pendingUsers || []);
       setPendingUserCount(usersArray.length);
     } catch (error) {
       console.error('Failed to load pending users count:', error);
@@ -113,8 +113,8 @@ const GlobalModals = () => {
       setLoadingUsers(true);
       const response = await authService.getPendingUsers();
       console.log('getPendingUsers response:', response);
-      // Ensure we have an array
-      const usersArray = Array.isArray(response) ? response : (response?.users || []);
+      // Ensure we have an array - backend returns { success: true, pendingUsers: [...] }
+      const usersArray = Array.isArray(response) ? response : (response?.pendingUsers || []);
       setPendingUsers(usersArray);
       setPendingUserCount(usersArray.length);
     } catch (error) {
