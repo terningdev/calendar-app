@@ -418,17 +418,20 @@ router.get('/users', (req, res) => {
         }
 
         // Return all users (exclude passwords)
-        const safeUsers = users.map(user => ({
-            email: user.email,
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone,
-            role: user.role,
-            approved: user.approved,
-            requirePasswordReset: user.requirePasswordReset,
-            createdAt: user.createdAt
-        }));
+        // Only return approved users (pending users should use /auth/pending endpoint)
+        const safeUsers = users
+            .filter(user => user.approved) // Only approved users
+            .map(user => ({
+                email: user.email,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                role: user.role,
+                approved: user.approved,
+                requirePasswordReset: user.requirePasswordReset,
+                createdAt: user.createdAt
+            }));
 
         res.json({
             success: true,
@@ -474,6 +477,14 @@ router.put('/users/:email', (req, res) => {
             return res.status(404).json({ 
                 success: false, 
                 message: 'User not found.' 
+            });
+        }
+
+        // Only allow editing approved users (use approve endpoint for pending users)
+        if (!userToUpdate.approved) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Cannot edit unapproved user. Please approve or reject from pending users list.' 
             });
         }
 
@@ -595,6 +606,14 @@ router.delete('/users/:email', (req, res) => {
         }
 
         const userToDelete = users[userIndex];
+
+        // Only allow deleting approved users (use reject endpoint for pending users)
+        if (!userToDelete.approved) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Cannot delete unapproved user. Please approve or reject from pending users list.' 
+            });
+        }
 
         // Prevent deleting sysadmin
         if (userToDelete.username === 'sysadmin') {
