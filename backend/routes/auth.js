@@ -28,8 +28,7 @@ const initializeDefaultUser = async () => {
     }
 };
 
-// Initialize on startup
-initializeDefaultUser();
+// Note: initializeDefaultUser() will be called from server.js after DB connection
 
 // Helper function to find user by email
 const findUserByEmail = async (email) => {
@@ -668,3 +667,4 @@ router.delete('/users/:identifier', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.initializeDefaultUser = initializeDefaultUser;

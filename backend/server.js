@@ -147,6 +147,12 @@ const connectDB = async () => {
     
     console.log('✅ Connected to MongoDB successfully');
     console.log('Database name:', mongoose.connection.name);
+    
+    // Initialize default sysadmin user after DB connection
+    const authRoutes = require('./routes/auth');
+    if (authRoutes.initializeDefaultUser) {
+      await authRoutes.initializeDefaultUser();
+    }
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
     
@@ -173,6 +179,12 @@ const connectDB = async () => {
         
         console.log('✅ Successfully connected to fallback in-memory database');
         console.log('📝 Note: Data will persist in ./data/db folder');
+        
+        // Initialize default sysadmin user after DB connection
+        const authRoutes = require('./routes/auth');
+        if (authRoutes.initializeDefaultUser) {
+          await authRoutes.initializeDefaultUser();
+        }
         return;
       } catch (fallbackError) {
         console.error('❌ Fallback database connection also failed:', fallbackError.message);

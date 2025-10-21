@@ -15,8 +15,12 @@ const userSchema = new mongoose.Schema({
     phone: String,
     email: { 
         type: String, 
-        required: true,
+        required: function() {
+            // Email is required for all users except sysadmin
+            return this.role !== 'sysadmin';
+        },
         unique: true,
+        sparse: true, // Allow null values to be non-unique
         lowercase: true
     },
     role: { 
