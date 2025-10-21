@@ -240,106 +240,108 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
       {/* PIN Change Modal */}
       {isPinChangeOpen && (
         <div className="modal">
-          <div className="modal-content" style={{ maxWidth: '500px' }}>
-            <div className="modal-header">
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '0' }}>
+            <div className="modal-header" style={{ margin: '0', padding: '20px 30px', borderBottom: '1px solid #e0e0e0' }}>
               <h2 className="modal-title">🔐 Change PIN Code</h2>
               <button className="modal-close" onClick={closePinChange}>×</button>
             </div>
             
-            <form onSubmit={handlePinSubmit} className="modal-body">
-              {pinChangeError && (
-                <div className="error-message" style={{ 
-                  padding: '12px', 
-                  marginBottom: '15px', 
-                  backgroundColor: '#fee', 
-                  border: '1px solid #fcc',
-                  borderRadius: '4px',
-                  color: '#c33'
-                }}>
-                  {pinChangeError}
+            <form onSubmit={handlePinSubmit}>
+              <div className="modal-body" style={{ padding: '30px' }}>
+                {pinChangeError && (
+                  <div className="error-message" style={{ 
+                    padding: '12px', 
+                    marginBottom: '15px', 
+                    backgroundColor: '#fee', 
+                    border: '1px solid #fcc',
+                    borderRadius: '4px',
+                    color: '#c33'
+                  }}>
+                    {pinChangeError}
+                  </div>
+                )}
+                
+                {pinChangeSuccess && (
+                  <div className="success-message" style={{ 
+                    padding: '12px', 
+                    marginBottom: '15px', 
+                    backgroundColor: '#efe', 
+                    border: '1px solid #cfc',
+                    borderRadius: '4px',
+                    color: '#3c3'
+                  }}>
+                    {pinChangeSuccess}
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label htmlFor="currentPin" className="form-label">Current PIN</label>
+                  <input
+                    type="password"
+                    id="currentPin"
+                    name="currentPin"
+                    value={pinChangeData.currentPin}
+                    onChange={handlePinChange}
+                    maxLength="4"
+                    className="form-control"
+                    placeholder="••••"
+                    disabled={pinChangeLoading}
+                    autoComplete="current-password"
+                  />
                 </div>
-              )}
-              
-              {pinChangeSuccess && (
-                <div className="success-message" style={{ 
-                  padding: '12px', 
-                  marginBottom: '15px', 
-                  backgroundColor: '#efe', 
-                  border: '1px solid #cfc',
-                  borderRadius: '4px',
-                  color: '#3c3'
-                }}>
-                  {pinChangeSuccess}
+
+                <div className="form-group">
+                  <label htmlFor="newPin" className="form-label">New PIN</label>
+                  <input
+                    type="password"
+                    id="newPin"
+                    name="newPin"
+                    value={pinChangeData.newPin}
+                    onChange={handlePinChange}
+                    maxLength="4"
+                    className="form-control"
+                    placeholder="••••"
+                    disabled={pinChangeLoading}
+                    autoComplete="new-password"
+                  />
+                  <small style={{ display: 'block', marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
+                    Enter a 4-digit numeric PIN
+                  </small>
                 </div>
-              )}
 
-              <div className="form-group">
-                <label htmlFor="currentPin" className="form-label">Current PIN</label>
-                <input
-                  type="password"
-                  id="currentPin"
-                  name="currentPin"
-                  value={pinChangeData.currentPin}
-                  onChange={handlePinChange}
-                  maxLength="4"
-                  className="form-control"
-                  placeholder="••••"
-                  disabled={pinChangeLoading}
-                  autoComplete="current-password"
-                />
-              </div>
+                <div className="form-group">
+                  <label htmlFor="confirmPin" className="form-label">Confirm New PIN</label>
+                  <input
+                    type="password"
+                    id="confirmPin"
+                    name="confirmPin"
+                    value={pinChangeData.confirmPin}
+                    onChange={handlePinChange}
+                    maxLength="4"
+                    className="form-control"
+                    placeholder="••••"
+                    disabled={pinChangeLoading}
+                    autoComplete="new-password"
+                  />
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="newPin" className="form-label">New PIN</label>
-                <input
-                  type="password"
-                  id="newPin"
-                  name="newPin"
-                  value={pinChangeData.newPin}
-                  onChange={handlePinChange}
-                  maxLength="4"
-                  className="form-control"
-                  placeholder="••••"
-                  disabled={pinChangeLoading}
-                  autoComplete="new-password"
-                />
-                <small style={{ display: 'block', marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
-                  Enter a 4-digit numeric PIN
-                </small>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="confirmPin" className="form-label">Confirm New PIN</label>
-                <input
-                  type="password"
-                  id="confirmPin"
-                  name="confirmPin"
-                  value={pinChangeData.confirmPin}
-                  onChange={handlePinChange}
-                  maxLength="4"
-                  className="form-control"
-                  placeholder="••••"
-                  disabled={pinChangeLoading}
-                  autoComplete="new-password"
-                />
-              </div>
-
-              <div className="form-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={closePinChange}
-                  disabled={pinChangeLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={pinChangeLoading}
-                >
-                  {pinChangeLoading ? 'Updating...' : 'Update PIN'}
-                </button>
+                <div className="form-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={closePinChange}
+                    disabled={pinChangeLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={pinChangeLoading}
+                  >
+                    {pinChangeLoading ? 'Updating...' : 'Update PIN'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -349,13 +351,13 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
       {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="modal">
-          <div className="modal-content" style={{ maxWidth: '500px' }}>
-            <div className="modal-header">
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '0' }}>
+            <div className="modal-header" style={{ margin: '0', padding: '20px 30px', borderBottom: '1px solid #e0e0e0' }}>
               <h2 className="modal-title">⚙️ Settings</h2>
               <button className="modal-close" onClick={closeSettings}>×</button>
             </div>
             
-            <div className="modal-body">
+            <div className="modal-body" style={{ padding: '30px' }}>
               <div className="form-group">
                 <label className="form-label">Theme</label>
                 <select 
