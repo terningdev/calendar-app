@@ -1149,18 +1149,28 @@ const Tickets = () => {
               </div>
               
               {/* Created By / Updated By Info (read-only) */}
-              {editingTicket && (
-                <div style={{ 
-                  padding: '12px', 
-                  backgroundColor: '#f8f9fa', 
-                  borderRadius: '6px',
-                  marginTop: '15px',
-                  fontSize: '0.85rem',
-                  color: '#666'
-                }}>
-                  <div style={{ marginBottom: '6px' }}>
-                    <strong>Created by:</strong> {editingTicket.createdBy || 'Unknown'} 
-                    {editingTicket.createdAt && ` • ${new Date(editingTicket.createdAt).toLocaleString('nb-NO', { 
+              <div style={{ 
+                padding: '12px', 
+                backgroundColor: '#f8f9fa', 
+                borderRadius: '6px',
+                marginTop: '15px',
+                fontSize: '0.85rem',
+                color: '#666'
+              }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <strong>Created by:</strong> {editingTicket ? (editingTicket.createdBy || 'Unknown') : (formData.createdBy || 'Current user')}
+                  {editingTicket && editingTicket.createdAt && ` • ${new Date(editingTicket.createdAt).toLocaleString('nb-NO', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}`}
+                </div>
+                {editingTicket && editingTicket.updatedAt && editingTicket.updatedAt !== editingTicket.createdAt && (
+                  <div>
+                    <strong>Updated by:</strong> {editingTicket.createdBy || 'Unknown'} 
+                    {` • ${new Date(editingTicket.updatedAt).toLocaleString('nb-NO', { 
                       day: '2-digit', 
                       month: '2-digit', 
                       year: 'numeric',
@@ -1168,20 +1178,8 @@ const Tickets = () => {
                       minute: '2-digit'
                     })}`}
                   </div>
-                  {editingTicket.updatedAt && editingTicket.updatedAt !== editingTicket.createdAt && (
-                    <div>
-                      <strong>Updated by:</strong> {editingTicket.createdBy || 'Unknown'} 
-                      {` • ${new Date(editingTicket.updatedAt).toLocaleString('nb-NO', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}`}
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
               
               <div className="modal-footer">
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
