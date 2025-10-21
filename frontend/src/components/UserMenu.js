@@ -183,7 +183,7 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
                 setIsMenuOpen(false); 
                 onOpenManagePermissions();
               }}>
-                🔐 Manage Permissions
+                🔐 Manage RBAC
               </div>
             )}
             {onOpenSystemStatus && (

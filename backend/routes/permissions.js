@@ -56,13 +56,6 @@ router.get('/:role', isAuthenticated, async (req, res) => {
     try {
         const { role } = req.params;
         
-        if (!['technician', 'administrator', 'sysadmin'].includes(role)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid role' 
-            });
-        }
-        
         const rolePermissions = await PermissionsModel.findOne({ role });
         
         if (!rolePermissions) {
@@ -90,13 +83,6 @@ router.put('/:role', isAuthenticated, canManagePermissions, async (req, res) => 
     try {
         const { role } = req.params;
         const { permissions } = req.body;
-        
-        if (!['technician', 'administrator', 'sysadmin'].includes(role)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid role' 
-            });
-        }
         
         if (!permissions || typeof permissions !== 'object') {
             return res.status(400).json({ 
@@ -179,6 +165,134 @@ router.post('/reset/:role', isAuthenticated, canManagePermissions, async (req, r
         res.status(500).json({ 
             success: false, 
             message: 'Failed to reset permissions' 
+        });
+    }
+});
+
+// POST /api/permissions/roles - Create a new custom role
+router.post('/roles', isAuthenticated, canManagePermissions, async (req, res) => {
+    try {
+        const { roleName, basedOn } = req.body;
+        
+        if (!roleName || typeof roleName !== 'string') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Role name is required' 
+            });
+        }
+        
+        // Validate role name (alphanumeric, underscores, hyphens only)
+        if (!/^[a-zA-Z0-9_-]+$/.test(roleName)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Role name can only contain letters, numbers, underscores, and hyphens' 
+            });
+        }
+        
+        // Prevent creating roles with reserved names
+        if (['technician', 'administrator', 'sysadmin', 'user'].includes(roleName.toLowerCase())) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Cannot use reserved role names' 
+            });
+        }
+        
+        // Check if role already exists
+        const existingRole = await PermissionsModel.findOne({ role: roleName });
+        if (existingRole) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'A role with this name already exists' 
+            });
+        }
+        
+        // Get base permissions (default or from specified role)
+        let basePermissions = {
+            viewDashboard: true,
+            viewCalendar: true,
+            viewTickets: true,
+            viewAdministrator: false,
+            viewAbsences: false,
+            viewSkills: false,
+            createTickets: true,
+            editOwnTickets: true,
+            editAllTickets: false,
+            deleteTickets: false,
+            assignTickets: false,
+            viewUsers: false,
+            manageUsers: false,
+            approveUsers: false,
+            manageDepartments: false,
+            manageTechnicians: false,
+            viewSystemStatus: false,
+            managePermissions: false
+        };
+        
+        // If basedOn is provided, copy permissions from that role
+        if (basedOn && ['technician', 'administrator', 'sysadmin'].includes(basedOn)) {
+            const baseRole = await PermissionsModel.findOne({ role: basedOn });
+            if (baseRole) {
+                basePermissions = { ...baseRole.permissions };
+            }
+        }
+        
+        // Create new role
+        const newRole = new PermissionsModel({
+            role: roleName,
+            isCustomRole: true,
+            permissions: basePermissions
+        });
+        
+        await newRole.save();
+        
+        res.json({ 
+            success: true, 
+            message: `Custom role '${roleName}' created successfully`,
+            role: newRole 
+        });
+    } catch (error) {
+        console.error('Error creating custom role:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to create custom role' 
+        });
+    }
+});
+
+// DELETE /api/permissions/roles/:role - Delete a custom role
+router.delete('/roles/:role', isAuthenticated, canManagePermissions, async (req, res) => {
+    try {
+        const { role } = req.params;
+        
+        // Prevent deleting system roles
+        if (['technician', 'administrator', 'sysadmin'].includes(role)) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Cannot delete system roles' 
+            });
+        }
+        
+        const deletedRole = await PermissionsModel.findOneAndDelete({ 
+            role,
+            isCustomRole: true 
+        });
+        
+        if (!deletedRole) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Custom role not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            message: `Custom role '${role}' deleted successfully` 
+        });
+    } catch (error) {
+        console.error('Error deleting custom role:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to delete custom role' 
         });
     }
 });

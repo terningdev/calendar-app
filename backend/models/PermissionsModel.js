@@ -3,9 +3,13 @@ const mongoose = require('mongoose');
 const permissionsSchema = new mongoose.Schema({
     role: { 
         type: String, 
-        enum: ['technician', 'administrator', 'sysadmin'],
         required: true,
-        unique: true
+        unique: true,
+        trim: true
+    },
+    isCustomRole: {
+        type: Boolean,
+        default: false
     },
     permissions: {
         // Tab/Page visibility

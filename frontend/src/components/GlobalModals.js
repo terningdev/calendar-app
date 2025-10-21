@@ -33,6 +33,12 @@ const GlobalModals = () => {
   const [editedPermissions, setEditedPermissions] = useState({});
   const [selectedRole, setSelectedRole] = useState('');
   
+  // Create role modal state
+  const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
+  const [newRoleName, setNewRoleName] = useState('');
+  const [basedOnRole, setBasedOnRole] = useState('technician');
+  const [creatingRole, setCreatingRole] = useState(false);
+  
   // Edit user modal state
   const [editingUser, setEditingUser] = useState(null);
   const [userFormData, setUserFormData] = useState({
@@ -73,7 +79,7 @@ const GlobalModals = () => {
   };
 
   const openPermissionsModal = () => {
-    console.log('GlobalModals: Opening Manage Permissions Modal');
+    console.log('GlobalModals: Opening Manage RBAC Modal');
     setShowPermissionsModal(true);
     loadAllPermissions();
   };
@@ -294,6 +300,47 @@ const GlobalModals = () => {
       loadAllPermissions(); // Reload to get updated data
     } catch (error) {
       toast.error(error.message || 'Failed to reset permissions');
+    }
+  };
+
+  const handleCreateRole = async () => {
+    if (!newRoleName.trim()) {
+      toast.error('Please enter a role name');
+      return;
+    }
+    
+    setCreatingRole(true);
+    try {
+      await permissionsService.createRole(newRoleName.trim(), basedOnRole);
+      toast.success(`Role '${newRoleName}' created successfully`);
+      setShowCreateRoleModal(false);
+      setNewRoleName('');
+      setBasedOnRole('technician');
+      loadAllPermissions(); // Reload to get updated data including new role
+    } catch (error) {
+      toast.error(error.message || 'Failed to create role');
+    } finally {
+      setCreatingRole(false);
+    }
+  };
+
+  const handleDeleteRole = async (role) => {
+    if (['technician', 'administrator', 'sysadmin'].includes(role)) {
+      toast.error('Cannot delete system roles');
+      return;
+    }
+    
+    if (!window.confirm(`Delete the role '${role}'? This cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      await permissionsService.deleteRole(role);
+      toast.success(`Role '${role}' deleted successfully`);
+      setSelectedRole('');
+      loadAllPermissions(); // Reload to get updated data
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete role');
     }
   };
 
@@ -751,7 +798,7 @@ const GlobalModals = () => {
         document.body
       )}
 
-      {/* Manage Permissions Modal */}
+      {/* Manage RBAC Modal */}
       {showPermissionsModal && ReactDOM.createPortal(
         <div 
           className="modal" 
@@ -775,7 +822,7 @@ const GlobalModals = () => {
             overflowY: 'auto'
           }}>
             <div className="modal-header">
-              <h2 className="modal-title">🔐 Manage Role Permissions</h2>
+              <h2 className="modal-title">🔐 Manage RBAC (Role-Based Access Control)</h2>
               <button className="modal-close" onClick={() => setShowPermissionsModal(false)}>×</button>
             </div>
 
@@ -791,35 +838,49 @@ const GlobalModals = () => {
                   </p>
 
                   {/* Role Selection Dropdown */}
-                  <div style={{ marginBottom: '30px' }}>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '10px', 
-                      fontWeight: 'bold',
-                      fontSize: '1.1rem'
-                    }}>
-                      Select Role to Edit:
-                    </label>
-                    <select
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                      className="form-control"
-                      style={{ 
-                        fontSize: '1rem',
-                        padding: '10px',
-                        maxWidth: '300px'
+                  <div style={{ marginBottom: '30px', display: 'flex', alignItems: 'flex-end', gap: '15px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '10px', 
+                        fontWeight: 'bold',
+                        fontSize: '1.1rem'
+                      }}>
+                        Select Role to Edit:
+                      </label>
+                      <select
+                        value={selectedRole}
+                        onChange={(e) => setSelectedRole(e.target.value)}
+                        className="form-control"
+                        style={{ 
+                          fontSize: '1rem',
+                          padding: '10px',
+                          maxWidth: '300px'
+                        }}
+                      >
+                        <option value="">-- Select a Role --</option>
+                        {allPermissions.map((rolePerms) => (
+                          <option key={rolePerms.role} value={rolePerms.role}>
+                            {rolePerms.role === 'technician' && '🔧 '}
+                            {rolePerms.role === 'administrator' && '👑 '}
+                            {rolePerms.role === 'sysadmin' && '⚙️ '}
+                            {rolePerms.isCustomRole && '✨ '}
+                            {rolePerms.role.charAt(0).toUpperCase() + rolePerms.role.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => setShowCreateRoleModal(true)}
+                      className="btn btn-primary"
+                      style={{
+                        padding: '10px 20px',
+                        fontSize: '0.95rem',
+                        whiteSpace: 'nowrap'
                       }}
                     >
-                      <option value="">-- Select a Role --</option>
-                      {allPermissions.map((rolePerms) => (
-                        <option key={rolePerms.role} value={rolePerms.role}>
-                          {rolePerms.role === 'technician' && '🔧 '}
-                          {rolePerms.role === 'administrator' && '👑 '}
-                          {rolePerms.role === 'sysadmin' && '⚙️ '}
-                          {rolePerms.role.charAt(0).toUpperCase() + rolePerms.role.slice(1)}
-                        </option>
-                      ))}
-                    </select>
+                      ➕ Create Role
+                    </button>
                   </div>
 
                   {/* Permissions for Selected Role */}
@@ -863,10 +924,19 @@ const GlobalModals = () => {
                           <button
                             onClick={() => handleResetPermissions(selectedRole)}
                             className="btn btn-secondary"
+                            style={{ marginRight: '10px' }}
                             disabled={selectedRole === 'sysadmin'}
                           >
                             🔄 Reset to Defaults
                           </button>
+                          {!['technician', 'administrator', 'sysadmin'].includes(selectedRole) && (
+                            <button
+                              onClick={() => handleDeleteRole(selectedRole)}
+                              className="btn btn-danger"
+                            >
+                              🗑️ Delete Role
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -1070,7 +1140,7 @@ const GlobalModals = () => {
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
                             />
-                            <span style={{ fontSize: '0.95rem' }}>View "Manage Permissions"</span>
+                            <span style={{ fontSize: '0.95rem' }}>View "Manage RBAC"</span>
                           </label>
                           <label style={{ 
                             display: 'flex', 
@@ -1272,6 +1342,107 @@ const GlobalModals = () => {
                 className="btn btn-secondary"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Create Role Modal */}
+      {showCreateRoleModal && ReactDOM.createPortal(
+        <div 
+          className="modal" 
+          style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001
+          }}
+        >
+          <div className="modal-content" style={{ 
+            maxWidth: '500px',
+            width: '90%'
+          }}>
+            <div className="modal-header">
+              <h2 className="modal-title">✨ Create New Role</h2>
+              <button className="modal-close" onClick={() => setShowCreateRoleModal(false)}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: 'bold'
+                }}>
+                  Role Name:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={newRoleName}
+                  onChange={(e) => setNewRoleName(e.target.value)}
+                  placeholder="e.g., manager, supervisor, viewer"
+                  style={{ 
+                    fontSize: '1rem',
+                    padding: '10px'
+                  }}
+                />
+                <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                  Only letters, numbers, underscores, and hyphens allowed
+                </small>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: 'bold'
+                }}>
+                  Base Permissions On:
+                </label>
+                <select
+                  className="form-control"
+                  value={basedOnRole}
+                  onChange={(e) => setBasedOnRole(e.target.value)}
+                  style={{ 
+                    fontSize: '1rem',
+                    padding: '10px'
+                  }}
+                >
+                  <option value="technician">🔧 Technician (Basic permissions)</option>
+                  <option value="administrator">👑 Administrator (Full permissions)</option>
+                  <option value="sysadmin">⚙️ Sysadmin (All permissions)</option>
+                </select>
+                <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                  The new role will start with these permissions, which you can then customize
+                </small>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => setShowCreateRoleModal(false)}
+                className="btn btn-secondary"
+                disabled={creatingRole}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateRole}
+                className="btn btn-primary"
+                disabled={creatingRole || !newRoleName.trim()}
+              >
+                {creatingRole ? 'Creating...' : '✨ Create Role'}
               </button>
             </div>
           </div>
