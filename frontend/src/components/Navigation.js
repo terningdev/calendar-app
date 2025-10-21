@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../utils/translations';
+import { useAdmin } from '../contexts/AdminContext';
 import UserMenu from './UserMenu';
 
 const Navigation = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { pendingUserCount, openPendingUsersModal, openManageUsersModal } = useAdmin();
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
@@ -59,7 +61,11 @@ const Navigation = () => {
 
         {/* User menu - desktop only */}
         <div className="nav-user-info desktop-only">
-          <UserMenu />
+          <UserMenu 
+            pendingUserCount={pendingUserCount}
+            onOpenPendingUsers={openPendingUsersModal}
+            onOpenManageUsers={openManageUsersModal}
+          />
         </div>
         
         {/* Navigation links - desktop always visible, mobile in overlay */}

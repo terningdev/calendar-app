@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 import { LanguageProvider } from './utils/translations';
 import { AuthProvider } from './contexts/AuthContext';
+import { AdminProvider } from './contexts/AdminContext';
 import AuthWrapper from './components/AuthWrapper';
 import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
@@ -19,21 +20,22 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <Router>
-          <div className="App">
-            <AuthWrapper>
-              <Navigation />
-              <main className="main-content">
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/administrator" element={<Administrator />} />
-                  <Route path="/tickets" element={<Tickets />} />
-                  <Route path="/absences" element={<Absences />} />
-                </Routes>
-              </main>
-            </AuthWrapper>
-            <ToastContainer 
+        <AdminProvider>
+          <Router>
+            <div className="App">
+              <AuthWrapper>
+                <Navigation />
+                <main className="main-content">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/calendar" element={<Calendar />} />
+                    <Route path="/administrator" element={<Administrator />} />
+                    <Route path="/tickets" element={<Tickets />} />
+                    <Route path="/absences" element={<Absences />} />
+                  </Routes>
+                </main>
+              </AuthWrapper>
+              <ToastContainer 
               position="top-right"
               autoClose={3000}
               hideProgressBar={false}
@@ -46,6 +48,7 @@ function App() {
             />
           </div>
         </Router>
+        </AdminProvider>
       </AuthProvider>
     </LanguageProvider>
   );

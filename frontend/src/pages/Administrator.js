@@ -5,11 +5,13 @@ import { technicianService } from '../services/technicianService';
 import { statusService } from '../services/statusService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdmin } from '../contexts/AdminContext';
 import authService from '../services/authService';
 import userService from '../services/userService';
 
 const Administrator = () => {
   const { user, canApproveUsers } = useAuth();
+  const { setPendingUserCount, setOpenPendingUsersModal, setOpenManageUsersModal } = useAdmin();
   
   // Check if user has administrator or sysadmin role
   const isAdminOrSysadmin = user && (user.role === 'administrator' || user.role === 'sysadmin');
@@ -150,6 +152,22 @@ const Administrator = () => {
       window.removeEventListener('error', handleError);
     };
   }, []);
+
+  // Set up admin context modal handlers
+  useEffect(() => {
+    setOpenPendingUsersModal(() => openPendingUsersModal);
+    setOpenManageUsersModal(() => openUsersModal);
+    
+    return () => {
+      setOpenPendingUsersModal(null);
+      setOpenManageUsersModal(null);
+    };
+  }, [setOpenPendingUsersModal, setOpenManageUsersModal]);
+
+  // Update pending user count in admin context
+  useEffect(() => {
+    setPendingUserCount(pendingUsers.length);
+  }, [pendingUsers.length, setPendingUserCount]);
 
   // Access check - must be after all hooks
   if (!isAdminOrSysadmin) {
@@ -652,28 +670,6 @@ const Administrator = () => {
       <div className="page-header">
         <h1 className="page-title">{t('administrator')}</h1>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {canApproveUsers() && (
-            <button 
-              className="btn btn-warning" 
-              onClick={openPendingUsersModal}
-              title="Pending User Registrations"
-              style={{ position: 'relative' }}
-            >
-              👥 Pending Users
-              {pendingUsers.length > 0 && (
-                <span className="badge-notification">{pendingUsers.length}</span>
-              )}
-            </button>
-          )}
-          {isAdminOrSysadmin && (
-            <button 
-              className="btn btn-info" 
-              onClick={openUsersModal}
-              title="Manage All Users"
-            >
-              👥 Manage Users
-            </button>
-          )}
           <button className="btn btn-secondary" onClick={openSettingsModal} title={t('settings')}>
             ⚙️ {t('settings')}
           </button>

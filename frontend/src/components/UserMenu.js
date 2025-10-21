@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const UserMenu = () => {
+const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) => {
   const { user, logout, updateUserPin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPinChangeOpen, setIsPinChangeOpen] = useState(false);
@@ -146,13 +146,57 @@ const UserMenu = () => {
           className="user-menu-button"
           onClick={toggleMenu}
           title="User menu"
+          style={{ position: 'relative' }}
         >
           <span>{user?.fullName?.split(' ')[0] || 'User'}</span>
           <span style={{ fontSize: '0.7rem' }}>▼</span>
+          {pendingUserCount > 0 && (
+            <span className="badge-notification" style={{ 
+              position: 'absolute', 
+              top: '-5px', 
+              right: '-5px',
+              minWidth: '20px',
+              height: '20px',
+              borderRadius: '10px',
+              backgroundColor: '#ff9800',
+              color: 'white',
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 6px'
+            }}>
+              {pendingUserCount}
+            </span>
+          )}
         </button>
 
         {isMenuOpen && (
           <div ref={menuRef} className="user-menu-dropdown">
+            {onOpenPendingUsers && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
+              <div className="user-menu-item" onClick={() => { onOpenPendingUsers(); setIsMenuOpen(false); }}>
+                👥 Pending Users
+                {pendingUserCount > 0 && (
+                  <span style={{
+                    marginLeft: '8px',
+                    backgroundColor: '#ff9800',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {pendingUserCount}
+                  </span>
+                )}
+              </div>
+            )}
+            {onOpenManageUsers && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
+              <div className="user-menu-item" onClick={() => { onOpenManageUsers(); setIsMenuOpen(false); }}>
+                👥 Manage Users
+              </div>
+            )}
             <div className="user-menu-item" onClick={openPinChange}>
               🔐 Change PIN
             </div>
