@@ -84,13 +84,15 @@ const sessionConfig = {
   }),
   cookie: {
     secure: process.env.NODE_ENV === 'production', // true in production with HTTPS
-    httpOnly: false, // Set to false for debugging cookie issues
+    httpOnly: true, // Protect against XSS
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-site with secure
     path: '/'
     // Removed domain restriction to allow same-origin cookies
   },
-  proxy: true // Trust the reverse proxy
+  name: 'sessionId', // Custom cookie name
+  proxy: true, // Trust the reverse proxy
+  rolling: true // Reset maxAge on every request
 };
 
 app.use(session(sessionConfig));

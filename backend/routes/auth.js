@@ -111,30 +111,38 @@ router.post('/login', (req, res) => {
         }
 
         // Create session
-        req.session.user = {
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone,
-            email: user.email,
-            role: user.role,
-            approved: user.approved,
-            requirePasswordReset: user.requirePasswordReset
-        };
-
-        // Save session explicitly
-        req.session.save((err) => {
+        req.session.regenerate((err) => {
             if (err) {
-                console.error('❌ Session save error:', err);
-                return res.status(500).json({ success: false, message: 'Failed to save session.' });
+                console.error('❌ Session regeneration error:', err);
+                // Continue anyway with existing session
             }
-            console.log('✅ Session saved for user:', user.email || user.username);
-            console.log('📋 Session ID:', req.sessionID);
-            res.json({ 
-                success: true, 
-                message: 'Login successful.', 
-                user: req.session.user,
-                requirePasswordReset: user.requirePasswordReset 
+            
+            req.session.user = {
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                email: user.email,
+                role: user.role,
+                approved: user.approved,
+                requirePasswordReset: user.requirePasswordReset
+            };
+
+            // Save session explicitly
+            req.session.save((err) => {
+                if (err) {
+                    console.error('❌ Session save error:', err);
+                    return res.status(500).json({ success: false, message: 'Failed to save session.' });
+                }
+                console.log('✅ Session saved for user:', user.email || user.username);
+                console.log('📋 Session ID:', req.sessionID);
+                console.log('🍪 Cookie will be set:', req.session.cookie);
+                res.json({ 
+                    success: true, 
+                    message: 'Login successful.', 
+                    user: req.session.user,
+                    requirePasswordReset: user.requirePasswordReset 
+                });
             });
         });
 
@@ -146,6 +154,10 @@ router.post('/login', (req, res) => {
 
 // Check authentication status
 router.get('/me', (req, res) => {
+    console.log('🔍 Auth check - Session ID:', req.sessionID);
+    console.log('🔍 Auth check - Session user:', req.session.user ? 'exists' : 'missing');
+    console.log('🔍 Auth check - Cookies:', req.headers.cookie ? 'present' : 'missing');
+    
     if (req.session.user) {
         res.json({
             success: true,
