@@ -12,8 +12,8 @@ const permissionsSchema = new mongoose.Schema({
         viewDashboard: { type: Boolean, default: true },
         viewCalendar: { type: Boolean, default: true },
         viewTickets: { type: Boolean, default: true },
-        viewTechnicians: { type: Boolean, default: false },
-        viewDepartments: { type: Boolean, default: false },
+        viewAdministrator: { type: Boolean, default: false },
+        viewAbsences: { type: Boolean, default: false },
         viewSkills: { type: Boolean, default: false },
         
         // Ticket permissions
@@ -60,8 +60,8 @@ async function initializeDefaultPermissions() {
                 viewDashboard: true,
                 viewCalendar: true,
                 viewTickets: true,
-                viewTechnicians: false,
-                viewDepartments: false,
+                viewAdministrator: false,
+                viewAbsences: false,
                 viewSkills: false,
                 
                 createTickets: true,
@@ -88,8 +88,8 @@ async function initializeDefaultPermissions() {
                 viewDashboard: true,
                 viewCalendar: true,
                 viewTickets: true,
-                viewTechnicians: true,
-                viewDepartments: true,
+                viewAdministrator: true,
+                viewAbsences: true,
                 viewSkills: true,
                 
                 createTickets: true,
@@ -116,8 +116,8 @@ async function initializeDefaultPermissions() {
                 viewDashboard: true,
                 viewCalendar: true,
                 viewTickets: true,
-                viewTechnicians: true,
-                viewDepartments: true,
+                viewAdministrator: true,
+                viewAbsences: true,
                 viewSkills: true,
                 
                 createTickets: true,

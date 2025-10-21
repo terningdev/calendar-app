@@ -1,14 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../utils/translations';
 import { useAdmin } from '../contexts/AdminContext';
+import { useAuth } from '../contexts/AuthContext';
 import UserMenu from './UserMenu';
+import permissionsService from '../services/permissionsService';
 
 const Navigation = () => {
   const location = useLocation();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [permissions, setPermissions] = useState(null);
   const { pendingUserCount, openPendingUsersModal, openManageUsersModal, openSystemStatusModal, openManagePermissionsModal } = useAdmin();
+
+  // Fetch user permissions
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      if (user && user.role) {
+        try {
+          const rolePermissions = await permissionsService.getRolePermissions(user.role);
+          if (rolePermissions.success) {
+            setPermissions(rolePermissions.permissions.permissions);
+          }
+        } catch (error) {
+          console.error('Failed to fetch permissions:', error);
+        }
+      }
+    };
+
+    fetchPermissions();
+  }, [user]);
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
@@ -74,41 +96,53 @@ const Navigation = () => {
         
         {/* Navigation links - desktop always visible, mobile in overlay */}
         <ul className={`nav-links ${isMenuOpen ? 'nav-links-open' : ''}`}>
-          <li>
-            <Link to="/" className={isActive('/')} onClick={closeMenu}>
-              {t('dashboard')}
-            </Link>
-          </li>
-          <li>
-            <Link to="/calendar" className={isActive('/calendar')} onClick={closeMenu}>
-              {t('calendar')}
-            </Link>
-          </li>
-          <li>
-            <Link to="/tickets" className={isActive('/tickets')} onClick={closeMenu}>
-              {t('tickets')}
-            </Link>
-          </li>
-          <li>
-            <Link to="/absences" className={`${isActive('/absences')} mobile-show`} onClick={closeMenu}>
-              {t('absenceVakt')}
-            </Link>
-          </li>
+          {permissions?.viewDashboard !== false && (
+            <li>
+              <Link to="/" className={isActive('/')} onClick={closeMenu}>
+                {t('dashboard')}
+              </Link>
+            </li>
+          )}
+          {permissions?.viewCalendar !== false && (
+            <li>
+              <Link to="/calendar" className={isActive('/calendar')} onClick={closeMenu}>
+                {t('calendar')}
+              </Link>
+            </li>
+          )}
+          {permissions?.viewTickets !== false && (
+            <li>
+              <Link to="/tickets" className={isActive('/tickets')} onClick={closeMenu}>
+                {t('tickets')}
+              </Link>
+            </li>
+          )}
+          {permissions?.viewAbsences !== false && (
+            <li>
+              <Link to="/absences" className={`${isActive('/absences')} mobile-show`} onClick={closeMenu}>
+                {t('absenceVakt')}
+              </Link>
+            </li>
+          )}
           
           {/* Skills link */}
-          <li>
-            <Link to="/skills" className={isActive('/skills')} onClick={closeMenu}>
-              {t('skills')}
-            </Link>
-          </li>
+          {permissions?.viewSkills !== false && (
+            <li>
+              <Link to="/skills" className={isActive('/skills')} onClick={closeMenu}>
+                {t('skills')}
+              </Link>
+            </li>
+          )}
           
           {/* Administrator link - moved to bottom on mobile */}
-          <li className="nav-admin-item">
-            <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
-              <span className="desktop-only">{t('administrator')}</span>
-              <span className="mobile-only">⚙️ {t('administrator')}</span>
-            </Link>
-          </li>
+          {permissions?.viewAdministrator !== false && (
+            <li className="nav-admin-item">
+              <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
+                <span className="desktop-only">{t('administrator')}</span>
+                <span className="mobile-only">⚙️ {t('administrator')}</span>
+              </Link>
+            </li>
+          )}
         </ul>
         
         {/* Mobile overlay backdrop */}

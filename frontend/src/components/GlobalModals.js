@@ -960,12 +960,12 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewTechnicians || false}
-                              onChange={(e) => handlePermissionChange(selectedRole, 'viewTechnicians', e.target.checked)}
+                              checked={editedPermissions[selectedRole].viewAdministrator || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewAdministrator', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
                             />
-                            <span style={{ fontSize: '0.95rem' }}>View Technicians</span>
+                            <span style={{ fontSize: '0.95rem' }}>View Administrator (Departments & Technicians)</span>
                           </label>
                           <label style={{ 
                             display: 'flex', 
@@ -978,12 +978,12 @@ const GlobalModals = () => {
                           }}>
                             <input
                               type="checkbox"
-                              checked={editedPermissions[selectedRole].viewDepartments || false}
-                              onChange={(e) => handlePermissionChange(selectedRole, 'viewDepartments', e.target.checked)}
+                              checked={editedPermissions[selectedRole].viewAbsences || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewAbsences', e.target.checked)}
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
                             />
-                            <span style={{ fontSize: '0.95rem' }}>View Departments</span>
+                            <span style={{ fontSize: '0.95rem' }}>View Absence & On call</span>
                           </label>
                           <label style={{ 
                             display: 'flex', 
