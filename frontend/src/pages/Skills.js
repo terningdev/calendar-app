@@ -26,6 +26,7 @@ const Skills = () => {
   const [productForm, setProductForm] = useState({ name: '', categoryId: '', description: '' });
   
   const [loading, setLoading] = useState(true);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -228,97 +229,122 @@ const Skills = () => {
         borderRadius: '8px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h2 style={{ margin: 0 }}>📚 Categories & Products</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 style={{ margin: 0 }}>📚 Categories & Products</h2>
+            <button 
+              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+              style={{
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                padding: '5px',
+                color: '#666'
+              }}
+              title={categoriesExpanded ? 'Collapse' : 'Expand'}
+            >
+              {categoriesExpanded ? '▼' : '▶'}
+            </button>
+            <span style={{ fontSize: '0.9rem', color: '#666' }}>
+              ({categories.length} {categories.length === 1 ? 'category' : 'categories'})
+            </span>
+          </div>
           <button onClick={() => openCategoryModal()} className="btn btn-primary">
             ➕ Add Category
           </button>
         </div>
 
-        {categories.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
-            No categories yet. Click "Add Category" to get started.
-          </p>
-        ) : (
-          <div style={{ backgroundColor: 'white', borderRadius: '6px', border: '1px solid #dee2e6' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-                <tr>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Category</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Products</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', fontWeight: '600', width: '150px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((category, index) => {
-                  const categoryProducts = products.filter(p => 
-                    (p.categoryId._id || p.categoryId) === category._id
-                  );
-                  
-                  return (
-                    <tr 
-                      key={category._id} 
-                      style={{ 
-                        borderBottom: index < categories.length - 1 ? '1px solid #dee2e6' : 'none'
-                      }}
-                    >
-                      <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
-                        <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{category.name}</div>
-                        {category.description && (
-                          <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '2px' }}>
-                            {category.description}
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
-                        {categoryProducts.length > 0 ? (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                            {categoryProducts.map(product => (
-                              <span 
-                                key={product._id}
-                                style={{
-                                  display: 'inline-block',
-                                  padding: '4px 10px',
-                                  backgroundColor: '#e7f3ff',
-                                  border: '1px solid #b8daff',
-                                  borderRadius: '4px',
-                                  fontSize: '0.85rem',
-                                  color: '#004085'
-                                }}
-                              >
-                                {product.name}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>
-                            No products
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: '12px 15px', textAlign: 'right', verticalAlign: 'top' }}>
-                        <button 
-                          onClick={() => openCategoryModal(category)}
-                          className="btn btn-sm"
-                          style={{ marginRight: '5px', padding: '6px 12px' }}
-                          title="Edit category & products"
-                        >
-                          ✏️ Edit
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteCategory(category._id)}
-                          className="btn btn-sm btn-danger"
-                          style={{ padding: '6px 12px' }}
-                          title="Delete category"
-                        >
-                          🗑️
-                        </button>
-                      </td>
+        {categoriesExpanded && (
+          <>
+            {categories.length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+                No categories yet. Click "Add Category" to get started.
+              </p>
+            ) : (
+              <div style={{ backgroundColor: 'white', borderRadius: '6px', border: '1px solid #dee2e6' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                    <tr>
+                      <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Category</th>
+                      <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Products</th>
+                      <th style={{ padding: '12px 15px', textAlign: 'center', fontWeight: '600', width: '180px' }}>Actions</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {categories.map((category, index) => {
+                      const categoryProducts = products.filter(p => 
+                        (p.categoryId._id || p.categoryId) === category._id
+                      );
+                      
+                      return (
+                        <tr 
+                          key={category._id} 
+                          style={{ 
+                            borderBottom: index < categories.length - 1 ? '1px solid #dee2e6' : 'none'
+                          }}
+                        >
+                          <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
+                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{category.name}</div>
+                            {category.description && (
+                              <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '2px' }}>
+                                {category.description}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
+                            {categoryProducts.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {categoryProducts.map(product => (
+                                  <span 
+                                    key={product._id}
+                                    style={{
+                                      display: 'inline-block',
+                                      padding: '4px 10px',
+                                      backgroundColor: '#e7f3ff',
+                                      border: '1px solid #b8daff',
+                                      borderRadius: '4px',
+                                      fontSize: '0.85rem',
+                                      color: '#004085'
+                                    }}
+                                  >
+                                    {product.name}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>
+                                No products
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 15px', textAlign: 'center', verticalAlign: 'top' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                              <button 
+                                onClick={() => openCategoryModal(category)}
+                                className="btn btn-sm"
+                                style={{ padding: '6px 12px', whiteSpace: 'nowrap' }}
+                                title="Edit category & products"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteCategory(category._id)}
+                                className="btn btn-sm btn-danger"
+                                style={{ padding: '6px 12px', whiteSpace: 'nowrap' }}
+                                title="Delete category"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </div>
 
