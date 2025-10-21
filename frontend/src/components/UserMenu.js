@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../utils/translations';
 
 const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) => {
   const { user, logout, updateUserPin } = useAuth();
+  const { language, changeLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPinChangeOpen, setIsPinChangeOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [pinChangeData, setPinChangeData] = useState({
     currentPin: '',
     newPin: '',
@@ -16,6 +20,12 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
   
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -66,6 +76,23 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
       newPin: '',
       confirmPin: ''
     });
+  };
+
+  const openSettings = () => {
+    setIsSettingsOpen(true);
+    setIsMenuOpen(false);
+  };
+
+  const closeSettings = () => {
+    setIsSettingsOpen(false);
+  };
+
+  const handleThemeChange = (e) => {
+    setTheme(e.target.value);
+  };
+
+  const handleLanguageChange = (e) => {
+    changeLanguage(e.target.value);
   };
 
   const handlePinChange = (e) => {
@@ -197,6 +224,9 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
                 👥 Manage Users
               </div>
             )}
+            <div className="user-menu-item" onClick={openSettings}>
+              ⚙️ Settings
+            </div>
             <div className="user-menu-item" onClick={openPinChange}>
               🔐 Change PIN
             </div>
@@ -290,6 +320,53 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
                   disabled={pinChangeLoading}
                 >
                   {pinChangeLoading ? 'Updating...' : 'Update PIN'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="login-modal-overlay" onClick={closeSettings}>
+          <div className="login-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="login-modal-header">
+              <h2>⚙️ Settings</h2>
+              <button className="close-button" onClick={closeSettings}>×</button>
+            </div>
+            <form className="login-form" onSubmit={(e) => e.preventDefault()}>
+              <div className="form-group">
+                <label>Theme</label>
+                <select 
+                  value={theme} 
+                  onChange={handleThemeChange}
+                  className="form-input"
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Language</label>
+                <select 
+                  value={language} 
+                  onChange={handleLanguageChange}
+                  className="form-input"
+                >
+                  <option value="en">English</option>
+                  <option value="no">Norsk</option>
+                </select>
+              </div>
+
+              <div className="form-buttons">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={closeSettings}
+                >
+                  Close
                 </button>
               </div>
             </form>

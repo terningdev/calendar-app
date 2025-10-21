@@ -67,8 +67,7 @@ const Administrator = () => {
   const [showConsoleModal, setShowConsoleModal] = useState(false);
   const [showColorSettingsModal, setShowColorSettingsModal] = useState(false);
   const [consoleErrors, setConsoleErrors] = useState([]);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const { t, language, changeLanguage } = useTranslation();
+  const { t } = useTranslation();
 
   // Color settings state
   const [colorSettings, setColorSettings] = useState({
@@ -91,12 +90,6 @@ const Administrator = () => {
   useEffect(() => {
     loadData();
   }, []);
-
-  useEffect(() => {
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
 
   // Console error capturing
   useEffect(() => {
@@ -578,22 +571,14 @@ const Administrator = () => {
     }
   };
 
-  // Settings functions
+  // System Status functions
   const openSettingsModal = () => {
     setShowSettingsModal(true);
-    checkSystemStatus(); // Check status when settings modal opens
+    checkSystemStatus(); // Check status when modal opens
   };
 
   const closeSettingsModal = () => {
     setShowSettingsModal(false);
-  };
-
-  const handleThemeChange = (e) => {
-    setTheme(e.target.value);
-  };
-
-  const handleLanguageChange = (e) => {
-    changeLanguage(e.target.value);
   };
 
   // Console functions
@@ -672,8 +657,8 @@ const Administrator = () => {
       <div className="page-header">
         <h1 className="page-title">{t('administrator')}</h1>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button className="btn btn-secondary" onClick={openSettingsModal} title={t('settings')}>
-            ⚙️ {t('settings')}
+          <button className="btn btn-secondary" onClick={openSettingsModal} title="System Status">
+            📊 System Status
           </button>
           <button className="btn btn-primary" onClick={openCreateDepartmentModal}>
             {t('addDepartment')}
@@ -1347,36 +1332,12 @@ const Administrator = () => {
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '400px' }}>
             <div className="modal-header">
-              <h2 className="modal-title">{t('settings')}</h2>
+              <h2 className="modal-title">📊 System Status</h2>
               <button className="modal-close" onClick={closeSettingsModal}>
                 ×
               </button>
             </div>
             <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">{t('theme')}</label>
-                <select 
-                  className="form-control" 
-                  value={theme} 
-                  onChange={handleThemeChange}
-                >
-                  <option value="light">{t('light')}</option>
-                  <option value="dark">{t('dark')}</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label className="form-label">{t('language')}</label>
-                <select 
-                  className="form-control" 
-                  value={language} 
-                  onChange={handleLanguageChange}
-                >
-                  <option value="en">{t('english')}</option>
-                  <option value="no">{t('norwegian')}</option>
-                </select>
-              </div>
-
               {/* System Status Section */}
               <div className="form-group">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
