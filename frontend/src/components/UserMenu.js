@@ -1,22 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../utils/translations';
 
-const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) => {
+const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus }) => {
   const { user, logout, updateUserPin } = useAuth();
   const { language, changeLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isPinChangeOpen, setIsPinChangeOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const [pinChangeData, setPinChangeData] = useState({
-    currentPin: '',
-    newPin: '',
-    confirmPin: ''
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
-  const [pinChangeError, setPinChangeError] = useState('');
-  const [pinChangeLoading, setPinChangeLoading] = useState(false);
-  const [pinChangeSuccess, setPinChangeSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
@@ -55,36 +54,21 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
     }
   };
 
-  const openPinChange = () => {
-    setIsPinChangeOpen(true);
-    setIsMenuOpen(false);
-    setPinChangeError('');
-    setPinChangeSuccess('');
-    setPinChangeData({
-      currentPin: '',
-      newPin: '',
-      confirmPin: ''
-    });
-  };
-
-  const closePinChange = () => {
-    setIsPinChangeOpen(false);
-    setPinChangeError('');
-    setPinChangeSuccess('');
-    setPinChangeData({
-      currentPin: '',
-      newPin: '',
-      confirmPin: ''
-    });
-  };
-
   const openSettings = () => {
     setIsSettingsOpen(true);
     setIsMenuOpen(false);
+    // Reset password fields and messages when opening settings
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordError('');
+    setPasswordSuccess('');
   };
 
   const closeSettings = () => {
     setIsSettingsOpen(false);
+    // Reset password fields and messages when closing
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordError('');
+    setPasswordSuccess('');
   };
 
   const handleThemeChange = (e) => {
@@ -95,73 +79,37 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
     changeLanguage(e.target.value);
   };
 
-  const handlePinChange = (e) => {
-    const { name, value } = e.target;
-    setPinChangeData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    setPinChangeError('');
-  };
-
-  const validatePin = (pin) => {
-    if (pin.length !== 4) {
-      return 'PIN must be exactly 4 digits';
-    }
-    if (!/^\d{4}$/.test(pin)) {
-      return 'PIN must contain only numbers';
-    }
-    return null;
-  };
-
-  const handlePinSubmit = async (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    setPinChangeError('');
-    setPinChangeSuccess('');
+    setPasswordError('');
+    setPasswordSuccess('');
 
     // Validation
-    if (!pinChangeData.currentPin || !pinChangeData.newPin || !pinChangeData.confirmPin) {
-      setPinChangeError('All fields are required');
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setPasswordError('All fields are required');
       return;
     }
 
-    const currentPinError = validatePin(pinChangeData.currentPin);
-    if (currentPinError) {
-      setPinChangeError(`Current PIN: ${currentPinError}`);
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
       return;
     }
 
-    const newPinError = validatePin(pinChangeData.newPin);
-    if (newPinError) {
-      setPinChangeError(`New PIN: ${newPinError}`);
+    if (passwordData.newPassword.length < 4) {
+      setPasswordError('New password must be at least 4 characters');
       return;
     }
-
-    if (pinChangeData.newPin !== pinChangeData.confirmPin) {
-      setPinChangeError('New PIN and confirmation do not match');
-      return;
-    }
-
-    if (pinChangeData.currentPin === pinChangeData.newPin) {
-      setPinChangeError('New PIN must be different from current PIN');
-      return;
-    }
-
-    setPinChangeLoading(true);
 
     try {
-      await updateUserPin(pinChangeData.currentPin, pinChangeData.newPin);
-      setPinChangeSuccess('PIN updated successfully!');
-      
-      // Auto-close after success
+      await updateUserPin(passwordData.currentPassword, passwordData.newPassword);
+      setPasswordSuccess('Password updated successfully!');
+      // Clear the form after 2 seconds
       setTimeout(() => {
-        closePinChange();
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setPasswordSuccess('');
       }, 2000);
     } catch (error) {
-      console.error('PIN change error:', error);
-      setPinChangeError(error.message || 'Failed to update PIN. Please check your current PIN and try again.');
-    } finally {
-      setPinChangeLoading(false);
+      setPasswordError(error.message || 'Failed to update password');
     }
   };
 
@@ -202,7 +150,10 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
         {isMenuOpen && (
           <div ref={menuRef} className="user-menu-dropdown">
             {onOpenPendingUsers && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
-              <div className="user-menu-item" onClick={() => { onOpenPendingUsers(); setIsMenuOpen(false); }}>
+              <div className="user-menu-item" onClick={() => { 
+                setIsMenuOpen(false); 
+                onOpenPendingUsers();
+              }}>
                 👥 Pending Users
                 {pendingUserCount > 0 && (
                   <span style={{
@@ -220,15 +171,23 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
               </div>
             )}
             {onOpenManageUsers && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
-              <div className="user-menu-item" onClick={() => { onOpenManageUsers(); setIsMenuOpen(false); }}>
+              <div className="user-menu-item" onClick={() => { 
+                setIsMenuOpen(false); 
+                onOpenManageUsers();
+              }}>
                 👥 Manage Users
+              </div>
+            )}
+            {onOpenSystemStatus && (
+              <div className="user-menu-item" onClick={() => { 
+                setIsMenuOpen(false); 
+                onOpenSystemStatus();
+              }}>
+                📊 System Status
               </div>
             )}
             <div className="user-menu-item" onClick={openSettings}>
               ⚙️ Settings
-            </div>
-            <div className="user-menu-item" onClick={openPinChange}>
-              🔐 Change PIN
             </div>
             <div className="user-menu-item danger" onClick={handleLogout}>
               🚪 Logout
@@ -237,383 +196,135 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
         )}
       </div>
 
-      {/* PIN Change Modal */}
-      {isPinChangeOpen && (
-        <div className="modal">
-          <div className="modal-content user-settings-modal">
-            <div className="modal-header" style={{ 
-              margin: '0', 
-              padding: '24px 30px', 
-              borderBottom: '2px solid #e8e8e8',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            }}>
-              <h2 className="modal-title" style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px', margin: '0' }}>
-                <span style={{ fontSize: '28px' }}>🔐</span>
-                <span>Change PIN Code</span>
-              </h2>
-              <button 
-                className="modal-close" 
-                onClick={closePinChange}
-                style={{ color: '#ffffff', fontSize: '32px', opacity: '0.9' }}
-              >×</button>
+      {/* Settings Modal */}
+      {isSettingsOpen && ReactDOM.createPortal(
+        <div 
+          className="modal" 
+          style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div className="modal-content" style={{ 
+            maxWidth: '600px',
+            width: '90%',
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            position: 'relative',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div className="modal-header">
+              <h2 className="modal-title">⚙️ Settings</h2>
+              <button className="modal-close" onClick={closeSettings}>×</button>
             </div>
             
-            <form onSubmit={handlePinSubmit}>
-              <div className="modal-body" style={{ padding: '30px' }}>
-                {pinChangeError && (
-                  <div style={{ 
-                    padding: '14px 16px', 
-                    marginBottom: '20px', 
-                    backgroundColor: '#fee2e2', 
-                    border: '1px solid #fca5a5',
-                    borderRadius: '8px',
-                    color: '#dc2626',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '14px'
-                  }}>
-                    <span style={{ fontSize: '18px' }}>⚠️</span>
-                    <span>{pinChangeError}</span>
+            {/* Appearance Section */}
+            <div style={{ marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #e0e0e0' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#333' }}>🎨 Appearance</h3>
+              
+              <div className="form-group">
+                <label className="form-label">Theme</label>
+                <select 
+                  className="form-control" 
+                  value={theme} 
+                  onChange={handleThemeChange}
+                >
+                  <option value="light">☀️ Light</option>
+                  <option value="dark">🌙 Dark</option>
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Language</label>
+                <select 
+                  className="form-control" 
+                  value={language} 
+                  onChange={handleLanguageChange}
+                >
+                  <option value="en">🇬🇧 English</option>
+                  <option value="no">🇳🇴 Norsk</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Security Section */}
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#333' }}>🔐 Security</h3>
+              
+              <form onSubmit={handlePasswordSubmit}>
+                {passwordError && (
+                  <div className="alert alert-error" style={{ marginBottom: '15px' }}>
+                    {passwordError}
                   </div>
                 )}
                 
-                {pinChangeSuccess && (
-                  <div style={{ 
-                    padding: '14px 16px', 
-                    marginBottom: '20px', 
-                    backgroundColor: '#d1fae5', 
-                    border: '1px solid #6ee7b7',
-                    borderRadius: '8px',
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '14px'
-                  }}>
-                    <span style={{ fontSize: '18px' }}>✅</span>
-                    <span>{pinChangeSuccess}</span>
+                {passwordSuccess && (
+                  <div className="alert alert-success" style={{ marginBottom: '15px' }}>
+                    {passwordSuccess}
                   </div>
                 )}
-
-                <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label htmlFor="currentPin" className="form-label" style={{ 
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    fontSize: '14px'
-                  }}>
-                    Current PIN
-                  </label>
+                
+                <div className="form-group">
+                  <label className="form-label">Current Password</label>
                   <input
                     type="password"
-                    id="currentPin"
-                    name="currentPin"
-                    value={pinChangeData.currentPin}
-                    onChange={handlePinChange}
-                    maxLength="4"
                     className="form-control"
-                    placeholder="Enter current PIN"
-                    disabled={pinChangeLoading}
-                    autoComplete="current-password"
-                    style={{
-                      padding: '12px 16px',
-                      fontSize: '16px',
-                      borderRadius: '8px',
-                      border: '2px solid #e5e7eb',
-                      width: '100%',
-                      transition: 'border-color 0.2s',
-                      letterSpacing: '4px'
-                    }}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    placeholder="Enter current password"
                   />
                 </div>
-
-                <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label htmlFor="newPin" className="form-label" style={{ 
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    fontSize: '14px'
-                  }}>
-                    New PIN
-                  </label>
+                
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
                   <input
                     type="password"
-                    id="newPin"
-                    name="newPin"
-                    value={pinChangeData.newPin}
-                    onChange={handlePinChange}
-                    maxLength="4"
                     className="form-control"
-                    placeholder="Enter new PIN"
-                    disabled={pinChangeLoading}
-                    autoComplete="new-password"
-                    style={{
-                      padding: '12px 16px',
-                      fontSize: '16px',
-                      borderRadius: '8px',
-                      border: '2px solid #e5e7eb',
-                      width: '100%',
-                      transition: 'border-color 0.2s',
-                      letterSpacing: '4px'
-                    }}
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    placeholder="Enter new password"
                   />
-                  <small style={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    marginTop: '8px', 
-                    color: '#6b7280', 
-                    fontSize: '13px' 
-                  }}>
-                    <span>💡</span>
-                    <span>Enter a 4-digit numeric PIN code</span>
-                  </small>
                 </div>
-
-                <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label htmlFor="confirmPin" className="form-label" style={{ 
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    fontSize: '14px'
-                  }}>
-                    Confirm New PIN
-                  </label>
+                
+                <div className="form-group">
+                  <label className="form-label">Confirm New Password</label>
                   <input
                     type="password"
-                    id="confirmPin"
-                    name="confirmPin"
-                    value={pinChangeData.confirmPin}
-                    onChange={handlePinChange}
-                    maxLength="4"
                     className="form-control"
-                    placeholder="Confirm new PIN"
-                    disabled={pinChangeLoading}
-                    autoComplete="new-password"
-                    style={{
-                      padding: '12px 16px',
-                      fontSize: '16px',
-                      borderRadius: '8px',
-                      border: '2px solid #e5e7eb',
-                      width: '100%',
-                      transition: 'border-color 0.2s',
-                      letterSpacing: '4px'
-                    }}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    placeholder="Confirm new password"
                   />
                 </div>
-
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '12px', 
-                  justifyContent: 'flex-end', 
-                  marginTop: '32px',
-                  paddingTop: '24px',
-                  borderTop: '1px solid #e5e7eb'
-                }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={closePinChange}
-                    disabled={pinChangeLoading}
-                    style={{
-                      padding: '12px 24px',
-                      fontSize: '15px',
-                      fontWeight: '500',
-                      borderRadius: '8px',
-                      border: 'none',
-                      backgroundColor: '#f3f4f6',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={pinChangeLoading}
-                    style={{
-                      padding: '12px 32px',
-                      fontSize: '15px',
-                      fontWeight: '500',
-                      borderRadius: '8px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
-                      cursor: pinChangeLoading ? 'not-allowed' : 'pointer',
-                      opacity: pinChangeLoading ? '0.7' : '1',
-                      transition: 'all 0.2s',
-                      minWidth: '140px'
-                    }}
-                  >
-                    {pinChangeLoading ? '⏳ Updating...' : '✓ Update PIN'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Settings Modal */}
-      {isSettingsOpen && (
-        <div className="modal">
-          <div className="modal-content user-settings-modal">
-            <div className="modal-header" style={{ 
-              margin: '0', 
-              padding: '24px 30px', 
-              borderBottom: '2px solid #e8e8e8',
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-            }}>
-              <h2 className="modal-title" style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px', margin: '0' }}>
-                <span style={{ fontSize: '28px' }}>⚙️</span>
-                <span>Settings</span>
-              </h2>
-              <button 
-                className="modal-close" 
-                onClick={closeSettings}
-                style={{ color: '#ffffff', fontSize: '32px', opacity: '0.9' }}
-              >×</button>
+                
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  style={{ width: '100%', marginBottom: '10px' }}
+                  disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                >
+                  Update Password
+                </button>
+              </form>
             </div>
             
-            <div className="modal-body" style={{ padding: '30px' }}>
-              <div style={{ marginBottom: '28px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <span style={{ fontSize: '24px' }}>🎨</span>
-                  <label className="form-label" style={{ 
-                    margin: '0',
-                    fontWeight: '600',
-                    color: '#374151',
-                    fontSize: '15px'
-                  }}>
-                    Theme
-                  </label>
-                </div>
-                <select 
-                  value={theme} 
-                  onChange={handleThemeChange}
-                  className="form-control"
-                  style={{
-                    padding: '14px 16px',
-                    fontSize: '15px',
-                    borderRadius: '8px',
-                    border: '2px solid #e5e7eb',
-                    width: '100%',
-                    backgroundColor: 'white',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    appearance: 'none',
-                    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23374151\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 16px center',
-                    paddingRight: '44px'
-                  }}
-                >
-                  <option value="light">☀️ Light Mode</option>
-                  <option value="dark">🌙 Dark Mode</option>
-                </select>
-                <small style={{ 
-                  display: 'block',
-                  marginTop: '8px', 
-                  color: '#6b7280', 
-                  fontSize: '13px',
-                  paddingLeft: '36px'
-                }}>
-                  Choose your preferred color theme
-                </small>
-              </div>
-
-              <div style={{ marginBottom: '28px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <span style={{ fontSize: '24px' }}>🌍</span>
-                  <label className="form-label" style={{ 
-                    margin: '0',
-                    fontWeight: '600',
-                    color: '#374151',
-                    fontSize: '15px'
-                  }}>
-                    Language
-                  </label>
-                </div>
-                <select 
-                  value={language} 
-                  onChange={handleLanguageChange}
-                  className="form-control"
-                  style={{
-                    padding: '14px 16px',
-                    fontSize: '15px',
-                    borderRadius: '8px',
-                    border: '2px solid #e5e7eb',
-                    width: '100%',
-                    backgroundColor: 'white',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    appearance: 'none',
-                    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23374151\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 16px center',
-                    paddingRight: '44px'
-                  }}
-                >
-                  <option value="en">🇬🇧 English</option>
-                  <option value="no">🇳🇴 Norsk (Norwegian)</option>
-                </select>
-                <small style={{ 
-                  display: 'block',
-                  marginTop: '8px', 
-                  color: '#6b7280', 
-                  fontSize: '13px',
-                  paddingLeft: '36px'
-                }}>
-                  Select your language preference
-                </small>
-              </div>
-
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'flex-end', 
-                marginTop: '32px',
-                paddingTop: '24px',
-                borderTop: '1px solid #e5e7eb'
-              }}>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={closeSettings}
-                  style={{
-                    padding: '12px 32px',
-                    fontSize: '15px',
-                    fontWeight: '500',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                    color: 'white',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    minWidth: '120px'
-                  }}
-                >
-                  ✓ Done
-                </button>
-              </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={closeSettings}>
+                Close
+              </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

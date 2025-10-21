@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { Calendar as BigCalendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/nb'; // Norwegian locale
@@ -1266,7 +1267,7 @@ const localizer = momentLocalizer(moment);
       </div>
 
       {/* Ticket Details Modal */}
-      {showModal && selectedEvent && (
+      {showModal && selectedEvent && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content">
             <div className="modal-header">
@@ -1328,11 +1329,12 @@ const localizer = momentLocalizer(moment);
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Ticket Modal */}
-      {showEditModal && editingTicket && (
+      {showEditModal && editingTicket && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content ticket-modal" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
@@ -1555,7 +1557,8 @@ const localizer = momentLocalizer(moment);
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

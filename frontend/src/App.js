@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AdminProvider } from './contexts/AdminContext';
 import AuthWrapper from './components/AuthWrapper';
 import Navigation from './components/Navigation';
+import GlobalModals from './components/GlobalModals';
 import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Administrator from './pages/Administrator';
@@ -25,6 +26,7 @@ function App() {
             <div className="App">
               <AuthWrapper>
                 <Navigation />
+                <GlobalModals />
                 <main className="main-content">
                   <Routes>
                     <Route path="/" element={<Dashboard />} />

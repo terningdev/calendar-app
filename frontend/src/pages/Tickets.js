@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { toast } from 'react-toastify';
 import { ticketService } from '../services/ticketService';
 import { technicianService } from '../services/technicianService';
@@ -673,7 +674,11 @@ const Tickets = () => {
           </button>
           <button 
             className="btn btn-secondary" 
-            onClick={() => setShowOldActivitiesModal(true)}
+            onClick={() => {
+              console.log('Opening Old Activities Modal');
+              setShowOldActivitiesModal(true);
+              console.log('showOldActivitiesModal should now be true');
+            }}
             style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           >
             📅 Old Activities ({getOldTickets().length})
@@ -1220,13 +1225,15 @@ const Tickets = () => {
       )}
 
       {/* Old Activities Window Modal */}
-      {showOldActivitiesModal && (
+      {console.log('Tickets page - showOldActivitiesModal:', showOldActivitiesModal)}
+      {showOldActivitiesModal && console.log('ABOUT TO RENDER OLD ACTIVITIES MODAL')}
+      {showOldActivitiesModal && ReactDOM.createPortal(
         <>
           <div 
             className="window-modal-backdrop" 
             onClick={() => setShowOldActivitiesModal(false)}
           ></div>
-          <div className="window-modal">
+          <div className="window-modal" id="old-activities-modal-test">
             <div className="window-modal-header">
               <h2 className="window-modal-title">
                 Old Activities ({getOldTickets().length})
@@ -1325,11 +1332,12 @@ const Tickets = () => {
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* Mobile Department Selector Modal */}
-      {showDepartmentSelector && (
+      {showDepartmentSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowDepartmentSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1364,11 +1372,12 @@ const Tickets = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Mobile Technician Selector Modal */}
-      {showTechnicianSelector && (
+      {showTechnicianSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowTechnicianSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1427,11 +1436,12 @@ const Tickets = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Mobile Search Popup */}
-      {showSearchPopup && (
+      {showSearchPopup && ReactDOM.createPortal(
         <div className="mobile-search-overlay" onClick={() => setShowSearchPopup(false)}>
           <div className="mobile-search-container" onClick={(e) => e.stopPropagation()}>
             <input
@@ -1443,11 +1453,12 @@ const Tickets = () => {
               autoFocus
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Filter Department Selector */}
-      {showFilterDepartmentSelector && (
+      {showFilterDepartmentSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowFilterDepartmentSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1482,11 +1493,12 @@ const Tickets = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Filter Technician Selector */}
-      {showFilterTechnicianSelector && (
+      {showFilterTechnicianSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowFilterTechnicianSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1530,7 +1542,8 @@ const Tickets = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

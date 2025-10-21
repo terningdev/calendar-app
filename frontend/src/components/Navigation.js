@@ -8,7 +8,7 @@ const Navigation = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { pendingUserCount, openPendingUsersModal, openManageUsersModal } = useAdmin();
+  const { pendingUserCount, openPendingUsersModal, openManageUsersModal, openSystemStatusModal } = useAdmin();
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
@@ -65,6 +65,7 @@ const Navigation = () => {
             pendingUserCount={pendingUserCount}
             onOpenPendingUsers={openPendingUsersModal}
             onOpenManageUsers={openManageUsersModal}
+            onOpenSystemStatus={openSystemStatusModal}
           />
         </div>
         

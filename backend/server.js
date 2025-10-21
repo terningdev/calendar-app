@@ -215,7 +215,7 @@ app.get('/api/status', async (req, res) => {
     const status = {
       backend: {
         status: 'connected',
-        message: 'Backend server is running',
+        message: 'Render server is running',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         port: PORT

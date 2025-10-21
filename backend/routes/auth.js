@@ -1,40 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const UserModel = require('../models/UserModel'); // MongoDB model
 
-// In-memory storage for users (similar to other models)
+// In-memory storage for users (similar to other models) - DEPRECATED, using MongoDB now
 let users = [];
 let nextId = 1;
 
-// Initialize default sysadmin user
-const initializeDefaultUser = () => {
-    const existingSysadmin = users.find(user => user.username === 'sysadmin');
-    if (!existingSysadmin) {
-        const sysadmin = new User({
-            username: 'sysadmin',
-            password: '696969',
-            role: 'sysadmin',
-            approved: true
-        });
-        users.push(sysadmin);
-        console.log('Default sysadmin user created: sysadmin / 696969');
+// Initialize default sysadmin user in MongoDB
+const initializeDefaultUser = async () => {
+    try {
+        const existingSysadmin = await UserModel.findOne({ username: 'sysadmin' });
+        if (!existingSysadmin) {
+            const sysadmin = new UserModel({
+                username: 'sysadmin',
+                password: '696969',
+                role: 'sysadmin',
+                approved: true
+            });
+            await sysadmin.save();
+            console.log('Default sysadmin user created in MongoDB: sysadmin / 696969');
+        } else {
+            console.log('Sysadmin user already exists in MongoDB');
+        }
+    } catch (error) {
+        console.error('Error initializing default user:', error);
     }
 };
 
 // Initialize on startup
 initializeDefaultUser();
 
-// Helper function to find user by phone
-const findUserByEmail = (email) => {
-    return users.find(user => user.email === email);
+// Helper function to find user by email
+const findUserByEmail = async (email) => {
+    return await UserModel.findOne({ email: email.toLowerCase() });
 };
 
-const findUserByUsername = (username) => {
-    return users.find(user => user.username === username);
+const findUserByUsername = async (username) => {
+    return await UserModel.findOne({ username });
 };
 
 // Register new user
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
     try {
         const { firstName, lastName, phone, email, password, password2 } = req.body;
 
@@ -48,7 +55,7 @@ router.post('/register', (req, res) => {
         if (!User.isValidPhone(phone)) {
             return res.status(400).json({ success: false, message: 'Invalid phone number. Must be 8 digits.' });
         }
-        if (!User.isValidEmail(email)) {
+        if (!UserModel.isValidEmail(email)) {
             return res.status(400).json({ success: false, message: 'Valid email is required.' });
         }
         if (!User.isValidPassword(password)) {
@@ -59,21 +66,22 @@ router.post('/register', (req, res) => {
         }
 
         // Check if email already exists
-        if (users.find(u => u.email === email)) {
+        const existingUser = await UserModel.findOne({ email: email.toLowerCase() });
+        if (existingUser) {
             return res.status(400).json({ success: false, message: 'Email already registered.' });
         }
 
         // Create new user (awaiting approval)
-        const newUser = new User({
+        const newUser = new UserModel({
             firstName,
             lastName,
             phone,
-            email,
+            email: email.toLowerCase(),
             password,
             role: 'user',
             approved: false
         });
-        users.push(newUser);
+        await newUser.save();
 
         res.json({
             success: true,
@@ -88,20 +96,20 @@ router.post('/register', (req, res) => {
 });
 
 // Login user
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const { email, password, username } = req.body;
 
         let user;
         if (username) {
             // Sysadmin login
-            user = users.find(u => u.username === username && u.role === 'sysadmin');
+            user = await UserModel.findOne({ username, role: 'sysadmin' });
             if (!user || user.password !== password) {
                 return res.status(401).json({ success: false, message: 'Invalid username or password.' });
             }
         } else {
             // Regular user login
-            user = users.find(u => u.email === email);
+            user = await UserModel.findOne({ email: email.toLowerCase() });
             if (!user || user.password !== password) {
                 return res.status(401).json({ success: false, message: 'Invalid email or password.' });
             }
@@ -189,7 +197,7 @@ router.post('/logout', (req, res) => {
 });
 
 // Get pending user registrations (admin/sysadmin only)
-router.get('/pending', (req, res) => {
+router.get('/pending', async (req, res) => {
     try {
         // Check authentication
         if (!req.session.user) {
@@ -202,16 +210,16 @@ router.get('/pending', (req, res) => {
         // Check permissions
         let currentUser;
         if (req.session.user.username) {
-            currentUser = findUserByUsername(req.session.user.username);
+            currentUser = await findUserByUsername(req.session.user.username);
         } else {
-            currentUser = findUserByEmail(req.session.user.email);
+            currentUser = await findUserByEmail(req.session.user.email);
         }
         if (!currentUser || !currentUser.canApproveUsers()) {
             return res.status(403).json({ success: false, message: 'Administrator privileges required.' });
         }
 
-        // Get pending users
-        const pendingUsers = users.filter(user => !user.approved && user.role !== 'sysadmin');
+        // Get pending users from MongoDB
+        const pendingUsers = await UserModel.find({ approved: false, role: { $ne: 'sysadmin' } });
         res.json({
             success: true,
             pendingUsers: pendingUsers.map(user => ({
@@ -233,7 +241,7 @@ router.get('/pending', (req, res) => {
 });
 
 // Approve user registration (admin/sysadmin only)
-router.post('/approve/:email', (req, res) => {
+router.post('/approve/:email', async (req, res) => {
     try {
         // Check authentication
         if (!req.session.user) {
@@ -246,16 +254,16 @@ router.post('/approve/:email', (req, res) => {
         // Check permissions
         let currentUser;
         if (req.session.user.username) {
-            currentUser = findUserByUsername(req.session.user.username);
+            currentUser = await findUserByUsername(req.session.user.username);
         } else {
-            currentUser = findUserByEmail(req.session.user.email);
+            currentUser = await findUserByEmail(req.session.user.email);
         }
         if (!currentUser || !currentUser.canApproveUsers()) {
             return res.status(403).json({ success: false, message: 'Administrator privileges required.' });
         }
 
-        // Find and approve user by email
-        const userToApprove = findUserByEmail(req.params.email);
+        // Find and approve user by email in MongoDB
+        const userToApprove = await UserModel.findOne({ email: req.params.email.toLowerCase() });
         if (!userToApprove) {
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
@@ -263,6 +271,7 @@ router.post('/approve/:email', (req, res) => {
             return res.status(400).json({ success: false, message: 'User already approved.' });
         }
         userToApprove.approved = true;
+        await userToApprove.save();
         res.json({ success: true, message: `User ${userToApprove.email} approved successfully.` });
 
     } catch (error) {
@@ -275,7 +284,7 @@ router.post('/approve/:email', (req, res) => {
 });
 
 // Reject user registration (admin/sysadmin only)
-router.delete('/reject/:email', (req, res) => {
+router.delete('/reject/:email', async (req, res) => {
     try {
         // Check authentication
         if (!req.session.user) {
@@ -288,9 +297,9 @@ router.delete('/reject/:email', (req, res) => {
         // Check permissions
         let currentUser;
         if (req.session.user.username) {
-            currentUser = findUserByUsername(req.session.user.username);
+            currentUser = await findUserByUsername(req.session.user.username);
         } else {
-            currentUser = findUserByEmail(req.session.user.email);
+            currentUser = await findUserByEmail(req.session.user.email);
         }
         if (!currentUser || !currentUser.canApproveUsers()) {
             return res.status(403).json({ 
@@ -299,28 +308,18 @@ router.delete('/reject/:email', (req, res) => {
             });
         }
 
-        // Find and remove user
-        const userIndex = users.findIndex(user => user.email === req.params.email);
-        if (userIndex === -1) {
+        // Find and remove user from MongoDB
+        const result = await UserModel.deleteOne({ email: req.params.email.toLowerCase() });
+        if (result.deletedCount === 0) {
             return res.status(404).json({ 
                 success: false, 
                 message: 'User not found.' 
             });
         }
 
-        const rejectedUser = users[userIndex];
-        if (rejectedUser.approved) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Cannot reject approved user.' 
-            });
-        }
-
-        users.splice(userIndex, 1);
-
         res.json({
             success: true,
-            message: `User registration for ${rejectedUser.fullName} rejected.`
+            message: `User registration rejected successfully.`
         });
 
     } catch (error) {
@@ -409,7 +408,7 @@ router.post('/update-pin', (req, res) => {
 });
 
 // Get all users (administrator/sysadmin only)
-router.get('/users', (req, res) => {
+router.get('/users', async (req, res) => {
     try {
         // Check authentication
         if (!req.session.user) {
@@ -429,20 +428,18 @@ router.get('/users', (req, res) => {
             });
         }
 
-        // Return all users (exclude passwords)
-        // Only return approved users (pending users should use /auth/pending endpoint)
-        const safeUsers = users
-            .filter(user => user.approved) // Only approved users
-            .map(user => ({
-                email: user.email,
-                username: user.username,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                phone: user.phone,
-                role: user.role,
-                approved: user.approved,
-                requirePasswordReset: user.requirePasswordReset,
-                createdAt: user.createdAt
+        // Return all approved users from MongoDB
+        const approvedUsers = await UserModel.find({ approved: true });
+        const safeUsers = approvedUsers.map(user => ({
+            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            role: user.role,
+            approved: user.approved,
+            requirePasswordReset: user.requirePasswordReset,
+            createdAt: user.createdAt
             }));
 
         res.json({
@@ -460,7 +457,7 @@ router.get('/users', (req, res) => {
 });
 
 // Update user (administrator/sysadmin only)
-router.put('/users/:identifier', (req, res) => {
+router.put('/users/:identifier', async (req, res) => {
     try {
         const { identifier } = req.params; // Can be email or username
         const { firstName, lastName, phone, newEmail, role, requirePasswordReset } = req.body;
@@ -483,10 +480,10 @@ router.put('/users/:identifier', (req, res) => {
             });
         }
 
-        // Find user to update - try by email first, then by username
-        let userToUpdate = findUserByEmail(identifier);
+        // Find user to update in MongoDB - try by email first, then by username
+        let userToUpdate = await UserModel.findOne({ email: identifier.toLowerCase() });
         if (!userToUpdate) {
-            userToUpdate = findUserByUsername(identifier);
+            userToUpdate = await UserModel.findOne({ username: identifier });
         }
         
         if (!userToUpdate) {
@@ -549,8 +546,8 @@ router.put('/users/:identifier', (req, res) => {
         }
 
         // Check if new email already exists
-        if (newEmail && newEmail !== identifier && newEmail !== userToUpdate.email) {
-            const emailExists = findUserByEmail(newEmail);
+        if (newEmail && newEmail !== identifier && newEmail.toLowerCase() !== userToUpdate.email) {
+            const emailExists = await UserModel.findOne({ email: newEmail.toLowerCase() });
             if (emailExists) {
                 return res.status(400).json({ 
                     success: false, 
@@ -563,9 +560,11 @@ router.put('/users/:identifier', (req, res) => {
         if (firstName) userToUpdate.firstName = firstName;
         if (lastName) userToUpdate.lastName = lastName;
         if (phone) userToUpdate.phone = phone;
-        if (newEmail) userToUpdate.email = newEmail;
+        if (newEmail) userToUpdate.email = newEmail.toLowerCase();
         if (role) userToUpdate.role = role;
         if (requirePasswordReset !== undefined) userToUpdate.requirePasswordReset = requirePasswordReset;
+        
+        await userToUpdate.save();
 
         res.json({
             success: true,
@@ -590,7 +589,7 @@ router.put('/users/:identifier', (req, res) => {
 });
 
 // Delete user (administrator/sysadmin only)
-router.delete('/users/:identifier', (req, res) => {
+router.delete('/users/:identifier', async (req, res) => {
     try {
         const { identifier } = req.params; // Can be email or username
 
@@ -651,8 +650,8 @@ router.delete('/users/:identifier', (req, res) => {
             });
         }
 
-        // Delete user
-        users.splice(userIndex, 1);
+        // Delete user from MongoDB
+        await UserModel.deleteOne({ _id: userToDelete._id });
 
         res.json({
             success: true,

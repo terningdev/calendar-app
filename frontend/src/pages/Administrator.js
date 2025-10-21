@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { toast } from 'react-toastify';
 import { departmentService } from '../services/departmentService';
 import { technicianService } from '../services/technicianService';
@@ -821,7 +822,7 @@ const Administrator = () => {
       </div>
 
       {/* Department Modal */}
-      {showDepartmentModal && (
+      {showDepartmentModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '600px' }}>
             <div className="modal-header">
@@ -878,11 +879,12 @@ const Administrator = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Technician Modal */}
-      {showTechnicianModal && (
+      {showTechnicianModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
@@ -1015,11 +1017,12 @@ const Administrator = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Pending Users Modal */}
-      {showPendingUsersModal && (
+      {showPendingUsersModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
@@ -1091,11 +1094,12 @@ const Administrator = () => {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* User Management Modal */}
-      {showUsersModal && (
+      {showUsersModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '800px' }}>
             <div className="modal-header">
@@ -1206,11 +1210,12 @@ const Administrator = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit User Modal */}
-      {editingUser && (
+      {editingUser && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '500px' }}>
             <div className="modal-header">
@@ -1324,11 +1329,12 @@ const Administrator = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Settings Modal */}
-      {showSettingsModal && (
+      {showSettingsModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '400px' }}>
             <div className="modal-header">
@@ -1456,11 +1462,12 @@ const Administrator = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Color Settings Modal */}
-      {showColorSettingsModal && (
+      {showColorSettingsModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '600px' }}>
             <div className="modal-header">
@@ -1578,11 +1585,12 @@ const Administrator = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Console Modal */}
-      {showConsoleModal && (
+      {showConsoleModal && ReactDOM.createPortal(
         <div className="modal">
           <div className="modal-content" style={{ maxWidth: '900px', height: '80vh' }}>
             <div className="modal-header">
@@ -1636,7 +1644,8 @@ const Administrator = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
