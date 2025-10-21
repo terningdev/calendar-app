@@ -217,7 +217,15 @@ app.use('/api/departments', require('./routes/departments'));
 app.use('/api/technicians', require('./routes/technicians'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/absences', require('./routes/absences'));
-app.use('/api/permissions', require('./routes/permissions'));
+
+// Permissions routes - load with error handling
+try {
+  const permissionsRoutes = require('./routes/permissions');
+  app.use('/api/permissions', permissionsRoutes);
+  console.log('✅ Permissions routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading permissions routes:', error.message);
+}
 
 // Root endpoint
 app.get('/', (req, res) => {

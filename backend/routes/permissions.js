@@ -2,6 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { PermissionsModel } = require('../models/PermissionsModel');
 
+// Test endpoint to verify route is loaded
+router.get('/test', (req, res) => {
+    res.json({ 
+        success: true, 
+        message: 'Permissions route is working',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
     if (!req.session || !req.session.user) {
