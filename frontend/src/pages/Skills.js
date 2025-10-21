@@ -47,12 +47,12 @@ const Skills = () => {
       const [categoriesRes, productsRes, departmentsRes] = await Promise.all([
         skillsService.getAllCategories(),
         skillsService.getAllProducts(),
-        departmentService.getAllDepartments()
+        departmentService.getAll()
       ]);
       
       setCategories(categoriesRes.categories || []);
       setProducts(productsRes.products || []);
-      setDepartments(departmentsRes.departments || []);
+      setDepartments(departmentsRes || []);
     } catch (error) {
       toast.error(error.message || 'Failed to load data');
     } finally {
