@@ -35,6 +35,8 @@ const Navigation = () => {
         return t('absenceVakt');
       case '/administrator':
         return t('administrator');
+      case '/skills':
+        return t('skills');
       default:
         return t('dashboard');
     }
@@ -90,6 +92,13 @@ const Navigation = () => {
           <li>
             <Link to="/absences" className={`${isActive('/absences')} mobile-show`} onClick={closeMenu}>
               {t('absenceVakt')}
+            </Link>
+          </li>
+          
+          {/* Skills link */}
+          <li>
+            <Link to="/skills" className={isActive('/skills')} onClick={closeMenu}>
+              {t('skills')}
             </Link>
           </li>
           

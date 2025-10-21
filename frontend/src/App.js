@@ -16,6 +16,7 @@ import Calendar from './pages/Calendar';
 import Administrator from './pages/Administrator';
 import Tickets from './pages/Tickets';
 import Absences from './pages/Absences';
+import Skills from './pages/Skills';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
                     <Route path="/administrator" element={<Administrator />} />
                     <Route path="/tickets" element={<Tickets />} />
                     <Route path="/absences" element={<Absences />} />
+                    <Route path="/skills" element={<Skills />} />
                   </Routes>
                 </main>
               </AuthWrapper>

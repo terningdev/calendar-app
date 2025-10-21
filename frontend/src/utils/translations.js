@@ -10,6 +10,7 @@ export const translations = {
     tickets: 'Tickets',
     absenceVakt: 'Absence & On call',
     administrator: 'Departments & Technicians',
+    skills: 'Skills',
     
     // Common words
     save: 'Save',
@@ -114,7 +115,6 @@ export const translations = {
     // Technicians
     addTechnician: 'Add Technician',
     technicians: 'Technicians',
-    skills: 'Skills',
     
     // Absences
     absences: 'Absences',
@@ -156,6 +156,7 @@ export const translations = {
     tickets: 'Aktiviteter',
     absenceVakt: 'Fravær / Vakt',
     administrator: 'Avdelinger og Teknikere',
+    skills: 'Ferdigheter',
     
     // Common words
     save: 'Lagre',
@@ -260,7 +261,6 @@ export const translations = {
     // Technicians
     addTechnician: 'Legg til Tekniker',
     technicians: 'Teknikere',
-    skills: 'Ferdigheter',
     
     // Absences
     absences: 'Fravær',
