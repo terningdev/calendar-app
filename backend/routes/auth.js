@@ -460,9 +460,9 @@ router.get('/users', (req, res) => {
 });
 
 // Update user (administrator/sysadmin only)
-router.put('/users/:email', (req, res) => {
+router.put('/users/:identifier', (req, res) => {
     try {
-        const { email } = req.params;
+        const { identifier } = req.params; // Can be email or username
         const { firstName, lastName, phone, newEmail, role, requirePasswordReset } = req.body;
 
         // Check authentication
@@ -483,8 +483,12 @@ router.put('/users/:email', (req, res) => {
             });
         }
 
-        // Find user to update
-        const userToUpdate = findUserByEmail(email);
+        // Find user to update - try by email first, then by username
+        let userToUpdate = findUserByEmail(identifier);
+        if (!userToUpdate) {
+            userToUpdate = findUserByUsername(identifier);
+        }
+        
         if (!userToUpdate) {
             return res.status(404).json({ 
                 success: false, 
@@ -545,7 +549,7 @@ router.put('/users/:email', (req, res) => {
         }
 
         // Check if new email already exists
-        if (newEmail && newEmail !== email) {
+        if (newEmail && newEmail !== identifier && newEmail !== userToUpdate.email) {
             const emailExists = findUserByEmail(newEmail);
             if (emailExists) {
                 return res.status(400).json({ 
@@ -586,9 +590,9 @@ router.put('/users/:email', (req, res) => {
 });
 
 // Delete user (administrator/sysadmin only)
-router.delete('/users/:email', (req, res) => {
+router.delete('/users/:identifier', (req, res) => {
     try {
-        const { email } = req.params;
+        const { identifier } = req.params; // Can be email or username
 
         // Check authentication
         if (!req.session.user) {
@@ -608,8 +612,12 @@ router.delete('/users/:email', (req, res) => {
             });
         }
 
-        // Find user to delete
-        const userIndex = users.findIndex(u => u.email === email);
+        // Find user to delete - try by email first, then by username
+        let userIndex = users.findIndex(u => u.email === identifier);
+        if (userIndex === -1) {
+            userIndex = users.findIndex(u => u.username === identifier);
+        }
+        
         if (userIndex === -1) {
             return res.status(404).json({ 
                 success: false, 

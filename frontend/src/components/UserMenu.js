@@ -148,7 +148,7 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
           title="User menu"
           style={{ position: 'relative' }}
         >
-          <span>{user?.fullName?.split(' ')[0] || 'User'}</span>
+          <span>{user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}</span>
           <span style={{ fontSize: '0.7rem' }}>▼</span>
           {pendingUserCount > 0 && (
             <span className="badge-notification" style={{ 

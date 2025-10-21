@@ -458,7 +458,9 @@ const Administrator = () => {
         requirePasswordReset: userFormData.requirePasswordReset
       };
 
-      const response = await userService.updateUser(editingUser.email, updateData);
+      // Use username for sysadmin, email for others
+      const identifier = editingUser.username || editingUser.email;
+      const response = await userService.updateUser(identifier, updateData);
       if (response.success) {
         toast.success(response.message || 'User updated successfully');
         closeEditUserModal();
@@ -470,10 +472,10 @@ const Administrator = () => {
     }
   };
 
-  const handleDeleteUser = async (userEmail) => {
-    if (window.confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
+  const handleDeleteUser = async (userIdentifier) => {
+    if (window.confirm(`Are you sure you want to delete user ${userIdentifier}? This action cannot be undone.`)) {
       try {
-        const response = await userService.deleteUser(userEmail);
+        const response = await userService.deleteUser(userIdentifier);
         if (response.success) {
           toast.success(response.message || 'User deleted successfully');
           await loadAllUsers();
@@ -1149,9 +1151,9 @@ const Administrator = () => {
                     </thead>
                     <tbody>
                       {allUsers.map(u => (
-                        <tr key={u.email}>
-                          <td>{u.email}</td>
-                          <td>{u.firstName} {u.lastName}</td>
+                        <tr key={u.email || u.username}>
+                          <td>{u.email || u.username}</td>
+                          <td>{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : '-'}</td>
                           <td>{u.phone}</td>
                           <td>
                             <span className={`badge badge-${u.role === 'sysadmin' ? 'danger' : u.role === 'administrator' ? 'warning' : u.role === 'technician' ? 'info' : 'secondary'}`}>
@@ -1176,9 +1178,9 @@ const Administrator = () => {
                             </button>
                             <button
                               className="btn btn-danger btn-sm"
-                              onClick={() => handleDeleteUser(u.email)}
-                              disabled={u.role === 'sysadmin' || u.email === user?.email}
-                              title={u.role === 'sysadmin' ? 'Cannot delete sysadmin' : u.email === user?.email ? 'Cannot delete yourself' : 'Delete user'}
+                              onClick={() => handleDeleteUser(u.username || u.email)}
+                              disabled={u.role === 'sysadmin' || (u.email && u.email === user?.email) || (u.username && u.username === user?.username)}
+                              title={u.role === 'sysadmin' ? 'Cannot delete sysadmin' : ((u.email && u.email === user?.email) || (u.username && u.username === user?.username)) ? 'Cannot delete yourself' : 'Delete user'}
                             >
                               🗑️ Delete
                             </button>
