@@ -360,9 +360,9 @@ const Administrator = () => {
     }
   };
 
-  const handleApproveUser = async (phone) => {
+  const handleApproveUser = async (email) => {
     try {
-      const response = await authService.approveUser(phone);
+      const response = await authService.approveUser(email);
       if (response.success) {
         toast.success(response.message || 'User approved successfully');
         await loadPendingUsers(); // Reload the list
@@ -373,10 +373,10 @@ const Administrator = () => {
     }
   };
 
-  const handleRejectUser = async (phone) => {
+  const handleRejectUser = async (email) => {
     if (window.confirm('Are you sure you want to reject this user registration?')) {
       try {
-        const response = await authService.rejectUser(phone);
+        const response = await authService.rejectUser(email);
         if (response.success) {
           toast.success(response.message || 'User registration rejected');
           await loadPendingUsers(); // Reload the list

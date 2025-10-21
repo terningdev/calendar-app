@@ -221,7 +221,7 @@ router.get('/pending', (req, res) => {
 });
 
 // Approve user registration (admin/sysadmin only)
-router.post('/approve/:phone', (req, res) => {
+router.post('/approve/:email', (req, res) => {
     try {
         // Check authentication
         if (!req.session.user) {
@@ -263,7 +263,7 @@ router.post('/approve/:phone', (req, res) => {
 });
 
 // Reject user registration (admin/sysadmin only)
-router.delete('/reject/:phone', (req, res) => {
+router.delete('/reject/:email', (req, res) => {
     try {
         // Check authentication
         if (!req.session.user) {
@@ -274,7 +274,12 @@ router.delete('/reject/:phone', (req, res) => {
         }
 
         // Check permissions
-        const currentUser = findUserByPhone(req.session.user.phone);
+        let currentUser;
+        if (req.session.user.username) {
+            currentUser = findUserByUsername(req.session.user.username);
+        } else {
+            currentUser = findUserByEmail(req.session.user.email);
+        }
         if (!currentUser || !currentUser.canApproveUsers()) {
             return res.status(403).json({ 
                 success: false, 
@@ -283,7 +288,7 @@ router.delete('/reject/:phone', (req, res) => {
         }
 
         // Find and remove user
-        const userIndex = users.findIndex(user => user.phone === req.params.phone);
+        const userIndex = users.findIndex(user => user.email === req.params.email);
         if (userIndex === -1) {
             return res.status(404).json({ 
                 success: false, 
