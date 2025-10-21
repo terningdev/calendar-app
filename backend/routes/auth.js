@@ -118,7 +118,8 @@ router.post('/login', (req, res) => {
             phone: user.phone,
             email: user.email,
             role: user.role,
-            approved: user.approved
+            approved: user.approved,
+            requirePasswordReset: user.requirePasswordReset
         };
 
         // Save session explicitly
@@ -129,7 +130,12 @@ router.post('/login', (req, res) => {
             }
             console.log('✅ Session saved for user:', user.email || user.username);
             console.log('📋 Session ID:', req.sessionID);
-            res.json({ success: true, message: 'Login successful.', user: req.session.user });
+            res.json({ 
+                success: true, 
+                message: 'Login successful.', 
+                user: req.session.user,
+                requirePasswordReset: user.requirePasswordReset 
+            });
         });
 
     } catch (error) {
@@ -369,6 +375,7 @@ router.post('/update-pin', (req, res) => {
 
         // Update password
         currentUser.password = newPassword;
+        currentUser.requirePasswordReset = false; // Clear reset flag if present
 
         res.json({
             success: true,
@@ -380,6 +387,239 @@ router.post('/update-pin', (req, res) => {
         res.status(500).json({ 
             success: false, 
             message: 'Server error updating password.' 
+        });
+    }
+});
+
+// Get all users (administrator/sysadmin only)
+router.get('/users', (req, res) => {
+    try {
+        // Check authentication
+        if (!req.session.user) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Not authenticated.' 
+            });
+        }
+
+        const currentUser = User.fromObject(req.session.user);
+        
+        // Check if user has permission
+        if (!currentUser.canManageUsers()) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Access denied. Administrator privileges required.' 
+            });
+        }
+
+        // Return all users (exclude passwords)
+        const safeUsers = users.map(user => ({
+            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            role: user.role,
+            approved: user.approved,
+            requirePasswordReset: user.requirePasswordReset,
+            createdAt: user.createdAt
+        }));
+
+        res.json({
+            success: true,
+            users: safeUsers
+        });
+
+    } catch (error) {
+        console.error('Get users error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error retrieving users.' 
+        });
+    }
+});
+
+// Update user (administrator/sysadmin only)
+router.put('/users/:email', (req, res) => {
+    try {
+        const { email } = req.params;
+        const { firstName, lastName, phone, newEmail, role, requirePasswordReset } = req.body;
+
+        // Check authentication
+        if (!req.session.user) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Not authenticated.' 
+            });
+        }
+
+        const currentUser = User.fromObject(req.session.user);
+        
+        // Check if user has permission
+        if (!currentUser.canManageUsers()) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Access denied. Administrator privileges required.' 
+            });
+        }
+
+        // Find user to update
+        const userToUpdate = findUserByEmail(email);
+        if (!userToUpdate) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found.' 
+            });
+        }
+
+        // Prevent modifying sysadmin
+        if (userToUpdate.username === 'sysadmin' && currentUser.role !== 'sysadmin') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Cannot modify sysadmin user.' 
+            });
+        }
+
+        // Validate new data
+        if (firstName && !User.isValidName(firstName)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid first name.' 
+            });
+        }
+
+        if (lastName && !User.isValidName(lastName)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid last name.' 
+            });
+        }
+
+        if (phone && !User.isValidPhone(phone)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid phone number.' 
+            });
+        }
+
+        if (newEmail && !User.isValidEmail(newEmail)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid email address.' 
+            });
+        }
+
+        if (role && !User.isValidRole(role)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid role.' 
+            });
+        }
+
+        // Check if new email already exists
+        if (newEmail && newEmail !== email) {
+            const emailExists = findUserByEmail(newEmail);
+            if (emailExists) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Email already in use.' 
+                });
+            }
+        }
+
+        // Update user fields
+        if (firstName) userToUpdate.firstName = firstName;
+        if (lastName) userToUpdate.lastName = lastName;
+        if (phone) userToUpdate.phone = phone;
+        if (newEmail) userToUpdate.email = newEmail;
+        if (role) userToUpdate.role = role;
+        if (requirePasswordReset !== undefined) userToUpdate.requirePasswordReset = requirePasswordReset;
+
+        res.json({
+            success: true,
+            message: 'User updated successfully.',
+            user: {
+                email: userToUpdate.email,
+                firstName: userToUpdate.firstName,
+                lastName: userToUpdate.lastName,
+                phone: userToUpdate.phone,
+                role: userToUpdate.role,
+                requirePasswordReset: userToUpdate.requirePasswordReset
+            }
+        });
+
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error updating user.' 
+        });
+    }
+});
+
+// Delete user (administrator/sysadmin only)
+router.delete('/users/:email', (req, res) => {
+    try {
+        const { email } = req.params;
+
+        // Check authentication
+        if (!req.session.user) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Not authenticated.' 
+            });
+        }
+
+        const currentUser = User.fromObject(req.session.user);
+        
+        // Check if user has permission
+        if (!currentUser.canManageUsers()) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Access denied. Administrator privileges required.' 
+            });
+        }
+
+        // Find user to delete
+        const userIndex = users.findIndex(u => u.email === email);
+        if (userIndex === -1) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found.' 
+            });
+        }
+
+        const userToDelete = users[userIndex];
+
+        // Prevent deleting sysadmin
+        if (userToDelete.username === 'sysadmin') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Cannot delete sysadmin user.' 
+            });
+        }
+
+        // Prevent deleting yourself
+        if (userToDelete.email === currentUser.email) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Cannot delete your own account.' 
+            });
+        }
+
+        // Delete user
+        users.splice(userIndex, 1);
+
+        res.json({
+            success: true,
+            message: 'User deleted successfully.'
+        });
+
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error deleting user.' 
         });
     }
 });

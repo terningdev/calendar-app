@@ -6,9 +6,13 @@ import { statusService } from '../services/statusService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
 import authService from '../services/authService';
+import userService from '../services/userService';
 
 const Administrator = () => {
-  const { canApproveUsers } = useAuth();
+  const { user, canApproveUsers } = useAuth();
+  
+  // Check if user has administrator or sysadmin role
+  const isAdminOrSysadmin = user && (user.role === 'administrator' || user.role === 'sysadmin');
 
   // Department state
   const [departments, setDepartments] = useState([]);
@@ -24,6 +28,19 @@ const Administrator = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [showPendingUsersModal, setShowPendingUsersModal] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // All users management state
+  const [allUsers, setAllUsers] = useState([]);
+  const [showUsersModal, setShowUsersModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userFormData, setUserFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    role: 'user',
+    requirePasswordReset: false
+  });
 
   // Technician state
   const [technicians, setTechnicians] = useState([]);
@@ -133,6 +150,17 @@ const Administrator = () => {
       window.removeEventListener('error', handleError);
     };
   }, []);
+
+  // Access check - must be after all hooks
+  if (!isAdminOrSysadmin) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Access Denied</h2>
+        <p>You do not have permission to access this page.</p>
+        <p>Administrator or Sysadmin role required.</p>
+      </div>
+    );
+  }
 
   const loadData = async () => {
     try {
@@ -347,6 +375,98 @@ const Administrator = () => {
     loadPendingUsers();
   };
 
+  // User Management Functions
+  const loadAllUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const response = await userService.getAllUsers();
+      if (response.success) {
+        setAllUsers(response.users);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast.error(error.message || 'Error loading users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const openUsersModal = () => {
+    setShowUsersModal(true);
+    loadAllUsers();
+  };
+
+  const openEditUserModal = (userToEdit) => {
+    setEditingUser(userToEdit);
+    setUserFormData({
+      firstName: userToEdit.firstName,
+      lastName: userToEdit.lastName,
+      phone: userToEdit.phone,
+      email: userToEdit.email,
+      role: userToEdit.role,
+      requirePasswordReset: userToEdit.requirePasswordReset || false
+    });
+  };
+
+  const closeEditUserModal = () => {
+    setEditingUser(null);
+    setUserFormData({
+      firstName: '',
+      lastName: '',
+      phone: '',
+      email: '',
+      role: 'user',
+      requirePasswordReset: false
+    });
+  };
+
+  const handleUserFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setUserFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    try {
+      const updateData = {
+        firstName: userFormData.firstName,
+        lastName: userFormData.lastName,
+        phone: userFormData.phone,
+        newEmail: userFormData.email !== editingUser.email ? userFormData.email : undefined,
+        role: userFormData.role,
+        requirePasswordReset: userFormData.requirePasswordReset
+      };
+
+      const response = await userService.updateUser(editingUser.email, updateData);
+      if (response.success) {
+        toast.success(response.message || 'User updated successfully');
+        closeEditUserModal();
+        await loadAllUsers();
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error(error.message || 'Error updating user');
+    }
+  };
+
+  const handleDeleteUser = async (userEmail) => {
+    if (window.confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
+      try {
+        const response = await userService.deleteUser(userEmail);
+        if (response.success) {
+          toast.success(response.message || 'User deleted successfully');
+          await loadAllUsers();
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        toast.error(error.message || 'Error deleting user');
+      }
+    }
+  };
+
   const openCreateTechnicianModal = () => {
     setEditingTechnician(null);
     setTechnicianFormData({
@@ -543,6 +663,15 @@ const Administrator = () => {
               {pendingUsers.length > 0 && (
                 <span className="badge-notification">{pendingUsers.length}</span>
               )}
+            </button>
+          )}
+          {isAdminOrSysadmin && (
+            <button 
+              className="btn btn-info" 
+              onClick={openUsersModal}
+              title="Manage All Users"
+            >
+              👥 Manage Users
             </button>
           )}
           <button className="btn btn-secondary" onClick={openSettingsModal} title={t('settings')}>
@@ -977,6 +1106,219 @@ const Administrator = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Management Modal */}
+      {showUsersModal && (
+        <div className="modal">
+          <div className="modal-content" style={{ maxWidth: '900px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">👥 Manage Users</h2>
+              <button className="modal-close" onClick={() => setShowUsersModal(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ marginBottom: '15px' }}>
+                <button 
+                  className="btn btn-secondary btn-sm"
+                  onClick={loadAllUsers}
+                  title="Refresh users list"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+
+              {loadingUsers ? (
+                <div className="loading-container">
+                  <p>Loading users...</p>
+                </div>
+              ) : allUsers.length === 0 ? (
+                <p className="empty-state">No users found</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allUsers.map(u => (
+                        <tr key={u.email}>
+                          <td>{u.email}</td>
+                          <td>{u.firstName} {u.lastName}</td>
+                          <td>{u.phone}</td>
+                          <td>
+                            <span className={`badge badge-${u.role === 'sysadmin' ? 'danger' : u.role === 'administrator' ? 'warning' : u.role === 'technician' ? 'info' : 'secondary'}`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td>
+                            {u.requirePasswordReset && (
+                              <span className="badge badge-warning" title="User must reset password on next login">
+                                🔒 Reset Required
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => openEditUserModal(u)}
+                              style={{ marginRight: '5px' }}
+                              title="Edit user"
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDeleteUser(u.email)}
+                              disabled={u.role === 'sysadmin' || u.email === user?.email}
+                              title={u.role === 'sysadmin' ? 'Cannot delete sysadmin' : u.email === user?.email ? 'Cannot delete yourself' : 'Delete user'}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowUsersModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="modal">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">✏️ Edit User</h2>
+              <button className="modal-close" onClick={closeEditUserModal}>
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleUpdateUser}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">First Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="firstName"
+                    value={userFormData.firstName}
+                    onChange={handleUserFormChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Last Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="lastName"
+                    value={userFormData.lastName}
+                    onChange={handleUserFormChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Phone</label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    name="phone"
+                    value={userFormData.phone}
+                    onChange={handleUserFormChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    name="email"
+                    value={userFormData.email}
+                    onChange={handleUserFormChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Role</label>
+                  <select
+                    className="form-control"
+                    name="role"
+                    value={userFormData.role}
+                    onChange={handleUserFormChange}
+                    disabled={editingUser.role === 'sysadmin' && user?.role !== 'sysadmin'}
+                    required
+                  >
+                    <option value="user">User</option>
+                    <option value="technician">Technician</option>
+                    <option value="administrator">Administrator</option>
+                    <option value="sysadmin">Sysadmin</option>
+                  </select>
+                  {editingUser.role === 'sysadmin' && user?.role !== 'sysadmin' && (
+                    <small className="form-text" style={{ color: 'orange' }}>
+                      Only sysadmin can modify sysadmin role
+                    </small>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      name="requirePasswordReset"
+                      checked={userFormData.requirePasswordReset}
+                      onChange={handleUserFormChange}
+                      style={{ marginRight: '8px' }}
+                    />
+                    Require password reset on next login
+                  </label>
+                  <small className="form-text">
+                    If checked, user will be forced to change their password on next login
+                  </small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  onClick={closeEditUserModal}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  💾 Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

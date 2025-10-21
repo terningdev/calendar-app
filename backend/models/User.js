@@ -8,6 +8,7 @@ class User {
         email,
         role = 'user',
         approved = false,
+        requirePasswordReset = false,
         createdAt = new Date()
     }) {
         this.username = username; // only for sysadmin
@@ -16,8 +17,9 @@ class User {
         this.lastName = lastName;
         this.phone = phone;
         this.email = email;
-        this.role = role;
+        this.role = role; // 'user', 'technician', 'administrator', 'sysadmin'
         this.approved = approved;
+        this.requirePasswordReset = requirePasswordReset;
         this.createdAt = createdAt;
     }
 
@@ -32,6 +34,7 @@ class User {
             email: this.email,
             role: this.role,
             approved: this.approved,
+            requirePasswordReset: this.requirePasswordReset,
             createdAt: this.createdAt
         };
     }
@@ -68,10 +71,21 @@ class User {
         return this.role === 'administrator' || this.role === 'sysadmin';
     }
 
+    // Check if user can manage all users
+    canManageUsers() {
+        return this.role === 'administrator' || this.role === 'sysadmin';
+    }
+
     // Check if user is approved and can login
     canLogin() {
         if (this.role === 'sysadmin') return true;
         return this.approved;
+    }
+
+    // Validate role
+    static isValidRole(role) {
+        const validRoles = ['user', 'technician', 'administrator', 'sysadmin'];
+        return validRoles.includes(role);
     }
 }
 
