@@ -242,6 +242,19 @@ body {
   color: #666;
 }
 
+/* User Menu Modal - Override default modal styles */
+.modal-content.user-settings-modal {
+  padding: 0;
+  max-width: 500px;
+}
+
+@media (max-width: 768px) {
+  .modal-content.user-settings-modal {
+    max-width: calc(100vw - 20px);
+    margin: 10px;
+  }
+}
+
 /* Mobile Responsive */
 .desktop-only {
   display: block;
