@@ -31,6 +31,7 @@ const GlobalModals = () => {
   const [allPermissions, setAllPermissions] = useState([]);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
   const [editedPermissions, setEditedPermissions] = useState({});
+  const [selectedRole, setSelectedRole] = useState('');
   
   // Edit user modal state
   const [editingUser, setEditingUser] = useState(null);
@@ -169,6 +170,11 @@ const GlobalModals = () => {
         initialEdited[rolePerms.role] = { ...rolePerms.permissions };
       });
       setEditedPermissions(initialEdited);
+      // Set default selected role to technician if available
+      if (permissionsArray.length > 0) {
+        const techRole = permissionsArray.find(r => r.role === 'technician');
+        setSelectedRole(techRole ? 'technician' : permissionsArray[0].role);
+      }
     } catch (error) {
       toast.error('Failed to load permissions');
       console.error('Error loading permissions:', error);
@@ -784,236 +790,459 @@ const GlobalModals = () => {
                     Configure what each role can view and do in the application. Changes take effect immediately for all users with that role.
                   </p>
 
-                  {allPermissions.map((rolePerms) => (
+                  {/* Role Selection Dropdown */}
+                  <div style={{ marginBottom: '30px' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '10px', 
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem'
+                    }}>
+                      Select Role to Edit:
+                    </label>
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value)}
+                      className="form-control"
+                      style={{ 
+                        fontSize: '1rem',
+                        padding: '10px',
+                        maxWidth: '300px'
+                      }}
+                    >
+                      <option value="">-- Select a Role --</option>
+                      {allPermissions.map((rolePerms) => (
+                        <option key={rolePerms.role} value={rolePerms.role}>
+                          {rolePerms.role === 'technician' && '🔧 '}
+                          {rolePerms.role === 'administrator' && '👑 '}
+                          {rolePerms.role === 'sysadmin' && '⚙️ '}
+                          {rolePerms.role.charAt(0).toUpperCase() + rolePerms.role.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Permissions for Selected Role */}
+                  {selectedRole && editedPermissions[selectedRole] && (
                     <div 
-                      key={rolePerms.role}
                       style={{
-                        marginBottom: '30px',
-                        padding: '20px',
-                        border: '1px solid #e0e0e0',
+                        padding: '25px',
+                        border: '2px solid #3498db',
                         borderRadius: '8px',
-                        backgroundColor: '#f9f9f9'
+                        backgroundColor: '#f8f9fa'
                       }}
                     >
                       <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center',
-                        marginBottom: '15px'
+                        marginBottom: '20px',
+                        paddingBottom: '15px',
+                        borderBottom: '2px solid #dee2e6'
                       }}>
                         <h3 style={{ 
                           margin: 0,
                           textTransform: 'capitalize',
-                          fontSize: '1.2rem'
+                          fontSize: '1.3rem',
+                          color: '#2c3e50'
                         }}>
-                          {rolePerms.role === 'technician' && '🔧 '}
-                          {rolePerms.role === 'administrator' && '👑 '}
-                          {rolePerms.role === 'sysadmin' && '⚙️ '}
-                          {rolePerms.role}
+                          {selectedRole === 'technician' && '🔧 '}
+                          {selectedRole === 'administrator' && '👑 '}
+                          {selectedRole === 'sysadmin' && '⚙️ '}
+                          {selectedRole} Permissions
                         </h3>
                         <div>
                           <button
-                            onClick={() => handleSavePermissions(rolePerms.role)}
+                            onClick={() => handleSavePermissions(selectedRole)}
                             className="btn btn-primary"
                             style={{ marginRight: '10px' }}
+                            disabled={selectedRole === 'sysadmin'}
                           >
-                            💾 Save
+                            💾 Save Changes
                           </button>
                           <button
-                            onClick={() => handleResetPermissions(rolePerms.role)}
+                            onClick={() => handleResetPermissions(selectedRole)}
                             className="btn btn-secondary"
+                            disabled={selectedRole === 'sysadmin'}
                           >
                             🔄 Reset to Defaults
                           </button>
                         </div>
                       </div>
 
-                      {editedPermissions[rolePerms.role] && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
-                          {/* Tab/Page Visibility Section */}
-                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>📊 Tab Visibility</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewDashboard || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewDashboard', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View Dashboard
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewCalendar || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewCalendar', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View Calendar
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewTickets || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewTickets', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View Tickets
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewTechnicians || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewTechnicians', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View Technicians
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewDepartments || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewDepartments', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View Departments
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Ticket Permissions Section */}
-                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>🎫 Ticket Permissions</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].createTickets || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'createTickets', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Create Tickets
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].editOwnTickets || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'editOwnTickets', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Edit Own Tickets
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].editAllTickets || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'editAllTickets', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Edit All Tickets
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].deleteTickets || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'deleteTickets', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Delete Tickets
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].assignTickets || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'assignTickets', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Assign Tickets
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* User Management Permissions Section */}
-                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>👥 User Management</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewUsers || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewUsers', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View Users
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].manageUsers || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'manageUsers', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Manage Users
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].approveUsers || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'approveUsers', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Approve Users
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Administrative Permissions Section */}
-                          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                            <h4 style={{ fontSize: '1rem', color: '#555', marginBottom: '10px' }}>⚙️ Administrative</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].manageDepartments || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'manageDepartments', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Manage Departments
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].manageTechnicians || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'manageTechnicians', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Manage Technicians
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].viewSystemStatus || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'viewSystemStatus', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                View System Status
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editedPermissions[rolePerms.role].managePermissions || false}
-                                  onChange={(e) => handlePermissionChange(rolePerms.role, 'managePermissions', e.target.checked)}
-                                  style={{ marginRight: '8px' }}
-                                />
-                                Manage Permissions
-                              </label>
-                            </div>
-                          </div>
+                      {selectedRole === 'sysadmin' && (
+                        <div style={{
+                          padding: '15px',
+                          backgroundColor: '#fff3cd',
+                          border: '1px solid #ffc107',
+                          borderRadius: '6px',
+                          marginBottom: '20px',
+                          color: '#856404'
+                        }}>
+                          <strong>⚠️ Note:</strong> Sysadmin permissions cannot be modified. Sysadmin role has all permissions by default.
                         </div>
                       )}
+
+                      {/* Tab/Page Visibility Section */}
+                      <div style={{ marginBottom: '25px' }}>
+                        <h4 style={{ 
+                          fontSize: '1.1rem', 
+                          color: '#2c3e50', 
+                          marginBottom: '15px',
+                          paddingBottom: '10px',
+                          borderBottom: '1px solid #dee2e6'
+                        }}>
+                          📊 Tab Visibility
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].viewDashboard || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewDashboard', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View Dashboard</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].viewCalendar || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewCalendar', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View Calendar</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].viewTickets || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewTickets', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View Tickets</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].viewTechnicians || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewTechnicians', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View Technicians</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].viewDepartments || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewDepartments', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View Departments</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* User Menu Permissions Section */}
+                      <div style={{ marginBottom: '25px' }}>
+                        <h4 style={{ 
+                          fontSize: '1.1rem', 
+                          color: '#2c3e50', 
+                          marginBottom: '15px',
+                          paddingBottom: '10px',
+                          borderBottom: '1px solid #dee2e6'
+                        }}>
+                          👤 User Menu Access
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].approveUsers || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'approveUsers', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View "Pending Users"</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].manageUsers || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'manageUsers', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View "Manage Users"</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].managePermissions || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'managePermissions', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View "Manage Permissions"</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].viewSystemStatus || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewSystemStatus', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View "System Status"</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Ticket Permissions Section */}
+                      <div style={{ marginBottom: '25px' }}>
+                        <h4 style={{ 
+                          fontSize: '1.1rem', 
+                          color: '#2c3e50', 
+                          marginBottom: '15px',
+                          paddingBottom: '10px',
+                          borderBottom: '1px solid #dee2e6'
+                        }}>
+                          🎫 Ticket Permissions
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].createTickets || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'createTickets', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Create Tickets</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].editOwnTickets || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'editOwnTickets', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Edit Own Tickets</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].editAllTickets || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'editAllTickets', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Edit All Tickets</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].deleteTickets || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'deleteTickets', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Delete Tickets</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].assignTickets || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'assignTickets', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Assign Tickets</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Administrative Permissions Section */}
+                      <div style={{ marginBottom: '20px' }}>
+                        <h4 style={{ 
+                          fontSize: '1.1rem', 
+                          color: '#2c3e50', 
+                          marginBottom: '15px',
+                          paddingBottom: '10px',
+                          borderBottom: '1px solid #dee2e6'
+                        }}>
+                          ⚙️ Administrative Permissions
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].manageDepartments || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'manageDepartments', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Manage Departments</span>
+                          </label>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={editedPermissions[selectedRole].manageTechnicians || false}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'manageTechnicians', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>Manage Technicians</span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  )}
+
+                  {!selectedRole && (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '40px',
+                      color: '#999',
+                      fontSize: '1.1rem'
+                    }}>
+                      Please select a role from the dropdown above to view and edit permissions.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
