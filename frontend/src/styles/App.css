@@ -243,20 +243,21 @@ body {
 }
 
 /* User Menu Modal Overrides */
-.user-menu-modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 0;
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
+.modal .user-menu-modal-content {
+  background: white !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
 }
 
 @media (max-width: 768px) {
-  .user-menu-modal-content {
-    width: 95%;
-    max-width: 95%;
+  .modal .user-menu-modal-content {
+    width: 95% !important;
+    max-width: 95% !important;
   }
 }
 
