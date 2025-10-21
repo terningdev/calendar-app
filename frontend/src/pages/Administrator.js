@@ -1112,7 +1112,7 @@ const Administrator = () => {
       {/* User Management Modal */}
       {showUsersModal && (
         <div className="modal">
-          <div className="modal-content" style={{ maxWidth: '900px' }}>
+          <div className="modal-content" style={{ maxWidth: '800px' }}>
             <div className="modal-header">
               <h2 className="modal-title">👥 Manage Users</h2>
               <button className="modal-close" onClick={() => setShowUsersModal(false)}>
@@ -1137,58 +1137,78 @@ const Administrator = () => {
               ) : allUsers.length === 0 ? (
                 <p className="empty-state">No users found</p>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allUsers.map(u => (
-                        <tr key={u.email || u.username}>
-                          <td>{u.email || u.username}</td>
-                          <td>{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : '-'}</td>
-                          <td>{u.phone}</td>
-                          <td>
-                            <span className={`badge badge-${u.role === 'sysadmin' ? 'danger' : u.role === 'administrator' ? 'warning' : u.role === 'technician' ? 'info' : 'secondary'}`}>
-                              {u.role}
+                <div className="pending-users-list">
+                  {allUsers.map(u => (
+                    <div key={u.email || u.username} className="pending-user-card" style={{
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      padding: '18px',
+                      marginBottom: '12px',
+                      backgroundColor: '#fafafa',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '15px'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        {/* Row 1: Name - Phone - Email */}
+                        <div style={{ marginBottom: '8px', fontSize: '1.05rem' }}>
+                          <span style={{ fontWeight: '600', color: '#333' }}>
+                            {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || 'Unknown')}
+                          </span>
+                          {u.phone && (
+                            <>
+                              <span style={{ margin: '0 8px', color: '#999' }}>•</span>
+                              <span style={{ color: '#666' }}>+47 {u.phone}</span>
+                            </>
+                          )}
+                          {u.email && (
+                            <>
+                              <span style={{ margin: '0 8px', color: '#999' }}>•</span>
+                              <span style={{ color: '#666' }}>{u.email}</span>
+                            </>
+                          )}
+                          {!u.email && u.username && (
+                            <>
+                              <span style={{ margin: '0 8px', color: '#999' }}>•</span>
+                              <span style={{ color: '#666', fontStyle: 'italic' }}>Username: {u.username}</span>
+                            </>
+                          )}
+                        </div>
+                        
+                        {/* Row 2: Role - Status */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span className={`badge badge-${u.role === 'sysadmin' ? 'danger' : u.role === 'administrator' ? 'warning' : u.role === 'technician' ? 'info' : 'secondary'}`}>
+                            {u.role}
+                          </span>
+                          {u.requirePasswordReset && (
+                            <span className="badge badge-warning" title="User must reset password on next login">
+                              🔒 Reset Required
                             </span>
-                          </td>
-                          <td>
-                            {u.requirePasswordReset && (
-                              <span className="badge badge-warning" title="User must reset password on next login">
-                                🔒 Reset Required
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={() => openEditUserModal(u)}
-                              style={{ marginRight: '5px' }}
-                              title="Edit user"
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleDeleteUser(u.username || u.email)}
-                              disabled={u.role === 'sysadmin' || (u.email && u.email === user?.email) || (u.username && u.username === user?.username)}
-                              title={u.role === 'sysadmin' ? 'Cannot delete sysadmin' : ((u.email && u.email === user?.email) || (u.username && u.username === user?.username)) ? 'Cannot delete yourself' : 'Delete user'}
-                            >
-                              🗑️ Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Action buttons on the right */}
+                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => openEditUserModal(u)}
+                          title="Edit user"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDeleteUser(u.username || u.email)}
+                          disabled={u.role === 'sysadmin' || (u.email && u.email === user?.email) || (u.username && u.username === user?.username)}
+                          title={u.role === 'sysadmin' ? 'Cannot delete sysadmin' : ((u.email && u.email === user?.email) || (u.username && u.username === user?.username)) ? 'Cannot delete yourself' : 'Delete user'}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
