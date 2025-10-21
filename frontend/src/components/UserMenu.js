@@ -239,33 +239,42 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
 
       {/* PIN Change Modal */}
       {isPinChangeOpen && (
-        <div className="modal-overlay" onClick={closePinChange}>
-          <div className="modern-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modern-modal-header">
-              <h2 className="modern-modal-title">
-                <span className="modal-icon">🔐</span>
-                Change PIN Code
-              </h2>
-              <button className="modern-modal-close" onClick={closePinChange}>×</button>
+        <div className="modal">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">🔐 Change PIN Code</h2>
+              <button className="modal-close" onClick={closePinChange}>×</button>
             </div>
             
-            <form onSubmit={handlePinSubmit} className="modern-modal-body">
+            <form onSubmit={handlePinSubmit} className="modal-body">
               {pinChangeError && (
-                <div className="alert alert-error">
-                  <span className="alert-icon">⚠️</span>
+                <div className="error-message" style={{ 
+                  padding: '12px', 
+                  marginBottom: '15px', 
+                  backgroundColor: '#fee', 
+                  border: '1px solid #fcc',
+                  borderRadius: '4px',
+                  color: '#c33'
+                }}>
                   {pinChangeError}
                 </div>
               )}
               
               {pinChangeSuccess && (
-                <div className="alert alert-success">
-                  <span className="alert-icon">✓</span>
+                <div className="success-message" style={{ 
+                  padding: '12px', 
+                  marginBottom: '15px', 
+                  backgroundColor: '#efe', 
+                  border: '1px solid #cfc',
+                  borderRadius: '4px',
+                  color: '#3c3'
+                }}>
                   {pinChangeSuccess}
                 </div>
               )}
 
-              <div className="modern-form-group">
-                <label className="modern-label">Current PIN</label>
+              <div className="form-group">
+                <label htmlFor="currentPin" className="form-label">Current PIN</label>
                 <input
                   type="password"
                   id="currentPin"
@@ -273,15 +282,15 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
                   value={pinChangeData.currentPin}
                   onChange={handlePinChange}
                   maxLength="4"
-                  className="modern-input"
+                  className="form-control"
                   placeholder="••••"
                   disabled={pinChangeLoading}
                   autoComplete="current-password"
                 />
               </div>
 
-              <div className="modern-form-group">
-                <label className="modern-label">New PIN</label>
+              <div className="form-group">
+                <label htmlFor="newPin" className="form-label">New PIN</label>
                 <input
                   type="password"
                   id="newPin"
@@ -289,18 +298,18 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
                   value={pinChangeData.newPin}
                   onChange={handlePinChange}
                   maxLength="4"
-                  className="modern-input"
+                  className="form-control"
                   placeholder="••••"
                   disabled={pinChangeLoading}
                   autoComplete="new-password"
                 />
-                <small className="modern-hint">
+                <small style={{ display: 'block', marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
                   Enter a 4-digit numeric PIN
                 </small>
               </div>
 
-              <div className="modern-form-group">
-                <label className="modern-label">Confirm New PIN</label>
+              <div className="form-group">
+                <label htmlFor="confirmPin" className="form-label">Confirm New PIN</label>
                 <input
                   type="password"
                   id="confirmPin"
@@ -308,17 +317,17 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
                   value={pinChangeData.confirmPin}
                   onChange={handlePinChange}
                   maxLength="4"
-                  className="modern-input"
+                  className="form-control"
                   placeholder="••••"
                   disabled={pinChangeLoading}
                   autoComplete="new-password"
                 />
               </div>
 
-              <div className="modern-modal-footer">
+              <div className="form-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
                 <button
                   type="button"
-                  className="modern-btn modern-btn-secondary"
+                  className="btn btn-secondary"
                   onClick={closePinChange}
                   disabled={pinChangeLoading}
                 >
@@ -326,17 +335,10 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
                 </button>
                 <button
                   type="submit"
-                  className="modern-btn modern-btn-primary"
+                  className="btn btn-primary"
                   disabled={pinChangeLoading}
                 >
-                  {pinChangeLoading ? (
-                    <>
-                      <span className="spinner"></span>
-                      Updating...
-                    </>
-                  ) : (
-                    'Update PIN'
-                  )}
+                  {pinChangeLoading ? 'Updating...' : 'Update PIN'}
                 </button>
               </div>
             </form>
@@ -346,59 +348,48 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
 
       {/* Settings Modal */}
       {isSettingsOpen && (
-        <div className="modal-overlay" onClick={closeSettings}>
-          <div className="modern-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modern-modal-header">
-              <h2 className="modern-modal-title">
-                <span className="modal-icon">⚙️</span>
-                Settings
-              </h2>
-              <button className="modern-modal-close" onClick={closeSettings}>×</button>
+        <div className="modal">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">⚙️ Settings</h2>
+              <button className="modal-close" onClick={closeSettings}>×</button>
             </div>
             
-            <div className="modern-modal-body">
-              <div className="settings-section">
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <div className="setting-label">
-                      <span className="setting-icon">🎨</span>
-                      Theme
-                    </div>
-                    <div className="setting-description">Choose your preferred color theme</div>
-                  </div>
-                  <select 
-                    value={theme} 
-                    onChange={handleThemeChange}
-                    className="modern-select"
-                  >
-                    <option value="light">☀️ Light</option>
-                    <option value="dark">🌙 Dark</option>
-                  </select>
-                </div>
-
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <div className="setting-label">
-                      <span className="setting-icon">🌍</span>
-                      Language
-                    </div>
-                    <div className="setting-description">Select your language preference</div>
-                  </div>
-                  <select 
-                    value={language} 
-                    onChange={handleLanguageChange}
-                    className="modern-select"
-                  >
-                    <option value="en">🇬🇧 English</option>
-                    <option value="no">🇳🇴 Norsk</option>
-                  </select>
-                </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Theme</label>
+                <select 
+                  value={theme} 
+                  onChange={handleThemeChange}
+                  className="form-control"
+                >
+                  <option value="light">☀️ Light</option>
+                  <option value="dark">🌙 Dark</option>
+                </select>
+                <small style={{ display: 'block', marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
+                  Choose your preferred color theme
+                </small>
               </div>
 
-              <div className="modern-modal-footer">
+              <div className="form-group">
+                <label className="form-label">Language</label>
+                <select 
+                  value={language} 
+                  onChange={handleLanguageChange}
+                  className="form-control"
+                >
+                  <option value="en">🇬🇧 English</option>
+                  <option value="no">🇳🇴 Norsk</option>
+                </select>
+                <small style={{ display: 'block', marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
+                  Select your language preference
+                </small>
+              </div>
+
+              <div className="form-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
                 <button
                   type="button"
-                  className="modern-btn modern-btn-primary"
+                  className="btn btn-primary"
                   onClick={closeSettings}
                 >
                   Done
