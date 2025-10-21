@@ -163,6 +163,28 @@ body {
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
+/* Modern Multi-Select Styling */
+.form-select-modern {
+  font-family: system-ui, sans-serif;
+}
+
+.form-select-modern option {
+  padding: 8px 12px !important;
+  margin: 2px 0;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.form-select-modern option:hover {
+  background-color: #e7f3ff !important;
+  color: #004085 !important;
+}
+
+.form-select-modern:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Cards */
 .card {
   background: white;

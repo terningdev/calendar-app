@@ -1004,7 +1004,7 @@ const Tickets = () => {
                   <label className="form-label">Description</label>
                   <textarea
                     className="form-control"
-                    rows="2"
+                    rows="3"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Optional: Enter ticket description..."
@@ -1012,143 +1012,109 @@ const Tickets = () => {
                 </div>
               </div>
               
-              {/* Department (50%) - Technicians (50%) */}
-              <div className="form-row-50-50">
+              {/* Department (100%) */}
+              <div className="form-row-100">
                 <div className="form-group">
                   <label className="form-label">Department</label>
-                  
-                  {/* Desktop Version - Scrollable Checkbox List */}
-                  <div className="desktop-selector">
-                    <div className="desktop-checkbox-container">
-                      <div className="desktop-checkbox-header">
-                        📋 Departments 
-                        <span className="selection-count">({formData.department.length} selected)</span>
-                      </div>
-                      {departments.length === 0 ? (
-                        <div className="desktop-checkbox-empty">No departments available</div>
-                      ) : (
-                        <div className="desktop-checkbox-list">
-                          {departments.map(dept => (
-                            <div key={dept._id} className="desktop-checkbox-item">
-                              <input
-                                type="checkbox"
-                                id={`dept-${dept._id}`}
-                                checked={formData.department.includes(dept._id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setFormData({
-                                      ...formData,
-                                      department: [...formData.department, dept._id]
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      department: formData.department.filter(id => id !== dept._id),
-                                      assignedTo: formData.assignedTo.filter(techId => {
-                                        const tech = getFormFilteredTechnicians().find(t => t._id === techId);
-                                        return tech && tech.department._id !== dept._id;
-                                      })
-                                    });
-                                  }
-                                }}
-                                className="desktop-checkbox-input"
-                              />
-                              <label htmlFor={`dept-${dept._id}`} className="desktop-checkbox-label">
-                                {dept.name}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mobile Version - Popup Button */}
-                  <div className="mobile-selector">
-                    <button
-                      type="button"
-                      className="mobile-selector-button"
-                      onClick={() => setShowDepartmentSelector(true)}
-                    >
-                      <span className="mobile-selector-text">
-                        {formData.department.length === 0 
-                          ? "📋 Select departments..." 
-                          : `📋 ${formData.department.length} department${formData.department.length !== 1 ? 's' : ''} selected`
-                        }
-                      </span>
-                      <span className="mobile-selector-arrow">▶</span>
-                    </button>
-                  </div>
+                  <select
+                    multiple
+                    className="form-control form-select-modern"
+                    value={formData.department}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                      setFormData({
+                        ...formData,
+                        department: selectedOptions,
+                        assignedTo: formData.assignedTo.filter(techId => {
+                          const tech = getFormFilteredTechnicians().find(t => t._id === techId);
+                          return tech && selectedOptions.includes(tech.department._id);
+                        })
+                      });
+                    }}
+                    size="4"
+                    style={{
+                      minHeight: '100px',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: '1px solid #ddd',
+                      backgroundColor: '#f8f9fa'
+                    }}
+                  >
+                    {departments.map(dept => (
+                      <option 
+                        key={dept._id} 
+                        value={dept._id}
+                        style={{
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                          backgroundColor: formData.department.includes(dept._id) ? '#e7f3ff' : 'white',
+                          color: formData.department.includes(dept._id) ? '#004085' : '#333'
+                        }}
+                      >
+                        📋 {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
+                    Hold Ctrl (Windows) or Cmd (Mac) to select multiple departments
+                  </small>
                 </div>
-                
+              </div>
+              
+              {/* Technician (100%) */}
+              <div className="form-row-100">
                 <div className="form-group">
                   <label className="form-label">Assigned To</label>
-                  
-                  {/* Desktop Version - Scrollable Checkbox List */}
-                  <div className="desktop-selector">
-                    <div className="desktop-checkbox-container">
-                      <div className="desktop-checkbox-header">
-                        👥 Technicians 
-                        <span className="selection-count">({formData.assignedTo.length} selected)</span>
-                      </div>
-                      {formData.department.length === 0 ? (
-                        <div className="desktop-checkbox-empty">Please select departments first</div>
-                      ) : getFormFilteredTechnicians().length === 0 ? (
-                        <div className="desktop-checkbox-empty">No technicians available in selected departments</div>
-                      ) : (
-                        <div className="desktop-checkbox-list">
-                          {getFormFilteredTechnicians().map(tech => (
-                            <div key={tech._id} className="desktop-checkbox-item">
-                              <input
-                                type="checkbox"
-                                id={`tech-${tech._id}`}
-                                checked={formData.assignedTo.includes(tech._id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setFormData({
-                                      ...formData,
-                                      assignedTo: [...formData.assignedTo, tech._id]
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      assignedTo: formData.assignedTo.filter(id => id !== tech._id)
-                                    });
-                                  }
-                                }}
-                                className="desktop-checkbox-input"
-                              />
-                              <label htmlFor={`tech-${tech._id}`} className="desktop-checkbox-label">
-                                {tech.fullName}
-                                {tech.department && <span className="tech-department">({tech.department.name})</span>}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mobile Version - Popup Button */}
-                  <div className="mobile-selector">
-                    <button
-                      type="button"
-                      className="mobile-selector-button"
-                      onClick={() => setShowTechnicianSelector(true)}
-                      disabled={formData.department.length === 0}
-                    >
-                      <span className="mobile-selector-text">
-                        {formData.assignedTo.length === 0 
-                          ? (formData.department.length === 0 
-                              ? "👥 Select departments first..." 
-                              : "👥 Select technicians..."
-                            )
-                          : `👥 ${formData.assignedTo.length} technician${formData.assignedTo.length !== 1 ? 's' : ''} selected`
-                        }
-                      </span>
-                      <span className="mobile-selector-arrow">▶</span>
-                    </button>
-                  </div>
+                  <select
+                    multiple
+                    className="form-control form-select-modern"
+                    value={formData.assignedTo}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                      setFormData({
+                        ...formData,
+                        assignedTo: selectedOptions
+                      });
+                    }}
+                    disabled={formData.department.length === 0}
+                    size="5"
+                    style={{
+                      minHeight: '120px',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: '1px solid #ddd',
+                      backgroundColor: formData.department.length === 0 ? '#f0f0f0' : '#f8f9fa',
+                      cursor: formData.department.length === 0 ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {formData.department.length === 0 ? (
+                      <option disabled style={{ color: '#999', fontStyle: 'italic' }}>
+                        Please select departments first
+                      </option>
+                    ) : getFormFilteredTechnicians().length === 0 ? (
+                      <option disabled style={{ color: '#999', fontStyle: 'italic' }}>
+                        No technicians available in selected departments
+                      </option>
+                    ) : (
+                      getFormFilteredTechnicians().map(tech => (
+                        <option 
+                          key={tech._id} 
+                          value={tech._id}
+                          style={{
+                            padding: '6px 10px',
+                            cursor: 'pointer',
+                            backgroundColor: formData.assignedTo.includes(tech._id) ? '#e7f3ff' : 'white',
+                            color: formData.assignedTo.includes(tech._id) ? '#004085' : '#333'
+                          }}
+                        >
+                          👤 {tech.fullName} {tech.department && `(${tech.department.name})`}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
+                    Hold Ctrl (Windows) or Cmd (Mac) to select multiple technicians
+                  </small>
                 </div>
               </div>
               
@@ -1182,19 +1148,40 @@ const Tickets = () => {
                 </div>
               </div>
               
-              {/* Created by (100%) */}
-              <div className="form-row-100">
-                <div className="form-group">
-                  <label className="form-label">Created By</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.createdBy}
-                    onChange={(e) => setFormData({ ...formData, createdBy: e.target.value })}
-                    required
-                  />
+              {/* Created By / Updated By Info (read-only) */}
+              {editingTicket && (
+                <div style={{ 
+                  padding: '12px', 
+                  backgroundColor: '#f8f9fa', 
+                  borderRadius: '6px',
+                  marginTop: '15px',
+                  fontSize: '0.85rem',
+                  color: '#666'
+                }}>
+                  <div style={{ marginBottom: '6px' }}>
+                    <strong>Created by:</strong> {editingTicket.createdBy || 'Unknown'} 
+                    {editingTicket.createdAt && ` • ${new Date(editingTicket.createdAt).toLocaleString('nb-NO', { 
+                      day: '2-digit', 
+                      month: '2-digit', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}`}
+                  </div>
+                  {editingTicket.updatedAt && editingTicket.updatedAt !== editingTicket.createdAt && (
+                    <div>
+                      <strong>Updated by:</strong> {editingTicket.createdBy || 'Unknown'} 
+                      {` • ${new Date(editingTicket.updatedAt).toLocaleString('nb-NO', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}`}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
               
               <div className="modal-footer">
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
