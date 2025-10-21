@@ -57,6 +57,34 @@ async function initializeDefaultPermissions() {
     try {
         console.log('Initializing default role permissions...');
         
+        // Default permissions for User role (basic, read-only access)
+        const userPermissions = {
+            role: 'user',
+            permissions: {
+                viewDashboard: true,
+                viewCalendar: true,
+                viewTickets: false,
+                viewAdministrator: false,
+                viewAbsences: false,
+                viewSkills: false,
+                
+                createTickets: false,
+                editOwnTickets: false,
+                editAllTickets: false,
+                deleteTickets: false,
+                assignTickets: false,
+                
+                viewUsers: false,
+                manageUsers: false,
+                approveUsers: false,
+                
+                manageDepartments: false,
+                manageTechnicians: false,
+                viewSystemStatus: false,
+                managePermissions: false
+            }
+        };
+        
         // Default permissions for Technician role
         const technicianPermissions = {
             role: 'technician',
@@ -142,7 +170,7 @@ async function initializeDefaultPermissions() {
         };
         
         // Create or update permissions for each role
-        for (const rolePermissions of [technicianPermissions, administratorPermissions, sysadminPermissions]) {
+        for (const rolePermissions of [userPermissions, technicianPermissions, administratorPermissions, sysadminPermissions]) {
             const existing = await PermissionsModel.findOne({ role: rolePermissions.role });
             if (!existing) {
                 await PermissionsModel.create(rolePermissions);

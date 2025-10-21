@@ -36,7 +36,7 @@ const GlobalModals = () => {
   // Create role modal state
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
-  const [basedOnRole, setBasedOnRole] = useState('technician');
+  const [basedOnRole, setBasedOnRole] = useState('user');
   const [creatingRole, setCreatingRole] = useState(false);
   
   // Edit user modal state
@@ -315,7 +315,7 @@ const GlobalModals = () => {
       toast.success(`Role '${newRoleName}' created successfully`);
       setShowCreateRoleModal(false);
       setNewRoleName('');
-      setBasedOnRole('technician');
+      setBasedOnRole('user');
       loadAllPermissions(); // Reload to get updated data including new role
     } catch (error) {
       toast.error(error.message || 'Failed to create role');
@@ -325,7 +325,7 @@ const GlobalModals = () => {
   };
 
   const handleDeleteRole = async (role) => {
-    if (['technician', 'administrator', 'sysadmin'].includes(role)) {
+    if (['user', 'technician', 'administrator', 'sysadmin'].includes(role)) {
       toast.error('Cannot delete system roles');
       return;
     }
@@ -861,6 +861,7 @@ const GlobalModals = () => {
                         <option value="">-- Select a Role --</option>
                         {allPermissions.map((rolePerms) => (
                           <option key={rolePerms.role} value={rolePerms.role}>
+                            {rolePerms.role === 'user' && '👤 '}
                             {rolePerms.role === 'technician' && '🔧 '}
                             {rolePerms.role === 'administrator' && '👑 '}
                             {rolePerms.role === 'sysadmin' && '⚙️ '}
@@ -907,6 +908,7 @@ const GlobalModals = () => {
                           fontSize: '1.3rem',
                           color: '#2c3e50'
                         }}>
+                          {selectedRole === 'user' && '👤 '}
                           {selectedRole === 'technician' && '🔧 '}
                           {selectedRole === 'administrator' && '👑 '}
                           {selectedRole === 'sysadmin' && '⚙️ '}
@@ -929,7 +931,7 @@ const GlobalModals = () => {
                           >
                             🔄 Reset to Defaults
                           </button>
-                          {!['technician', 'administrator', 'sysadmin'].includes(selectedRole) && (
+                          {!['user', 'technician', 'administrator', 'sysadmin'].includes(selectedRole) && (
                             <button
                               onClick={() => handleDeleteRole(selectedRole)}
                               className="btn btn-danger"
@@ -1417,6 +1419,7 @@ const GlobalModals = () => {
                     padding: '10px'
                   }}
                 >
+                  <option value="user">👤 User (Minimal permissions)</option>
                   <option value="technician">🔧 Technician (Basic permissions)</option>
                   <option value="administrator">👑 Administrator (Full permissions)</option>
                   <option value="sysadmin">⚙️ Sysadmin (All permissions)</option>

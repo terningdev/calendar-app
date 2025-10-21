@@ -229,7 +229,7 @@ router.post('/roles', isAuthenticated, canManagePermissions, async (req, res) =>
         };
         
         // If basedOn is provided, copy permissions from that role
-        if (basedOn && ['technician', 'administrator', 'sysadmin'].includes(basedOn)) {
+        if (basedOn && ['user', 'technician', 'administrator', 'sysadmin'].includes(basedOn)) {
             const baseRole = await PermissionsModel.findOne({ role: basedOn });
             if (baseRole) {
                 basePermissions = { ...baseRole.permissions };
@@ -265,7 +265,7 @@ router.delete('/roles/:role', isAuthenticated, canManagePermissions, async (req,
         const { role } = req.params;
         
         // Prevent deleting system roles
-        if (['technician', 'administrator', 'sysadmin'].includes(role)) {
+        if (['user', 'technician', 'administrator', 'sysadmin'].includes(role)) {
             return res.status(403).json({ 
                 success: false, 
                 message: 'Cannot delete system roles' 

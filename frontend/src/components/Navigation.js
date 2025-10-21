@@ -120,28 +120,28 @@ const Navigation = () => {
         
         {/* Navigation links - desktop always visible, mobile in overlay */}
         <ul className={`nav-links ${isMenuOpen ? 'nav-links-open' : ''}`}>
-          {permissions?.viewDashboard !== false && (
+          {permissions?.viewDashboard === true && (
             <li>
               <Link to="/" className={isActive('/')} onClick={closeMenu}>
                 {t('dashboard')}
               </Link>
             </li>
           )}
-          {permissions?.viewCalendar !== false && (
+          {permissions?.viewCalendar === true && (
             <li>
               <Link to="/calendar" className={isActive('/calendar')} onClick={closeMenu}>
                 {t('calendar')}
               </Link>
             </li>
           )}
-          {permissions?.viewTickets !== false && (
+          {permissions?.viewTickets === true && (
             <li>
               <Link to="/tickets" className={isActive('/tickets')} onClick={closeMenu}>
                 {t('tickets')}
               </Link>
             </li>
           )}
-          {permissions?.viewAbsences !== false && (
+          {permissions?.viewAbsences === true && (
             <li>
               <Link to="/absences" className={`${isActive('/absences')} mobile-show`} onClick={closeMenu}>
                 {t('absenceVakt')}
@@ -150,7 +150,7 @@ const Navigation = () => {
           )}
           
           {/* Skills link */}
-          {permissions?.viewSkills !== false && (
+          {permissions?.viewSkills === true && (
             <li>
               <Link to="/skills" className={isActive('/skills')} onClick={closeMenu}>
                 {t('skills')}
@@ -159,7 +159,7 @@ const Navigation = () => {
           )}
           
           {/* Administrator link - moved to bottom on mobile */}
-          {permissions?.viewAdministrator !== false && (
+          {permissions?.viewAdministrator === true && (
             <li className="nav-admin-item">
               <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
                 <span className="desktop-only">{t('administrator')}</span>
