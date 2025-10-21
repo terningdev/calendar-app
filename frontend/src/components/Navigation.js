@@ -92,11 +92,6 @@ const Navigation = () => {
               <span className="mobile-only">⚙️ {t('administrator')}</span>
             </Link>
           </li>
-
-          {/* Mobile user menu */}
-          <li className="nav-user-item mobile-only">
-            <UserMenu />
-          </li>
         </ul>
         
         {/* Mobile overlay backdrop */}
