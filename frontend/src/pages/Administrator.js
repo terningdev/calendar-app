@@ -1034,7 +1034,7 @@ const Administrator = () => {
       {/* Pending Users Modal */}
       {showPendingUsersModal && (
         <div className="modal">
-          <div className="modal-content" style={{ maxWidth: '600px' }}>
+          <div className="modal-content" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
               <h2 className="modal-title">Pending User Registrations</h2>
               <div className="modal-header-actions">
@@ -1064,23 +1064,32 @@ const Administrator = () => {
               ) : (
                 <div className="pending-users-list">
                   {pendingUsers.map((user) => (
-                    <div key={user.email} className="pending-user-card">
-                      <div className="user-info">
-                        <div className="user-name">{user.firstName} {user.lastName}</div>
-                        <div className="user-email">{user.email}</div>
-                        <div className="user-phone">+47 {user.phone}</div>
-                        <div className="user-date">
-                          Registered: {new Date(user.createdAt).toLocaleDateString()}
+                    <div key={user.email} className="pending-user-card" style={{
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      padding: '15px',
+                      marginBottom: '12px',
+                      backgroundColor: '#fafafa'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', marginBottom: '4px' }}>
+                            {user.firstName} {user.lastName} - <span style={{ color: '#666', fontSize: '0.95rem' }}>{user.email}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="user-actions">
                         <button 
                           className="btn btn-success btn-sm"
                           onClick={() => handleApproveUser(user.email)}
                           title="Approve Registration"
+                          style={{ marginLeft: '10px' }}
                         >
                           ✓ Approve
                         </button>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                          +47 {user.phone} - <span style={{ fontStyle: 'italic' }}>Registered: {new Date(user.createdAt).toLocaleDateString()}</span>
+                        </div>
                         <button 
                           className="btn btn-danger btn-sm"
                           onClick={() => handleRejectUser(user.email)}
@@ -1093,14 +1102,6 @@ const Administrator = () => {
                   ))}
                 </div>
               )}
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => setShowPendingUsersModal(false)}
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
