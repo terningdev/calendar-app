@@ -19,9 +19,33 @@ const Navigation = () => {
     const fetchPermissions = async () => {
       if (user && user.role) {
         try {
-          const rolePermissions = await permissionsService.getRolePermissions(user.role);
-          if (rolePermissions.success) {
-            setPermissions(rolePermissions.permissions.permissions);
+          // Sysadmin always has all permissions
+          if (user.role === 'sysadmin') {
+            setPermissions({
+              viewDashboard: true,
+              viewCalendar: true,
+              viewTickets: true,
+              viewAdministrator: true,
+              viewAbsences: true,
+              viewSkills: true,
+              createTickets: true,
+              editOwnTickets: true,
+              editAllTickets: true,
+              deleteTickets: true,
+              assignTickets: true,
+              viewUsers: true,
+              manageUsers: true,
+              approveUsers: true,
+              manageDepartments: true,
+              manageTechnicians: true,
+              viewSystemStatus: true,
+              managePermissions: true
+            });
+          } else {
+            const rolePermissions = await permissionsService.getRolePermissions(user.role);
+            if (rolePermissions.success) {
+              setPermissions(rolePermissions.permissions.permissions);
+            }
           }
         } catch (error) {
           console.error('Failed to fetch permissions:', error);
