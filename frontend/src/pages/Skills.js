@@ -545,7 +545,7 @@ const Skills = () => {
 
       {/* Category Modal */}
       {showCategoryModal && (
-        <div className="modal" style={{ display: 'block' }}>
+        <div className="modal">
           <div className="modal-content" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
               <h2 className="modal-title">
@@ -695,7 +695,7 @@ const Skills = () => {
 
       {/* Product Modal */}
       {showProductModal && (
-        <div className="modal" style={{ display: 'block' }}>
+        <div className="modal">
           <div className="modal-content">
             <div className="modal-header">
               <h2 className="modal-title">
