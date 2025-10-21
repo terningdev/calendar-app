@@ -242,25 +242,6 @@ body {
   color: #666;
 }
 
-/* User Menu Modal Overrides */
-.modal .user-menu-modal-content {
-  background: white !important;
-  border-radius: 8px !important;
-  padding: 0 !important;
-  max-width: 500px !important;
-  width: 90% !important;
-  max-height: 90vh !important;
-  overflow-y: auto !important;
-  box-sizing: border-box !important;
-}
-
-@media (max-width: 768px) {
-  .modal .user-menu-modal-content {
-    width: 95% !important;
-    max-width: 95% !important;
-  }
-}
-
 /* Mobile Responsive */
 .desktop-only {
   display: block;

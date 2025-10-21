@@ -240,7 +240,7 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
       {/* PIN Change Modal */}
       {isPinChangeOpen && (
         <div className="modal">
-          <div className="user-menu-modal-content">
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '0' }}>
             <div className="modal-header" style={{ 
               margin: '0', 
               padding: '24px 30px', 
@@ -463,7 +463,7 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers }) =
       {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="modal">
-          <div className="user-menu-modal-content">
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '0' }}>
             <div className="modal-header" style={{ 
               margin: '0', 
               padding: '24px 30px', 
