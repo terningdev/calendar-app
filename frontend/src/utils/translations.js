@@ -9,7 +9,7 @@ export const translations = {
     calendar: 'Calendar',
     tickets: 'Tickets',
     absenceVakt: 'Absence & On call',
-    administrator: 'Administrator',
+    administrator: 'Departments & Technicians',
     
     // Common words
     save: 'Save',
@@ -155,7 +155,7 @@ export const translations = {
     calendar: 'Kalender',
     tickets: 'Aktiviteter',
     absenceVakt: 'Fravær / Vakt',
-    administrator: 'Administrator',
+    administrator: 'Avdelinger og Teknikere',
     
     // Common words
     save: 'Lagre',
