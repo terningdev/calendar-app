@@ -9,7 +9,7 @@ import { statusService } from '../services/statusService';
 import permissionsService from '../services/permissionsService';
 
 const GlobalModals = () => {
-  const { user } = useAuth();
+  const { user, checkAuthStatus } = useAuth();
   const { setPendingUserCount, setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal } = useAdmin();
   
   const [showPendingUsersModal, setShowPendingUsersModal] = useState(false);
@@ -359,6 +359,11 @@ const GlobalModals = () => {
       toast.success('User updated successfully');
       closeEditUserModal();
       loadAllUsers();
+      
+      // If the updated user is the current user, refresh auth status to get updated role/permissions
+      if (user && (user.email === editingUser.email || user.username === editingUser.username)) {
+        await checkAuthStatus();
+      }
     } catch (error) {
       toast.error(error.message || 'Failed to update user');
     }

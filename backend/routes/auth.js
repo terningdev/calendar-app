@@ -565,6 +565,26 @@ router.put('/users/:identifier', async (req, res) => {
         
         await userToUpdate.save();
 
+        // If the updated user is currently logged in, update their session
+        if (req.session.user && 
+            (req.session.user.email === userToUpdate.email || 
+             req.session.user.username === userToUpdate.username)) {
+            // Update the current session with new data
+            req.session.user.firstName = userToUpdate.firstName;
+            req.session.user.lastName = userToUpdate.lastName;
+            req.session.user.phone = userToUpdate.phone;
+            req.session.user.email = userToUpdate.email;
+            req.session.user.role = userToUpdate.role;
+            req.session.user.requirePasswordReset = userToUpdate.requirePasswordReset;
+            
+            await new Promise((resolve, reject) => {
+                req.session.save((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+        }
+
         res.json({
             success: true,
             message: 'User updated successfully.',

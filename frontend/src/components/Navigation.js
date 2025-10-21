@@ -9,7 +9,7 @@ import permissionsService from '../services/permissionsService';
 const Navigation = () => {
   const location = useLocation();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, checkAuthStatus } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [permissions, setPermissions] = useState(null);
   const { pendingUserCount, openPendingUsersModal, openManageUsersModal, openSystemStatusModal, openManagePermissionsModal } = useAdmin();
@@ -55,6 +55,18 @@ const Navigation = () => {
 
     fetchPermissions();
   }, [user]);
+
+  // Re-check auth status when window regains focus (to detect role changes)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, checkAuthStatus]);
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
