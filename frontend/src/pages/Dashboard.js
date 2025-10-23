@@ -13,7 +13,8 @@ const Dashboard = () => {
     totalTechnicians: 0,
     totalDepartments: 0
   });
-  const [recentTickets, setRecentTickets] = useState([]);
+  const [ticketsByDate, setTicketsByDate] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ const Dashboard = () => {
       setLoading(true);
       
       // Load all data in parallel
-      const [tickets, technicians, departments] = await Promise.all([
+      const [tickets, technicians, departmentsData] = await Promise.all([
         ticketService.getAll(),
         technicianService.getAll(),
         departmentService.getAll()
@@ -40,15 +41,43 @@ const Dashboard = () => {
         assignedTickets: assignedTickets,
         unassignedTickets: unassignedTickets,
         totalTechnicians: technicians.length,
-        totalDepartments: departments.length
+        totalDepartments: departmentsData.length
       });
 
-      // Get recent tickets (last 5)
-      const sortedTickets = tickets
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
+      setDepartments(departmentsData);
+
+      // Process tickets by date and department
+      const ticketsByDateMap = {};
       
-      setRecentTickets(sortedTickets);
+      tickets.forEach(ticket => {
+        const date = new Date(ticket.startDate).toLocaleDateString('en-CA'); // YYYY-MM-DD format
+        if (!ticketsByDateMap[date]) {
+          ticketsByDateMap[date] = {};
+          departmentsData.forEach(dept => {
+            ticketsByDateMap[date][dept._id] = 0;
+          });
+        }
+        
+        if (ticket.department) {
+          const deptId = typeof ticket.department === 'object' ? ticket.department._id : ticket.department;
+          if (ticketsByDateMap[date][deptId] !== undefined) {
+            ticketsByDateMap[date][deptId]++;
+          }
+        }
+      });
+
+      // Convert to array and sort by date (last 30 dates)
+      const sortedDates = Object.keys(ticketsByDateMap)
+        .sort((a, b) => new Date(a) - new Date(b))
+        .slice(-30);
+      
+      const chartData = sortedDates.map(date => ({
+        date,
+        displayDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        ...ticketsByDateMap[date]
+      }));
+
+      setTicketsByDate(chartData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -56,8 +85,16 @@ const Dashboard = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+  const getMaxTickets = () => {
+    let max = 0;
+    ticketsByDate.forEach(day => {
+      departments.forEach(dept => {
+        if (day[dept._id] > max) {
+          max = day[dept._id];
+        }
+      });
+    });
+    return Math.max(max, 5); // Minimum height of 5
   };
 
   if (loading) {
@@ -67,6 +104,8 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const maxTickets = getMaxTickets();
 
   return (
     <div>
@@ -112,74 +151,91 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Card - Mobile Compact View */}
-      <div className="card mobile-only mobile-stats-card" style={{ marginBottom: '30px' }}>
-        <div className="mobile-stats-compact">
-          <div className="mobile-stat-row mobile-stat-single-line">
-            <div className="mobile-stat-pair">
-              <span className="mobile-stat-label">Total tickets</span>
-              <span className="mobile-stat-value" style={{ color: '#3498db' }}>{stats.totalTickets}</span>
-            </div>
-            <div className="mobile-stat-pair">
-              <span className="mobile-stat-label">Assigned tickets</span>
-              <span className="mobile-stat-value" style={{ color: '#27ae60' }}>{stats.assignedTickets}</span>
-            </div>
-            <div className="mobile-stat-pair">
-              <span className="mobile-stat-label">Unassigned tickets</span>
-              <span className="mobile-stat-value" style={{ color: '#e74c3c' }}>{stats.unassignedTickets}</span>
-            </div>
-            <div className="mobile-stat-pair">
-              <span className="mobile-stat-label">Total technicians</span>
-              <span className="mobile-stat-value" style={{ color: '#9b59b6' }}>{stats.totalTechnicians}</span>
-            </div>
-            <div className="mobile-stat-pair">
-              <span className="mobile-stat-label">Total departments</span>
-              <span className="mobile-stat-value" style={{ color: '#f39c12' }}>{stats.totalDepartments}</span>
-            </div>
+      {/* Stats Card - Mobile Compact Grid View */}
+      <div className="card mobile-only mobile-stats-card">
+        <div className="mobile-stats-grid">
+          <div className="mobile-stat-item">
+            <div className="mobile-stat-value" style={{ color: '#3498db' }}>{stats.totalTickets}</div>
+            <div className="mobile-stat-label">Tickets</div>
+          </div>
+          <div className="mobile-stat-item">
+            <div className="mobile-stat-value" style={{ color: '#27ae60' }}>{stats.assignedTickets}</div>
+            <div className="mobile-stat-label">Assigned</div>
+          </div>
+          <div className="mobile-stat-item">
+            <div className="mobile-stat-value" style={{ color: '#e74c3c' }}>{stats.unassignedTickets}</div>
+            <div className="mobile-stat-label">Unassigned</div>
+          </div>
+          <div className="mobile-stat-item">
+            <div className="mobile-stat-value" style={{ color: '#9b59b6' }}>{stats.totalTechnicians}</div>
+            <div className="mobile-stat-label">Technicians</div>
+          </div>
+          <div className="mobile-stat-item">
+            <div className="mobile-stat-value" style={{ color: '#f39c12' }}>{stats.totalDepartments}</div>
+            <div className="mobile-stat-label">Departments</div>
           </div>
         </div>
       </div>
 
-      {/* Recent Tickets */}
+      {/* Tickets by Date Chart */}
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">{t('recentTickets')}</h2>
+          <h2 className="card-title">Tickets per Date by Department</h2>
         </div>
         
-        {recentTickets.length === 0 ? (
+        {ticketsByDate.length === 0 ? (
           <div className="empty-state">
-            <h3>No tickets found</h3>
-            <p>Create your first ticket to get started</p>
+            <h3>No ticket data available</h3>
+            <p>Create tickets to see the chart</p>
           </div>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Title - Activity Number</th>
-                <th>Assigned To</th>
-                <th>Created</th>
-                <th>Start Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentTickets.map((ticket) => (
-                <tr key={ticket._id}>
-                  <td>
-                    {ticket.title}
-                    {ticket.ticketNumber && ` - ${ticket.ticketNumber}`}
-                  </td>
-                  <td>
-                    {ticket.assignedTo ? 
-                      `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}` : 
-                      'Unassigned'
-                    }
-                  </td>
-                  <td>{formatDate(ticket.createdAt)}</td>
-                  <td>{formatDate(ticket.startDate)}</td>
-                </tr>
+          <div>
+            {/* Legend */}
+            <div className="chart-legend">
+              {departments.map((dept, index) => (
+                <div key={dept._id} className="legend-item">
+                  <span 
+                    className="legend-color" 
+                    style={{ backgroundColor: index === 0 ? '#3498db' : '#27ae60' }}
+                  ></span>
+                  <span className="legend-label">{dept.name}</span>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Bar Chart */}
+            <div className="bar-chart-container">
+              <div className="bar-chart-scroll">
+                {ticketsByDate.map((day, dayIndex) => (
+                  <div key={dayIndex} className="bar-chart-column">
+                    <div className="bar-chart-bars">
+                      {departments.map((dept, deptIndex) => {
+                        const count = day[dept._id] || 0;
+                        const heightPercent = (count / maxTickets) * 100;
+                        const color = deptIndex === 0 ? '#3498db' : '#27ae60';
+                        
+                        return (
+                          <div 
+                            key={dept._id} 
+                            className="bar-chart-bar"
+                            style={{ 
+                              height: `${heightPercent}%`,
+                              backgroundColor: color,
+                              opacity: count === 0 ? 0.2 : 1
+                            }}
+                            title={`${dept.name}: ${count} ticket${count !== 1 ? 's' : ''}`}
+                          >
+                            {count > 0 && <span className="bar-label">{count}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="bar-chart-label">{day.displayDate}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
