@@ -262,11 +262,34 @@ router.put('/:id', requireAuth, [
 
     // If user is trying to change the assignedTo field, check assignTickets permission
     if (req.body.hasOwnProperty('assignedTo')) {
-      const canAssign = await hasPermission(req.session.user, 'assignTickets');
-      if (!canAssign) {
-        return res.status(403).json({ 
-          message: 'You do not have permission to assign tickets' 
-        });
+      // Check if assignedTo is actually being changed
+      const oldAssignedTo = existingTicket.assignedTo 
+        ? (Array.isArray(existingTicket.assignedTo) 
+            ? existingTicket.assignedTo.map(t => t._id.toString()).sort().join(',')
+            : existingTicket.assignedTo._id.toString())
+        : null;
+      
+      const newAssignedTo = req.body.assignedTo
+        ? (Array.isArray(req.body.assignedTo)
+            ? req.body.assignedTo.sort().join(',')
+            : req.body.assignedTo.toString())
+        : null;
+      
+      const isChangingAssignment = oldAssignedTo !== newAssignedTo;
+      
+      console.log('🔍 Assignment change check:', { 
+        oldAssignedTo, 
+        newAssignedTo, 
+        isChangingAssignment 
+      });
+      
+      if (isChangingAssignment) {
+        const canAssign = await hasPermission(req.session.user, 'assignTickets');
+        if (!canAssign) {
+          return res.status(403).json({ 
+            message: 'You do not have permission to change ticket assignments' 
+          });
+        }
       }
     }
 
