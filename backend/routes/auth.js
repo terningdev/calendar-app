@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const UserModel = require('../models/UserModel'); // MongoDB model
+const PermissionsModel = require('../models/PermissionsModel'); // For fetching permissions
 
 // In-memory storage for users (similar to other models) - DEPRECATED, using MongoDB now
 let users = [];
@@ -37,6 +38,42 @@ const findUserByEmail = async (email) => {
 
 const findUserByUsername = async (username) => {
     return await UserModel.findOne({ username });
+};
+
+// Helper function to get user permissions
+const getUserPermissions = async (role) => {
+    try {
+        // Sysadmin has all permissions
+        if (role === 'sysadmin') {
+            return {
+                viewDashboard: true,
+                viewCalendar: true,
+                viewTickets: true,
+                viewAdministrator: true,
+                viewAbsences: true,
+                viewSkills: true,
+                createTickets: true,
+                editOwnTickets: true,
+                editAllTickets: true,
+                deleteTickets: true,
+                assignTickets: true,
+                viewUsers: true,
+                manageUsers: true,
+                approveUsers: true,
+                manageDepartments: true,
+                manageTechnicians: true,
+                viewSystemStatus: true,
+                managePermissions: true
+            };
+        }
+        
+        // Fetch permissions for other roles
+        const rolePermissions = await PermissionsModel.findOne({ role });
+        return rolePermissions ? rolePermissions.permissions : {};
+    } catch (error) {
+        console.error('Error fetching permissions:', error);
+        return {};
+    }
 };
 
 // Register new user
@@ -117,6 +154,9 @@ router.post('/login', async (req, res) => {
             }
         }
 
+        // Fetch user permissions
+        const permissions = await getUserPermissions(user.role);
+
         // Create session
         req.session.regenerate((err) => {
             if (err) {
@@ -132,7 +172,8 @@ router.post('/login', async (req, res) => {
                 email: user.email,
                 role: user.role,
                 approved: user.approved,
-                requirePasswordReset: user.requirePasswordReset
+                requirePasswordReset: user.requirePasswordReset,
+                permissions: permissions
             };
 
             // Save session explicitly
@@ -144,6 +185,7 @@ router.post('/login', async (req, res) => {
                 console.log('✅ Session saved for user:', user.email || user.username);
                 console.log('📋 Session ID:', req.sessionID);
                 console.log('🍪 Cookie will be set:', req.session.cookie);
+                console.log('🔑 Permissions loaded:', Object.keys(permissions).length);
                 res.json({ 
                     success: true, 
                     message: 'Login successful.', 
@@ -184,6 +226,9 @@ router.get('/me', async (req, res) => {
                 });
             }
 
+            // Fetch permissions for the user
+            const permissions = await getUserPermissions(currentUser.role);
+
             // Update session with fresh data (catches role changes, etc.)
             const updatedSessionUser = {
                 username: currentUser.username,
@@ -193,7 +238,8 @@ router.get('/me', async (req, res) => {
                 email: currentUser.email,
                 role: currentUser.role,
                 approved: currentUser.approved,
-                requirePasswordReset: currentUser.requirePasswordReset
+                requirePasswordReset: currentUser.requirePasswordReset,
+                permissions: permissions
             };
 
             req.session.user = updatedSessionUser;
