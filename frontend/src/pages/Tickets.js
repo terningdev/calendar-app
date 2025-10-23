@@ -172,17 +172,17 @@ const Tickets = () => {
       // Clean up form data - remove empty fields that should be optional
       const cleanData = { ...formData };
       
-      // Auto-generate ticket number from title and optional activity number
-      if (cleanData.title) {
-        if (cleanData.activityNumber && cleanData.activityNumber.trim() !== '') {
-          cleanData.ticketNumber = `${cleanData.title} - ${cleanData.activityNumber}`;
-        } else {
-          cleanData.ticketNumber = cleanData.title;
+      // Auto-generate ticket number from title
+      cleanData.ticketNumber = cleanData.title;
+      
+      // Clean up activityNumbers array - remove empty strings
+      if (cleanData.activityNumbers && Array.isArray(cleanData.activityNumbers)) {
+        cleanData.activityNumbers = cleanData.activityNumbers.filter(num => num && num.trim() !== '');
+        // If no activity numbers, remove the field
+        if (cleanData.activityNumbers.length === 0) {
+          delete cleanData.activityNumbers;
         }
       }
-      
-      // Remove temporary activityNumber field
-      delete cleanData.activityNumber;
       
       // Remove assignedTo if empty array
       if (!cleanData.assignedTo || cleanData.assignedTo.length === 0) {
@@ -1156,19 +1156,20 @@ const Tickets = () => {
               {/* Activity Numbers (100%) */}
               <div className="form-row-100">
                 <div className="form-group">
-                  <label className="form-label">Activity Numbers (comma-separated)</label>
+                  <label className="form-label">Activity Numbers</label>
                   <input
                     type="text"
                     className="form-control"
-                    value={formData.activityNumbers.join(', ')}
+                    value={formData.activityNumbers.join(' + ')}
                     onChange={(e) => {
-                      const numbers = e.target.value.split(',').map(n => n.trim()).filter(n => n !== '');
+                      const value = e.target.value;
+                      const numbers = value.split('+').map(n => n.trim()).filter(n => n !== '');
                       setFormData({ ...formData, activityNumbers: numbers });
                     }}
-                    placeholder="Optional: e.g., 123456, 789012"
+                    placeholder="Optional: e.g., 123456 + 789012 + 345678"
                   />
                   <small style={{ color: '#6c757d', fontSize: '0.85rem' }}>
-                    Enter multiple activity numbers separated by commas
+                    Enter multiple activity numbers separated by + (plus sign)
                   </small>
                 </div>
               </div>
