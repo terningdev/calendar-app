@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const UserModel = require('../models/UserModel'); // MongoDB model
-const PermissionsModel = require('../models/PermissionsModel'); // For fetching permissions
+const { PermissionsModel } = require('../models/PermissionsModel'); // For fetching permissions
 
 // In-memory storage for users (similar to other models) - DEPRECATED, using MongoDB now
 let users = [];
