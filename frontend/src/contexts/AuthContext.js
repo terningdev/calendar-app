@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import authService from '../services/authService';
 
 const AuthContext = createContext();
@@ -16,12 +16,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [authenticated, setAuthenticated] = useState(false);
 
-    // Check authentication status on app load
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    const checkAuthStatus = async () => {
+    const checkAuthStatus = useCallback(async () => {
         try {
             console.log('🔍 Checking auth status...');
             setLoading(true);
@@ -44,7 +39,12 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    // Check authentication status on app load
+    useEffect(() => {
+        checkAuthStatus();
+    }, [checkAuthStatus]);
 
     const login = async (credentials) => {
         try {
