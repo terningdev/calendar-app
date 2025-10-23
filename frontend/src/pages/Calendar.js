@@ -62,12 +62,12 @@ const Calendar = () => {
       }
     };
     
-    if (hasPermission('viewCalendar')) {
+    if (user && user.permissions?.viewCalendar === true) {
       loadData();
-    } else {
+    } else if (user) {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // Convert tickets to FullCalendar events
   const getEvents = () => {
@@ -167,6 +167,17 @@ const Calendar = () => {
   };
 
   // Check permission to view calendar
+  if (!user) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">{t('calendar')}</h1>
+        </div>
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
+
   if (!hasPermission('viewCalendar')) {
     return (
       <div className="page-container">
