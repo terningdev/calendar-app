@@ -51,6 +51,11 @@ const GlobalModals = () => {
   });
 
   const loadPendingUsersCount = async () => {
+    // Only load if user has permission (administrator or sysadmin)
+    if (!user || (user.role !== 'administrator' && user.role !== 'sysadmin')) {
+      return;
+    }
+    
     try {
       const response = await authService.getPendingUsers();
       const usersArray = Array.isArray(response) ? response : (response?.pendingUsers || []);
@@ -205,10 +210,10 @@ const GlobalModals = () => {
     };
   }, [setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal]);
 
-  // Load pending users count on mount
+  // Load pending users count on mount (only for administrators)
   useEffect(() => {
     loadPendingUsersCount();
-  }, []);
+  }, [user]);
 
   const handleApproveUser = async (email) => {
     try {
