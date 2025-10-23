@@ -5,15 +5,18 @@ import { ticketService } from '../services/ticketService';
 import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
+import { useAuth } from '../contexts/AuthContext';
 
 const Tickets = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
+  const [viewingTicket, setViewingTicket] = useState(null);
   const [showOldActivitiesModal, setShowOldActivitiesModal] = useState(false);
   const [showDepartmentSelector, setShowDepartmentSelector] = useState(false);
   const [showTechnicianSelector, setShowTechnicianSelector] = useState(false);
@@ -51,6 +54,23 @@ const Tickets = () => {
       }
     }
     return null;
+  };
+
+  // Check if current user owns a ticket
+  const checkTicketOwnership = (ticket) => {
+    if (!user || !user.email || !ticket || !ticket.assignedTo) {
+      return false;
+    }
+
+    const userEmail = user.email.toLowerCase();
+    const assignedTechnicians = Array.isArray(ticket.assignedTo) 
+      ? ticket.assignedTo 
+      : [ticket.assignedTo];
+
+    return assignedTechnicians.some(tech => {
+      const techEmail = tech.email || tech;
+      return techEmail && techEmail.toLowerCase() === userEmail;
+    });
   };
 
   const loadTickets = useCallback(async () => {
@@ -236,6 +256,14 @@ const Tickets = () => {
       endDate: ticket.endDate ? new Date(ticket.endDate).toISOString().slice(0, 10) : ''
     });
     setShowModal(true);
+  };
+
+  const handleView = (ticket) => {
+    setViewingTicket(ticket);
+  };
+
+  const closeViewModal = () => {
+    setViewingTicket(null);
   };
 
   const handleDelete = async (id) => {
@@ -678,11 +706,7 @@ const Tickets = () => {
           </button>
           <button 
             className="btn btn-secondary" 
-            onClick={() => {
-              console.log('Opening Old Activities Modal');
-              setShowOldActivitiesModal(true);
-              console.log('showOldActivitiesModal should now be true');
-            }}
+            onClick={() => setShowOldActivitiesModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           >
             📅 Old Activities ({getOldTickets().length})
@@ -873,12 +897,21 @@ const Tickets = () => {
                       </div>
                       
                       <div className="agenda-buttons">
-                        <button 
-                          className="btn btn-small btn-secondary"
-                          onClick={() => handleEdit(ticket)}
-                        >
-                          {t('edit')}
-                        </button>
+                        {checkTicketOwnership(ticket) ? (
+                          <button 
+                            className="btn btn-small btn-secondary"
+                            onClick={() => handleEdit(ticket)}
+                          >
+                            {t('edit')}
+                          </button>
+                        ) : (
+                          <button 
+                            className="btn btn-small btn-secondary"
+                            onClick={() => handleView(ticket)}
+                          >
+                            View
+                          </button>
+                        )}
                         {renderActivityButton(ticket) && (
                           renderActivityButton(ticket)
                         )}
@@ -946,13 +979,23 @@ const Tickets = () => {
                       {renderActivityButton(ticket, true) && (
                         renderActivityButton(ticket, true)
                       )}
-                      <button 
-                        className="btn btn-small btn-secondary"
-                        onClick={() => handleEdit(ticket)}
-                        style={{ padding: '6px 12px', fontSize: '0.75rem', minWidth: '60px' }}
-                      >
-                        {t('edit')}
-                      </button>
+                      {checkTicketOwnership(ticket) ? (
+                        <button 
+                          className="btn btn-small btn-secondary"
+                          onClick={() => handleEdit(ticket)}
+                          style={{ padding: '6px 12px', fontSize: '0.75rem', minWidth: '60px' }}
+                        >
+                          {t('edit')}
+                        </button>
+                      ) : (
+                        <button 
+                          className="btn btn-small btn-secondary"
+                          onClick={() => handleView(ticket)}
+                          style={{ padding: '6px 12px', fontSize: '0.75rem', minWidth: '60px' }}
+                        >
+                          View
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1214,8 +1257,6 @@ const Tickets = () => {
       )}
 
       {/* Old Activities Window Modal */}
-      {console.log('Tickets page - showOldActivitiesModal:', showOldActivitiesModal)}
-      {showOldActivitiesModal && console.log('ABOUT TO RENDER OLD ACTIVITIES MODAL')}
       {showOldActivitiesModal && ReactDOM.createPortal(
         <>
           <div 
@@ -1532,6 +1573,101 @@ const Tickets = () => {
             </div>
           </div>
         </div>,
+        document.body
+      )}
+
+      {/* View Ticket Modal */}
+      {viewingTicket && ReactDOM.createPortal(
+        <>
+          <div className="modal-backdrop" onClick={closeViewModal}></div>
+          <div className="modal" style={{ display: 'flex' }}>
+            <div className="modal-content" style={{ maxWidth: '600px', width: '90%' }}>
+              <div className="modal-header">
+                <h2 className="modal-title">Ticket Details</h2>
+                <button 
+                  type="button"
+                  className="modal-close"
+                  onClick={closeViewModal}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="view-ticket-content">
+                  <div className="view-field">
+                    <label className="view-label">Title:</label>
+                    <div className="view-value">{viewingTicket.title}</div>
+                  </div>
+                  
+                  {viewingTicket.activityNumber && (
+                    <div className="view-field">
+                      <label className="view-label">Activity Number:</label>
+                      <div className="view-value">{viewingTicket.activityNumber}</div>
+                    </div>
+                  )}
+                  
+                  <div className="view-field">
+                    <label className="view-label">Description:</label>
+                    <div className="view-value" style={{ whiteSpace: 'pre-wrap' }}>
+                      {viewingTicket.description || 'No description'}
+                    </div>
+                  </div>
+                  
+                  <div className="view-field">
+                    <label className="view-label">Department:</label>
+                    <div className="view-value">
+                      {Array.isArray(viewingTicket.assignedTo) && viewingTicket.assignedTo.length > 0
+                        ? [...new Set(viewingTicket.assignedTo
+                            .filter(tech => tech.department)
+                            .map(tech => tech.department.name))]
+                            .join(', ')
+                        : viewingTicket.assignedTo?.department?.name || 'Not assigned'}
+                    </div>
+                  </div>
+                  
+                  <div className="view-field">
+                    <label className="view-label">Assigned To:</label>
+                    <div className="view-value">
+                      {Array.isArray(viewingTicket.assignedTo) && viewingTicket.assignedTo.length > 0
+                        ? viewingTicket.assignedTo
+                            .map(tech => `${tech.firstName} ${tech.lastName}`)
+                            .join(', ')
+                        : viewingTicket.assignedTo
+                          ? `${viewingTicket.assignedTo.firstName} ${viewingTicket.assignedTo.lastName}`
+                          : 'Unassigned'}
+                    </div>
+                  </div>
+                  
+                  <div className="view-field">
+                    <label className="view-label">Start Date:</label>
+                    <div className="view-value">
+                      {new Date(viewingTicket.startDate).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  {viewingTicket.endDate && (
+                    <div className="view-field">
+                      <label className="view-label">End Date:</label>
+                      <div className="view-value">
+                        {new Date(viewingTicket.endDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closeViewModal}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </>,
         document.body
       )}
     </div>
