@@ -622,6 +622,38 @@ const Tickets = () => {
     return dates;
   };
 
+  // Function to get day info for multi-day tickets (e.g., "day 1 of 3")
+  const getTicketDayInfo = (ticket, currentDate) => {
+    if (!ticket.endDate) {
+      return null; // Single day ticket
+    }
+    
+    const startDate = new Date(ticket.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(ticket.endDate);
+    endDate.setHours(0, 0, 0, 0);
+    const current = new Date(currentDate);
+    current.setHours(0, 0, 0, 0);
+    
+    // Check if it's actually a multi-day ticket
+    if (startDate.getTime() === endDate.getTime()) {
+      return null; // Same day, not multi-day
+    }
+    
+    // Calculate total days (inclusive)
+    const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Calculate current day number
+    const currentDay = Math.floor((current - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Only return if it's within the range
+    if (currentDay >= 1 && currentDay <= totalDays) {
+      return `day ${currentDay} of ${totalDays}`;
+    }
+    
+    return null;
+  };
+
   // Function to group tickets by date (agenda view)
   const getTicketsGroupedByDate = () => {
     const filtered = getFilteredTickets();
@@ -975,6 +1007,17 @@ const Tickets = () => {
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', marginBottom: '4px' }}>
                           <span className="agenda-ticket-title">
                             {ticket.title}
+                            {getTicketDayInfo(ticket, date) && (
+                              <span style={{ 
+                                marginLeft: '8px', 
+                                fontSize: '0.85rem', 
+                                color: '#6c757d',
+                                fontWeight: 'normal',
+                                fontStyle: 'italic'
+                              }}>
+                                ({getTicketDayInfo(ticket, date)})
+                              </span>
+                            )}
                           </span>
                         </div>
                         
@@ -1002,12 +1045,12 @@ const Tickets = () => {
                           </span>
                           <span>-</span>
                           <span>{formatDateShort(ticket.startDate)}</span>
-                          <span>-</span>
-                          <span>
-                            {ticket.endDate ? formatDateShort(ticket.endDate) : (
-                              <span style={{ fontStyle: 'italic' }}>Not set</span>
-                            )}
-                          </span>
+                          {ticket.endDate && (
+                            <>
+                              <span>-</span>
+                              <span>{formatDateShort(ticket.endDate)}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       
@@ -1067,6 +1110,17 @@ const Tickets = () => {
                       {/* Title */}
                       <div className="mobile-agenda-ticket-title">
                         {ticket.title}
+                        {getTicketDayInfo(ticket, date) && (
+                          <span style={{ 
+                            marginLeft: '6px', 
+                            fontSize: '0.8rem', 
+                            color: '#6c757d',
+                            fontWeight: 'normal',
+                            fontStyle: 'italic'
+                          }}>
+                            ({getTicketDayInfo(ticket, date)})
+                          </span>
+                        )}
                       </div>
                       
                       {/* Description */}
@@ -1079,9 +1133,11 @@ const Tickets = () => {
                       {/* Date start - date end */}
                       <div className="mobile-agenda-field" style={{ marginTop: '6px' }}>
                         {formatDateShort(ticket.startDate)}
-                        {' - '}
-                        {ticket.endDate ? formatDateShort(ticket.endDate) : (
-                          <span style={{ fontStyle: 'italic' }}>Not set</span>
+                        {ticket.endDate && (
+                          <>
+                            {' - '}
+                            {formatDateShort(ticket.endDate)}
+                          </>
                         )}
                       </div>
                       
