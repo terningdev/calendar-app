@@ -167,10 +167,14 @@ const Tickets = () => {
       loadTickets();
     } catch (error) {
       console.error('Error saving ticket:', error);
+      console.error('Error response data:', error.response?.data);
       
       // Handle specific error cases
       if (error.response?.status === 400) {
         const errorMsg = error.response.data?.message || 'Invalid input data';
+        toast.error(errorMsg);
+      } else if (error.response?.status === 403) {
+        const errorMsg = error.response.data?.message || 'You do not have permission to perform this action';
         toast.error(errorMsg);
       } else if (error.response?.status === 500) {
         toast.error('Server error. Please try again later.');
