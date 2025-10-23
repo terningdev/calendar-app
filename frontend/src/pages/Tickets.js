@@ -1008,7 +1008,7 @@ const Tickets = () => {
                       </div>
                       
                       <div className="agenda-buttons">
-                        {checkTicketOwnership(ticket) ? (
+                        {(hasPermission('editAllTickets') || (hasPermission('editOwnTickets') && checkTicketOwnership(ticket))) ? (
                           <button 
                             className="btn btn-small btn-secondary"
                             onClick={() => handleEdit(ticket)}
@@ -1097,7 +1097,7 @@ const Tickets = () => {
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
-                      {checkTicketOwnership(ticket) ? (
+                      {(hasPermission('editAllTickets') || (hasPermission('editOwnTickets') && checkTicketOwnership(ticket))) ? (
                         <button 
                           className="btn btn-small btn-secondary"
                           onClick={() => handleEdit(ticket)}
