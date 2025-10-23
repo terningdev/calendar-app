@@ -134,7 +134,8 @@ router.post('/', requireAuth, [
     }
 
     // Check if user has permission to create tickets
-    if (!hasPermission(req.session.user, 'createTickets')) {
+    const canCreate = await hasPermission(req.session.user, 'createTickets');
+    if (!canCreate) {
       return res.status(403).json({ 
         message: 'You do not have permission to create tickets' 
       });
@@ -143,7 +144,8 @@ router.post('/', requireAuth, [
     // Check if user is trying to assign the ticket
     if (req.body.assignedTo) {
       // Check if user has permission to assign tickets
-      if (!hasPermission(req.session.user, 'assignTickets')) {
+      const canAssign = await hasPermission(req.session.user, 'assignTickets');
+      if (!canAssign) {
         return res.status(403).json({ 
           message: 'You do not have permission to assign tickets' 
         });
@@ -212,9 +214,23 @@ router.put('/:id', requireAuth, [
     const userEmail = req.session.user.email;
     const ownsTicket = await checkTicketOwnership(userEmail, existingTicket);
 
+    console.log('🔍 Ticket Edit Check:', {
+      userEmail,
+      userRole: req.session.user.role,
+      ticketId: req.params.id,
+      ownsTicket,
+      assignedTechnicians: existingTicket.assignedTo ? 
+        (Array.isArray(existingTicket.assignedTo) 
+          ? existingTicket.assignedTo.map(t => t.email) 
+          : [existingTicket.assignedTo.email]) 
+        : []
+    });
+
     // Check permissions
-    const canEditOwn = hasPermission(req.session.user, 'editOwnTickets');
-    const canEditAll = hasPermission(req.session.user, 'editAllTickets');
+    const canEditOwn = await hasPermission(req.session.user, 'editOwnTickets');
+    const canEditAll = await hasPermission(req.session.user, 'editAllTickets');
+
+    console.log('🔍 Permissions:', { canEditOwn, canEditAll });
 
     // Determine if user can edit this ticket
     let canEdit = false;
@@ -225,6 +241,7 @@ router.put('/:id', requireAuth, [
     }
 
     if (!canEdit) {
+      console.log('❌ Edit denied:', { canEditOwn, canEditAll, ownsTicket });
       return res.status(403).json({ 
         message: ownsTicket 
           ? 'You do not have permission to edit tickets'
@@ -234,7 +251,8 @@ router.put('/:id', requireAuth, [
 
     // If user is trying to change the assignedTo field, check assignTickets permission
     if (req.body.hasOwnProperty('assignedTo')) {
-      if (!hasPermission(req.session.user, 'assignTickets')) {
+      const canAssign = await hasPermission(req.session.user, 'assignTickets');
+      if (!canAssign) {
         return res.status(403).json({ 
           message: 'You do not have permission to assign tickets' 
         });
@@ -315,7 +333,8 @@ router.post('/:id/notes', [
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     // Check if user has permission to delete tickets
-    if (!hasPermission(req.session.user, 'deleteTickets')) {
+    const canDelete = await hasPermission(req.session.user, 'deleteTickets');
+    if (!canDelete) {
       return res.status(403).json({ 
         message: 'You do not have permission to delete tickets' 
       });
