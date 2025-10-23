@@ -1595,18 +1595,19 @@ const Tickets = () => {
               </div>
               <div className="modal-body">
                 <div className="view-ticket-content">
-                  <div className="view-field">
-                    <label className="view-label">Title:</label>
-                    <div className="view-value">{viewingTicket.title}</div>
+                  {/* Title - Activity Number */}
+                  <div className="view-row">
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Title:</label>
+                      <div className="view-value">{viewingTicket.title}</div>
+                    </div>
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Activity Number:</label>
+                      <div className="view-value">{viewingTicket.activityNumber || 'N/A'}</div>
+                    </div>
                   </div>
                   
-                  {viewingTicket.activityNumber && (
-                    <div className="view-field">
-                      <label className="view-label">Activity Number:</label>
-                      <div className="view-value">{viewingTicket.activityNumber}</div>
-                    </div>
-                  )}
-                  
+                  {/* Description */}
                   <div className="view-field">
                     <label className="view-label">Description:</label>
                     <div className="view-value" style={{ whiteSpace: 'pre-wrap' }}>
@@ -1614,46 +1615,50 @@ const Tickets = () => {
                     </div>
                   </div>
                   
-                  <div className="view-field">
-                    <label className="view-label">Department:</label>
-                    <div className="view-value">
-                      {Array.isArray(viewingTicket.assignedTo) && viewingTicket.assignedTo.length > 0
-                        ? [...new Set(viewingTicket.assignedTo
-                            .filter(tech => tech.department)
-                            .map(tech => tech.department.name))]
-                            .join(', ')
-                        : viewingTicket.assignedTo?.department?.name || 'Not assigned'}
-                    </div>
-                  </div>
-                  
-                  <div className="view-field">
-                    <label className="view-label">Assigned To:</label>
-                    <div className="view-value">
-                      {Array.isArray(viewingTicket.assignedTo) && viewingTicket.assignedTo.length > 0
-                        ? viewingTicket.assignedTo
-                            .map(tech => `${tech.firstName} ${tech.lastName}`)
-                            .join(', ')
-                        : viewingTicket.assignedTo
-                          ? `${viewingTicket.assignedTo.firstName} ${viewingTicket.assignedTo.lastName}`
-                          : 'Unassigned'}
-                    </div>
-                  </div>
-                  
-                  <div className="view-field">
-                    <label className="view-label">Start Date:</label>
-                    <div className="view-value">
-                      {new Date(viewingTicket.startDate).toLocaleDateString()}
-                    </div>
-                  </div>
-                  
-                  {viewingTicket.endDate && (
-                    <div className="view-field">
-                      <label className="view-label">End Date:</label>
+                  {/* Department - Technician */}
+                  <div className="view-row">
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Department:</label>
                       <div className="view-value">
-                        {new Date(viewingTicket.endDate).toLocaleDateString()}
+                        {Array.isArray(viewingTicket.assignedTo) && viewingTicket.assignedTo.length > 0
+                          ? [...new Set(viewingTicket.assignedTo
+                              .filter(tech => tech.department)
+                              .map(tech => tech.department.name))]
+                              .join(', ')
+                          : viewingTicket.assignedTo?.department?.name || 'Not assigned'}
                       </div>
                     </div>
-                  )}
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Technician:</label>
+                      <div className="view-value">
+                        {Array.isArray(viewingTicket.assignedTo) && viewingTicket.assignedTo.length > 0
+                          ? viewingTicket.assignedTo
+                              .map(tech => `${tech.firstName} ${tech.lastName}`)
+                              .join(', ')
+                          : viewingTicket.assignedTo
+                            ? `${viewingTicket.assignedTo.firstName} ${viewingTicket.assignedTo.lastName}`
+                            : 'Unassigned'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Start Date - End Date */}
+                  <div className="view-row">
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Start Date:</label>
+                      <div className="view-value">
+                        {new Date(viewingTicket.startDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="view-field view-field-half">
+                      <label className="view-label">End Date:</label>
+                      <div className="view-value">
+                        {viewingTicket.endDate 
+                          ? new Date(viewingTicket.endDate).toLocaleDateString()
+                          : 'Not set'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="modal-footer">
