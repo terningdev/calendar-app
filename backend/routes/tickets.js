@@ -21,7 +21,12 @@ router.get('/', async (req, res) => {
     const filter = {};
     
     if (status) filter.status = status;
-    if (assignedTo) filter.assignedTo = assignedTo;
+    if (assignedTo) {
+      // Handle both single value (string) and multiple values (array)
+      filter.assignedTo = Array.isArray(assignedTo) 
+        ? { $in: assignedTo }
+        : assignedTo;
+    }
     if (priority) filter.priority = priority;
     if (category) filter.category = category;
     
