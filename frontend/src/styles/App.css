@@ -1221,9 +1221,11 @@ body {
 .mobile-selector-panel {
   background: white;
   width: 100%;
-  max-height: 70vh;
+  max-height: 80vh;
   border-radius: 20px 20px 0 0;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   animation: slideUp 0.3s ease-out;
 }
 
@@ -1288,6 +1290,47 @@ body {
 
 .mobile-selector-name {
   flex: 1;
+}
+
+.mobile-selector-modal {
+  background: white;
+  width: 100%;
+  max-height: 80vh;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-selector-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-selector-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #e9ecef;
+  background: white;
+  position: sticky;
+  bottom: 0;
+}
+
+.mobile-selector-done {
+  width: 100%;
+  padding: 12px;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-selector-done:hover {
+  background: #0052a3;
 }
 
 /* Mobile Dashboard Styles */
