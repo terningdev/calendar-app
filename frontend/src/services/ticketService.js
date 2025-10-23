@@ -5,8 +5,14 @@ export const ticketService = {
   getAll: async (filters = {}) => {
     const params = new URLSearchParams();
     Object.keys(filters).forEach(key => {
-      if (filters[key]) {
-        params.append(key, filters[key]);
+      const value = filters[key];
+      if (value) {
+        // Handle array values (like assignedTo and department filters)
+        if (Array.isArray(value) && value.length > 0) {
+          value.forEach(item => params.append(key, item));
+        } else if (!Array.isArray(value)) {
+          params.append(key, value);
+        }
       }
     });
     
