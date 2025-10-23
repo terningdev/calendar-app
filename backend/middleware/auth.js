@@ -78,11 +78,13 @@ const checkTicketOwnership = async (userEmail, ticket) => {
 // Check if user has a specific permission
 const hasPermission = async (user, permissionName) => {
     if (!user) {
+        console.log('⚠️ hasPermission: No user provided');
         return false;
     }
 
     // If permissions are already in the session, use them
     if (user.permissions && user.permissions[permissionName] !== undefined) {
+        console.log(`✅ hasPermission (from session): ${permissionName} = ${user.permissions[permissionName]}`);
         return user.permissions[permissionName] === true;
     }
 
@@ -92,12 +94,15 @@ const hasPermission = async (user, permissionName) => {
         const rolePermissions = await PermissionsModel.findOne({ role: user.role });
         
         if (!rolePermissions || !rolePermissions.permissions) {
+            console.log(`❌ hasPermission: No permissions found for role "${user.role}"`);
             return false;
         }
 
-        return rolePermissions.permissions[permissionName] === true;
+        const hasIt = rolePermissions.permissions[permissionName] === true;
+        console.log(`✅ hasPermission (from DB): ${user.role}.${permissionName} = ${hasIt}`);
+        return hasIt;
     } catch (error) {
-        console.error('Error fetching permissions:', error);
+        console.error('❌ Error fetching permissions:', error);
         return false;
     }
 };

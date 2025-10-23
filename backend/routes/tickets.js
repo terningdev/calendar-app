@@ -242,11 +242,22 @@ router.put('/:id', requireAuth, [
 
     if (!canEdit) {
       console.log('❌ Edit denied:', { canEditOwn, canEditAll, ownsTicket });
-      return res.status(403).json({ 
-        message: ownsTicket 
-          ? 'You do not have permission to edit tickets'
-          : 'You can only edit tickets assigned to you' 
-      });
+      
+      let errorMessage;
+      if (!canEditOwn && !canEditAll) {
+        errorMessage = 'You do not have permission to edit tickets. Please contact your administrator.';
+      } else if (canEditOwn && !ownsTicket) {
+        const assignedEmails = existingTicket.assignedTo 
+          ? (Array.isArray(existingTicket.assignedTo) 
+              ? existingTicket.assignedTo.map(t => t.email).join(', ') 
+              : existingTicket.assignedTo.email)
+          : 'none';
+        errorMessage = `You can only edit tickets assigned to you. This ticket is assigned to: ${assignedEmails}. Your email: ${userEmail}`;
+      } else {
+        errorMessage = 'You do not have permission to edit this ticket.';
+      }
+      
+      return res.status(403).json({ message: errorMessage });
     }
 
     // If user is trying to change the assignedTo field, check assignTickets permission
