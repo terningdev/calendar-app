@@ -118,13 +118,14 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
       <div className="nav-user-menu">
         <button
           ref={buttonRef}
-          className="user-menu-button"
+          className="user-profile-button"
           onClick={toggleMenu}
-          title="User menu"
+          title={user?.firstName || user?.fullName || user?.username || 'User'}
           style={{ position: 'relative' }}
         >
-          <span>{user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}</span>
-          <span style={{ fontSize: '0.7rem' }}>▼</span>
+          <div className="user-avatar">
+            {(user?.firstName?.[0] || user?.fullName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
+          </div>
           {pendingUserCount > 0 && (
             <span className="badge-notification" style={{ 
               position: 'absolute', 
