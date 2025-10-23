@@ -138,20 +138,27 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password, username } = req.body;
 
+        console.log('🔐 Login attempt:', username ? `username: ${username}` : `email: ${email}`);
+
         let user;
         if (username) {
-            // Sysadmin login
-            user = await UserModel.findOne({ username, role: 'sysadmin' });
+            // Username-based login (typically sysadmin)
+            user = await UserModel.findOne({ username });
+            console.log('👤 User found by username:', user ? user.username : 'not found');
             if (!user || user.password !== password) {
+                console.log('❌ Login failed: Invalid credentials');
                 return res.status(401).json({ success: false, message: 'Invalid username or password.' });
             }
         } else {
-            // Regular user login
+            // Regular email-based user login
             user = await UserModel.findOne({ email: email.toLowerCase() });
+            console.log('👤 User found by email:', user ? user.email : 'not found');
             if (!user || user.password !== password) {
+                console.log('❌ Login failed: Invalid credentials');
                 return res.status(401).json({ success: false, message: 'Invalid email or password.' });
             }
             if (!user.approved) {
+                console.log('❌ Login failed: User not approved');
                 return res.status(403).json({ success: false, message: 'Account pending approval from administrator.' });
             }
         }
