@@ -809,5 +809,126 @@ body {
     position: static;
     transform: none;
   }
+  
+  /* Show UserMenu in mobile navigation */
+  .nav-user-mobile {
+    list-style: none;
+    padding: 15px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 15px;
+  }
+}
+
+/* Mobile Filter Selectors for Tickets */
+.mobile-filter-selector {
+  width: 100%;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.mobile-filter-selector:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.mobile-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.mobile-selector-panel {
+  background: white;
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+.mobile-selector-header {
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+.mobile-selector-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #212529;
+}
+
+.mobile-selector-close {
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px 10px;
+  color: #6c757d;
+  background: none;
+  border: none;
+}
+
+.mobile-selector-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f1f3f5;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-selector-item:hover {
+  background-color: #f8f9fa;
+}
+
+.mobile-selector-item.selected {
+  background-color: #e7f5ff;
+  color: #0066cc;
+  font-weight: 500;
+}
+
+.mobile-selector-item.selected::after {
+  content: '✓';
+  font-size: 1.2rem;
+  color: #0066cc;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
