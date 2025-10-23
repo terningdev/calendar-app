@@ -54,7 +54,13 @@ permissionsSchema.pre('save', function(next) {
     next();
 });
 
-const PermissionsModel = mongoose.model('Permissions', permissionsSchema);
+// Create or get existing model (prevents OverwriteModelError)
+let PermissionsModel;
+try {
+    PermissionsModel = mongoose.model('Permissions');
+} catch (error) {
+    PermissionsModel = mongoose.model('Permissions', permissionsSchema);
+}
 
 // Function to initialize default permissions for all roles
 async function initializeDefaultPermissions() {
