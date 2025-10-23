@@ -12,7 +12,7 @@ const Navigation = () => {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [permissions, setPermissions] = useState(null);
-  const { pendingUserCount, openPendingUsersModal, openManageUsersModal, openSystemStatusModal, openManagePermissionsModal } = useAdmin();
+  const { pendingUserCount, bugReportCount, openPendingUsersModal, openManageUsersModal, openSystemStatusModal, openManagePermissionsModal, openBugReportsModal } = useAdmin();
 
   // Fetch user permissions
   useEffect(() => {
@@ -36,6 +36,8 @@ const Navigation = () => {
               viewUsers: true,
               manageUsers: true,
               approveUsers: true,
+              submitBugReport: true,
+              viewBugReports: true,
               manageDepartments: true,
               manageTechnicians: true,
               viewSystemStatus: true,
@@ -114,8 +116,10 @@ const Navigation = () => {
         <div className="nav-user-info">
           <UserMenu 
             pendingUserCount={pendingUserCount}
+            bugReportCount={bugReportCount}
             onOpenPendingUsers={permissions?.viewUsers === true ? openPendingUsersModal : null}
             onOpenManageUsers={permissions?.manageUsers === true ? openManageUsersModal : null}
+            onOpenBugReports={permissions?.viewBugReports === true ? openBugReportsModal : null}
             onOpenSystemStatus={permissions?.viewSystemStatus === true ? openSystemStatusModal : null}
             onOpenManagePermissions={permissions?.managePermissions === true ? openManagePermissionsModal : null}
           />

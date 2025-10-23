@@ -7,18 +7,23 @@ import userService from '../services/userService';
 import authService from '../services/authService';
 import { statusService } from '../services/statusService';
 import permissionsService from '../services/permissionsService';
+import bugReportService from '../services/bugReportService';
 
 const GlobalModals = () => {
   const { user, checkAuthStatus } = useAuth();
-  const { setPendingUserCount, setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal } = useAdmin();
+  const { setPendingUserCount, setBugReportCount, setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal, setOpenBugReportsModal } = useAdmin();
   
   const [showPendingUsersModal, setShowPendingUsersModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [showSystemStatusModal, setShowSystemStatusModal] = useState(false);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [showBugReportsModal, setShowBugReportsModal] = useState(false);
   const [pendingUsers, setPendingUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [bugReports, setBugReports] = useState([]);
+  const [loadingBugReports, setLoadingBugReports] = useState(false);
+  const [expandedBugReportId, setExpandedBugReportId] = useState(null);
   
   // System Status state
   const [systemStatus, setSystemStatus] = useState({
@@ -87,6 +92,59 @@ const GlobalModals = () => {
     console.log('GlobalModals: Opening Manage RBAC Modal');
     setShowPermissionsModal(true);
     loadAllPermissions();
+  };
+
+  const openBugReportsModal = () => {
+    console.log('GlobalModals: Opening Bug Reports Modal');
+    setShowBugReportsModal(true);
+    loadBugReports();
+  };
+
+  const loadBugReportsCount = async () => {
+    // Only load if user has viewBugReports permission
+    if (!user?.permissions?.viewBugReports) {
+      return;
+    }
+    
+    try {
+      const count = await bugReportService.getCount();
+      setBugReportCount(count);
+    } catch (error) {
+      console.error('Failed to load bug reports count:', error);
+    }
+  };
+
+  const loadBugReports = async () => {
+    setLoadingBugReports(true);
+    try {
+      const reports = await bugReportService.getAll();
+      setBugReports(reports);
+    } catch (error) {
+      console.error('Error loading bug reports:', error);
+      toast.error('Failed to load bug reports');
+    } finally {
+      setLoadingBugReports(false);
+    }
+  };
+
+  const handleDeleteBugReport = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this bug report?')) {
+      return;
+    }
+
+    try {
+      await bugReportService.delete(id);
+      toast.success('Bug report deleted successfully');
+      loadBugReports(); // Reload list
+      loadBugReportsCount(); // Update count
+    } catch (error) {
+      console.error('Error deleting bug report:', error);
+      toast.error('Failed to delete bug report');
+    }
+  };
+
+  const toggleBugReportExpand = (id) => {
+    setExpandedBugReportId(expandedBugReportId === id ? null : id);
   };
 
   const checkSystemStatus = async () => {
@@ -201,18 +259,21 @@ const GlobalModals = () => {
     setOpenManageUsersModal(() => openUsersModal);
     setOpenSystemStatusModal(() => openSystemStatusModal);
     setOpenManagePermissionsModal(() => openPermissionsModal);
+    setOpenBugReportsModal(() => openBugReportsModal);
     
     return () => {
       setOpenPendingUsersModal(null);
       setOpenManageUsersModal(null);
       setOpenSystemStatusModal(null);
       setOpenManagePermissionsModal(null);
+      setOpenBugReportsModal(null);
     };
-  }, [setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal]);
+  }, [setOpenPendingUsersModal, setOpenManageUsersModal, setOpenSystemStatusModal, setOpenManagePermissionsModal, setOpenBugReportsModal]);
 
-  // Load pending users count on mount (only for administrators)
+  // Load pending users count and bug reports count on mount
   useEffect(() => {
     loadPendingUsersCount();
+    loadBugReportsCount();
   }, [user]);
 
   const handleApproveUser = async (email) => {
@@ -1456,6 +1517,110 @@ const GlobalModals = () => {
                 disabled={creatingRole || !newRoleName.trim()}
               >
                 {creatingRole ? 'Creating...' : '✨ Create Role'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Bug Reports Modal */}
+      {showBugReportsModal && ReactDOM.createPortal(
+        <div className="modal">
+          <div className="modal-content" style={{ width: '90%', maxWidth: '800px', maxHeight: '90vh' }}>
+            <div className="modal-header">
+              <h2>🐛 Bug Reports</h2>
+              <button onClick={() => setShowBugReportsModal(false)} className="modal-close">×</button>
+            </div>
+
+            <div className="modal-body" style={{ maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' }}>
+              {loadingBugReports ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <p>Loading bug reports...</p>
+                </div>
+              ) : bugReports.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                  <p>No bug reports yet</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {bugReports.map((report) => (
+                    <div 
+                      key={report._id} 
+                      style={{
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        backgroundColor: 'var(--card-background)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ 
+                            fontSize: '0.9rem', 
+                            color: 'var(--text-secondary)',
+                            marginBottom: '4px'
+                          }}>
+                            <strong>{report.submittedByName}</strong>
+                            {' • '}
+                            {new Date(report.createdAt).toLocaleString()}
+                          </div>
+                          <div 
+                            style={{
+                              cursor: 'pointer',
+                              padding: '8px 0',
+                              userSelect: 'none'
+                            }}
+                            onClick={() => toggleBugReportExpand(report._id)}
+                          >
+                            <span style={{ marginRight: '8px' }}>
+                              {expandedBugReportId === report._id ? '▼' : '▶'}
+                            </span>
+                            <span style={{ fontWeight: '500' }}>
+                              {expandedBugReportId === report._id ? 'Hide Details' : 'Show Details'}
+                            </span>
+                          </div>
+                          {expandedBugReportId === report._id && (
+                            <div 
+                              style={{
+                                marginTop: '8px',
+                                padding: '12px',
+                                backgroundColor: 'var(--background-color)',
+                                borderRadius: '4px',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                maxHeight: '300px',
+                                overflowY: 'auto'
+                              }}
+                            >
+                              {report.message}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteBugReport(report._id)}
+                          className="btn btn-small btn-danger"
+                          style={{
+                            marginLeft: '12px',
+                            padding: '6px 12px',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowBugReportsModal(false)}
+              >
+                Close
               </button>
             </div>
           </div>

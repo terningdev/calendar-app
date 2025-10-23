@@ -8,6 +8,8 @@ export const useAdmin = () => {
     return {
       pendingUserCount: 0,
       setPendingUserCount: () => {},
+      bugReportCount: 0,
+      setBugReportCount: () => {},
       openPendingUsersModal: null,
       setOpenPendingUsersModal: () => {},
       openManageUsersModal: null,
@@ -15,7 +17,9 @@ export const useAdmin = () => {
       openSystemStatusModal: null,
       setOpenSystemStatusModal: () => {},
       openManagePermissionsModal: null,
-      setOpenManagePermissionsModal: () => {}
+      setOpenManagePermissionsModal: () => {},
+      openBugReportsModal: null,
+      setOpenBugReportsModal: () => {}
     };
   }
   return context;
@@ -23,10 +27,12 @@ export const useAdmin = () => {
 
 export const AdminProvider = ({ children }) => {
   const [pendingUserCount, setPendingUserCount] = useState(0);
+  const [bugReportCount, setBugReportCount] = useState(0);
   const [openPendingUsersModal, setOpenPendingUsersModal] = useState(null);
   const [openManageUsersModal, setOpenManageUsersModal] = useState(null);
   const [openSystemStatusModal, setOpenSystemStatusModal] = useState(null);
   const [openManagePermissionsModal, setOpenManagePermissionsModal] = useState(null);
+  const [openBugReportsModal, setOpenBugReportsModal] = useState(null);
 
   const handleOpenPendingUsers = useCallback(() => {
     if (openPendingUsersModal) {
@@ -52,9 +58,17 @@ export const AdminProvider = ({ children }) => {
     }
   }, [openManagePermissionsModal]);
 
+  const handleOpenBugReports = useCallback(() => {
+    if (openBugReportsModal) {
+      openBugReportsModal();
+    }
+  }, [openBugReportsModal]);
+
   const value = {
     pendingUserCount,
     setPendingUserCount,
+    bugReportCount,
+    setBugReportCount,
     openPendingUsersModal: handleOpenPendingUsers,
     setOpenPendingUsersModal,
     openManageUsersModal: handleOpenManageUsers,
@@ -62,7 +76,9 @@ export const AdminProvider = ({ children }) => {
     openSystemStatusModal: handleOpenSystemStatus,
     setOpenSystemStatusModal,
     openManagePermissionsModal: handleOpenManagePermissions,
-    setOpenManagePermissionsModal
+    setOpenManagePermissionsModal,
+    openBugReportsModal: handleOpenBugReports,
+    setOpenBugReportsModal
   };
 
   return (

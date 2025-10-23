@@ -218,6 +218,7 @@ app.use('/api/technicians', require('./routes/technicians'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/absences', require('./routes/absences'));
 app.use('/api/skills', require('./routes/skills'));
+app.use('/api/bugreports', require('./routes/bugReports'));
 
 // Permissions routes - load with error handling
 try {

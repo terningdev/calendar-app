@@ -60,6 +60,8 @@ const getUserPermissions = async (role) => {
                 viewUsers: true,
                 manageUsers: true,
                 approveUsers: true,
+                submitBugReport: true,
+                viewBugReports: true,
                 manageDepartments: true,
                 manageTechnicians: true,
                 viewSystemStatus: true,

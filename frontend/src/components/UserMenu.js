@@ -2,12 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../utils/translations';
+import bugReportService from '../services/bugReportService';
+import { toast } from 'react-toastify';
 
-const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus, onOpenManagePermissions }) => {
+const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus, onOpenManagePermissions, onOpenBugReports }) => {
   const { user, logout, updateUserPin } = useAuth();
   const { language, changeLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
+  const [bugReportMessage, setBugReportMessage] = useState('');
+  const [isSubmittingBug, setIsSubmittingBug] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -113,6 +118,48 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
     }
   };
 
+  const openBugReport = () => {
+    setIsBugReportOpen(true);
+    setIsMenuOpen(false);
+    setBugReportMessage('');
+  };
+
+  const closeBugReport = () => {
+    setIsBugReportOpen(false);
+    setBugReportMessage('');
+  };
+
+  const handleBugReportSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!bugReportMessage.trim()) {
+      toast.error('Please enter a bug description');
+      return;
+    }
+
+    setIsSubmittingBug(true);
+    try {
+      await bugReportService.create(bugReportMessage);
+      toast.success('Bug report submitted successfully!');
+      closeBugReport();
+    } catch (error) {
+      console.error('Error submitting bug report:', error);
+      toast.error('Failed to submit bug report');
+    } finally {
+      setIsSubmittingBug(false);
+    }
+  };
+
+  // Calculate total notification count (for users with viewBugReports permission)
+  const totalNotifications = user?.permissions?.viewBugReports
+    ? pendingUserCount + bugReportCount
+    : 0;
+
+  // Helper function to check if user has a permission
+  const hasPermission = (permission) => {
+    return user?.permissions?.[permission] === true;
+  };
+
   return (
     <>
       <div className="nav-user-menu">
@@ -126,7 +173,7 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
           <div className="user-avatar">
             {(user?.firstName?.[0] || user?.fullName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
           </div>
-          {pendingUserCount > 0 && (
+          {totalNotifications > 0 && (
             <span className="badge-notification" style={{ 
               position: 'absolute', 
               top: '-5px', 
@@ -143,14 +190,14 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
               justifyContent: 'center',
               padding: '0 6px'
             }}>
-              {pendingUserCount}
+              {totalNotifications}
             </span>
           )}
         </button>
 
         {isMenuOpen && (
           <div ref={menuRef} className="user-menu-dropdown">
-            {onOpenPendingUsers && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
+            {onOpenPendingUsers && hasPermission('approveUsers') && (
               <div className="user-menu-item" onClick={() => { 
                 setIsMenuOpen(false); 
                 onOpenPendingUsers();
@@ -171,7 +218,7 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
                 )}
               </div>
             )}
-            {onOpenManageUsers && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
+            {onOpenManageUsers && hasPermission('manageUsers') && (
               <div className="user-menu-item" onClick={() => { 
                 setIsMenuOpen(false); 
                 onOpenManageUsers();
@@ -179,7 +226,28 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
                 👥 Manage Users
               </div>
             )}
-            {onOpenManagePermissions && user && (user.role === 'administrator' || user.role === 'sysadmin') && (
+            {onOpenBugReports && hasPermission('viewBugReports') && (
+              <div className="user-menu-item" onClick={() => { 
+                setIsMenuOpen(false); 
+                onOpenBugReports();
+              }}>
+                🐛 Manage Bug Reports
+                {bugReportCount > 0 && (
+                  <span style={{
+                    marginLeft: '8px',
+                    backgroundColor: '#ff9800',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {bugReportCount}
+                  </span>
+                )}
+              </div>
+            )}
+            {onOpenManagePermissions && hasPermission('managePermissions') && (
               <div className="user-menu-item" onClick={() => { 
                 setIsMenuOpen(false); 
                 onOpenManagePermissions();
@@ -193,6 +261,11 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
                 onOpenSystemStatus();
               }}>
                 📊 System Status
+              </div>
+            )}
+            {hasPermission('submitBugReport') && (
+              <div className="user-menu-item" onClick={openBugReport}>
+                🐛 Report a Bug!
               </div>
             )}
             <div className="user-menu-item" onClick={openSettings}>
@@ -330,6 +403,103 @@ const UserMenu = ({ pendingUserCount, onOpenPendingUsers, onOpenManageUsers, onO
               <button className="btn btn-secondary" onClick={closeSettings}>
                 Close
               </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Bug Report Modal */}
+      {isBugReportOpen && ReactDOM.createPortal(
+        <div 
+          className="modal" 
+          style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div 
+            className="modal-content" 
+            style={{ 
+              backgroundColor: 'var(--card-background)',
+              padding: '0',
+              borderRadius: '8px',
+              width: '90%',
+              maxWidth: '500px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header" style={{ 
+              padding: '20px',
+              borderBottom: '1px solid var(--border-color)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h2 style={{ margin: 0 }}>🐛 Report a Bug</h2>
+              <button 
+                onClick={closeBugReport}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: 'var(--text-color)'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-body" style={{ 
+              padding: '20px',
+              overflowY: 'auto',
+              flex: '1'
+            }}>
+              <form onSubmit={handleBugReportSubmit}>
+                <div className="form-group">
+                  <label className="form-label">Bug Description</label>
+                  <textarea
+                    className="form-control"
+                    value={bugReportMessage}
+                    onChange={(e) => setBugReportMessage(e.target.value)}
+                    placeholder="Please describe the bug you encountered..."
+                    rows="6"
+                    style={{ resize: 'vertical' }}
+                    required
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    style={{ flex: 1 }}
+                    disabled={isSubmittingBug || !bugReportMessage.trim()}
+                  >
+                    {isSubmittingBug ? 'Sending...' : 'Send Report'}
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn btn-secondary" 
+                    style={{ flex: 1 }}
+                    onClick={closeBugReport}
+                    disabled={isSubmittingBug}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>,

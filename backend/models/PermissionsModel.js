@@ -32,6 +32,10 @@ const permissionsSchema = new mongoose.Schema({
         manageUsers: { type: Boolean, default: false },
         approveUsers: { type: Boolean, default: false },
         
+        // Bug report permissions
+        submitBugReport: { type: Boolean, default: true },
+        viewBugReports: { type: Boolean, default: false },
+        
         // Administrative permissions
         manageDepartments: { type: Boolean, default: false },
         manageTechnicians: { type: Boolean, default: false },
@@ -78,6 +82,9 @@ async function initializeDefaultPermissions() {
                 manageUsers: false,
                 approveUsers: false,
                 
+                submitBugReport: true,
+                viewBugReports: false,
+                
                 manageDepartments: false,
                 manageTechnicians: false,
                 viewSystemStatus: false,
@@ -105,6 +112,9 @@ async function initializeDefaultPermissions() {
                 viewUsers: false,
                 manageUsers: false,
                 approveUsers: false,
+                
+                submitBugReport: true,
+                viewBugReports: false,
                 
                 manageDepartments: false,
                 manageTechnicians: false,
@@ -134,6 +144,9 @@ async function initializeDefaultPermissions() {
                 manageUsers: true,
                 approveUsers: true,
                 
+                submitBugReport: true,
+                viewBugReports: true,
+                
                 manageDepartments: true,
                 manageTechnicians: true,
                 viewSystemStatus: true,
@@ -161,6 +174,9 @@ async function initializeDefaultPermissions() {
                 viewUsers: true,
                 manageUsers: true,
                 approveUsers: true,
+                
+                submitBugReport: true,
+                viewBugReports: true,
                 
                 manageDepartments: true,
                 manageTechnicians: true,
