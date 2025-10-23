@@ -172,8 +172,10 @@ const Tickets = () => {
       // Clean up form data - remove empty fields that should be optional
       const cleanData = { ...formData };
       
-      // Auto-generate ticket number from title
-      cleanData.ticketNumber = cleanData.title;
+      // Auto-generate ticket number from title (only for new tickets)
+      if (!editingTicket) {
+        cleanData.ticketNumber = cleanData.title;
+      }
       
       // Clean up activityNumbers array - remove empty strings
       if (cleanData.activityNumbers && Array.isArray(cleanData.activityNumbers)) {
