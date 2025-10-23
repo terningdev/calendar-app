@@ -1277,8 +1277,16 @@ body {
 /* Mobile responsive for view modal */
 @media (max-width: 768px) {
   .view-row {
-    grid-template-columns: 1fr;
     gap: 10px;
+  }
+  
+  .view-label {
+    font-size: 0.85rem;
+  }
+  
+  .view-value {
+    padding: 8px;
+    font-size: 0.9rem;
   }
 }
 
