@@ -965,10 +965,6 @@ const Tickets = () => {
                       {/* Activity - Title */}
                       <div>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', marginBottom: '4px' }}>
-                          <span className="agenda-activity-number">
-                            {ticket.activityNumber || '-'}
-                          </span>
-                          <span style={{ fontSize: '0.95rem' }}>-</span>
                           <span className="agenda-ticket-title">
                             {ticket.title}
                           </span>
