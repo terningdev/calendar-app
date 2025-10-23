@@ -302,6 +302,7 @@ router.put('/:id', requireAuth, [
     if (req.body.hasOwnProperty('endDate')) updateData.endDate = req.body.endDate;
     if (req.body.hasOwnProperty('assignedTo')) updateData.assignedTo = req.body.assignedTo;
     if (req.body.hasOwnProperty('createdBy')) updateData.createdBy = req.body.createdBy;
+    if (req.body.hasOwnProperty('activityNumbers')) updateData.activityNumbers = req.body.activityNumbers;
 
     const ticket = await Ticket.findByIdAndUpdate(
       req.params.id,

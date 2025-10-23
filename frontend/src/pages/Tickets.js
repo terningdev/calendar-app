@@ -1163,8 +1163,15 @@ const Tickets = () => {
                     value={formData.activityNumbers.join(' + ')}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const numbers = value.split('+').map(n => n.trim()).filter(n => n !== '');
+                      // Split by + but keep track of the raw value
+                      // Only filter empty strings, not trim until we split
+                      const numbers = value.split('+').map(n => n.trim());
                       setFormData({ ...formData, activityNumbers: numbers });
+                    }}
+                    onBlur={(e) => {
+                      // On blur, clean up empty entries
+                      const cleaned = formData.activityNumbers.filter(n => n !== '');
+                      setFormData({ ...formData, activityNumbers: cleaned });
                     }}
                     placeholder="Optional: e.g., 123456 + 789012 + 345678"
                   />
