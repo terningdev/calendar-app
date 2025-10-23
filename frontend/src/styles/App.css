@@ -1566,3 +1566,129 @@ body {
   font-size: 0.85rem;
 }
 
+/* FullCalendar Styles */
+.calendar-wrapper {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.fc {
+  font-family: inherit;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.fc .fc-button {
+  background-color: #0066cc;
+  border-color: #0066cc;
+  color: white;
+  text-transform: capitalize;
+  padding: 0.4em 0.8em;
+  font-size: 0.9rem;
+}
+
+.fc .fc-button:hover {
+  background-color: #0052a3;
+  border-color: #0052a3;
+}
+
+.fc .fc-button:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+}
+
+.fc .fc-button-active {
+  background-color: #004080;
+  border-color: #004080;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: #004080;
+  border-color: #004080;
+}
+
+.fc-event {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.85rem;
+}
+
+.fc-event-title {
+  font-weight: 500;
+}
+
+.fc-daygrid-day-number {
+  padding: 4px;
+  font-size: 0.9rem;
+}
+
+.fc-col-header-cell-cushion {
+  padding: 8px 4px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.fc-daygrid-day.fc-day-today {
+  background-color: #fff3cd !important;
+}
+
+.fc-daygrid-day:hover {
+  background-color: #f8f9fa;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .calendar-wrapper {
+    padding: 10px;
+  }
+
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fc .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.2rem;
+  }
+
+  .fc .fc-button {
+    padding: 0.3em 0.6em;
+    font-size: 0.85rem;
+  }
+
+  .fc-list-event-title {
+    font-size: 0.9rem;
+  }
+
+  .fc-list-event-time {
+    font-size: 0.85rem;
+  }
+}
+
+.detail-section {
+  margin-bottom: 15px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.detail-value {
+  color: #495057;
+  font-size: 0.95rem;
+}
+
