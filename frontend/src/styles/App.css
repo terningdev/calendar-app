@@ -1228,8 +1228,10 @@ body {
   cursor: pointer;
   transition: background-color 0.2s ease;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 12px;
+  background-color: white;
 }
 
 .mobile-selector-item:hover {
@@ -1242,10 +1244,18 @@ body {
   font-weight: 500;
 }
 
-.mobile-selector-item.selected::after {
-  content: '✓';
-  font-size: 1.2rem;
-  color: #0066cc;
+.mobile-selector-check {
+  font-size: 1.3rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mobile-selector-name {
+  flex: 1;
 }
 
 /* Mobile Dashboard Styles */
