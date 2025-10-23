@@ -37,21 +37,24 @@ const LoginModal = ({ onAuthSuccess }) => {
 
     const validateForm = () => {
         if (isLogin) {
-            // Accept 'sysadmin' as a valid input in the email field
-            if (formData.email === 'sysadmin') {
-                if (!formData.password) {
-                    setError('Password required');
-                    return false;
-                }
-            } else {
-                if (!authService.isValidEmail(formData.email)) {
-                    setError('Valid email required');
-                    return false;
-                }
-                if (!authService.isValidPassword(formData.password)) {
-                    setError('Password must be at least 6 characters');
-                    return false;
-                }
+            // Accept username (like 'sysadmin') or email
+            if (!formData.email) {
+                setError('Email or username required');
+                return false;
+            }
+            if (!formData.password) {
+                setError('Password required');
+                return false;
+            }
+            // Only validate email format if it looks like an email (contains @)
+            if (formData.email.includes('@') && !authService.isValidEmail(formData.email)) {
+                setError('Valid email required');
+                return false;
+            }
+            // Validate password length for regular users
+            if (formData.email.includes('@') && !authService.isValidPassword(formData.password)) {
+                setError('Password must be at least 6 characters');
+                return false;
             }
         } else {
             // Registration
@@ -95,12 +98,13 @@ const LoginModal = ({ onAuthSuccess }) => {
         try {
             if (isLogin) {
                 let result;
-                if (formData.email === 'sysadmin') {
-                    // Sysadmin login
-                    result = await login({ username: 'sysadmin', password: formData.password });
-                } else {
-                    // Regular user login
+                // Check if input contains @ to determine if it's email or username
+                if (formData.email.includes('@')) {
+                    // Regular email-based login
                     result = await login({ email: formData.email, password: formData.password });
+                } else {
+                    // Username-based login (sysadmin or other usernames)
+                    result = await login({ username: formData.email, password: formData.password });
                 }
                 if (result.success) {
                     setSuccess('Login successful!');
@@ -170,16 +174,17 @@ const LoginModal = ({ onAuthSuccess }) => {
                     {isLogin ? (
                         <>
                             <div className="form-group">
-                                <label htmlFor="email">Email</label>
+                                <label htmlFor="email">Email or Username</label>
                                 <input
                                     type="text"
                                     id="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    placeholder="Email"
+                                    placeholder="Email or username (sysadmin)"
                                     disabled={loading}
                                 />
+                                <small className="form-hint">You can use 'sysadmin' as username for admin access</small>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="password">Password</label>
