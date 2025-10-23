@@ -712,9 +712,15 @@ const Tickets = () => {
         const technicianIds = filters.assignedTo.filter(id => id !== 'unassigned');
         if (technicianIds.length > 0) {
           if (Array.isArray(ticket.assignedTo)) {
-            return ticket.assignedTo.some(tech => technicianIds.includes(tech._id));
-          } else {
-            return ticket.assignedTo && technicianIds.includes(ticket.assignedTo._id);
+            return ticket.assignedTo.some(tech => {
+              // Handle both object and string formats
+              const techId = typeof tech === 'object' ? tech._id : tech;
+              return technicianIds.includes(techId);
+            });
+          } else if (ticket.assignedTo) {
+            // Handle single technician (object or string)
+            const techId = typeof ticket.assignedTo === 'object' ? ticket.assignedTo._id : ticket.assignedTo;
+            return technicianIds.includes(techId);
           }
         }
         
