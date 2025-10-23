@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const Ticket = require('../models/Ticket');
+const { requireAuth, checkTicketOwnership, hasPermission } = require('../middleware/auth');
 
 // Get all tickets with filtering options
 router.get('/', async (req, res) => {
@@ -100,7 +101,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new ticket
-router.post('/', [
+router.post('/', requireAuth, [
   body('ticketNumber').trim().notEmpty().withMessage('Ticket number is required'),
   body('title').trim().notEmpty().withMessage('Title is required'),
   // No validation for description - allow any value including empty strings
@@ -132,6 +133,23 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Check if user has permission to create tickets
+    if (!hasPermission(req.session.user, 'createTickets')) {
+      return res.status(403).json({ 
+        message: 'You do not have permission to create tickets' 
+      });
+    }
+
+    // Check if user is trying to assign the ticket
+    if (req.body.assignedTo) {
+      // Check if user has permission to assign tickets
+      if (!hasPermission(req.session.user, 'assignTickets')) {
+        return res.status(403).json({ 
+          message: 'You do not have permission to assign tickets' 
+        });
+      }
+    }
+
     const ticket = new Ticket(req.body);
     await ticket.save();
     await ticket.populate({
@@ -149,7 +167,7 @@ router.post('/', [
 });
 
 // Update ticket
-router.put('/:id', [
+router.put('/:id', requireAuth, [
   body('ticketNumber').optional().trim().notEmpty().withMessage('Ticket number cannot be empty'),
   body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
   // No validation for description - allow any value including empty strings
@@ -178,6 +196,49 @@ router.put('/:id', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
+    }
+
+    // Fetch the ticket with populated assignedTo to check ownership
+    const existingTicket = await Ticket.findById(req.params.id).populate({
+      path: 'assignedTo',
+      select: 'email firstName lastName'
+    });
+
+    if (!existingTicket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Check if user owns this ticket
+    const userEmail = req.session.user.email;
+    const ownsTicket = await checkTicketOwnership(userEmail, existingTicket);
+
+    // Check permissions
+    const canEditOwn = hasPermission(req.session.user, 'editOwnTickets');
+    const canEditAll = hasPermission(req.session.user, 'editAllTickets');
+
+    // Determine if user can edit this ticket
+    let canEdit = false;
+    if (canEditAll) {
+      canEdit = true;
+    } else if (canEditOwn && ownsTicket) {
+      canEdit = true;
+    }
+
+    if (!canEdit) {
+      return res.status(403).json({ 
+        message: ownsTicket 
+          ? 'You do not have permission to edit tickets'
+          : 'You can only edit tickets assigned to you' 
+      });
+    }
+
+    // If user is trying to change the assignedTo field, check assignTickets permission
+    if (req.body.hasOwnProperty('assignedTo')) {
+      if (!hasPermission(req.session.user, 'assignTickets')) {
+        return res.status(403).json({ 
+          message: 'You do not have permission to assign tickets' 
+        });
+      }
     }
 
     // Build update object explicitly to handle empty descriptions
@@ -251,8 +312,15 @@ router.post('/:id/notes', [
 });
 
 // Delete ticket
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
+    // Check if user has permission to delete tickets
+    if (!hasPermission(req.session.user, 'deleteTickets')) {
+      return res.status(403).json({ 
+        message: 'You do not have permission to delete tickets' 
+      });
+    }
+
     const ticket = await Ticket.findByIdAndDelete(req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
