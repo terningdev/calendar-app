@@ -26,10 +26,10 @@ export const AuthProvider = ({ children }) => {
             console.log('🔍 Checking auth status...');
             setLoading(true);
             const response = await authService.checkAuth();
-            console.log('🔍 Auth check response:', response);
             
             if (response.success && response.authenticated) {
-                console.log('✅ User authenticated:', response.user);
+                console.log('✅ Auth check response: Success');
+                console.log('✅ Access granted based on user login');
                 setUser(response.user);
                 setAuthenticated(true);
             } else {
