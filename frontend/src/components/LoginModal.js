@@ -160,15 +160,14 @@ const LoginModal = ({ onAuthSuccess }) => {
     return (
         <div className="login-modal-overlay">
             <div className="login-modal">
-                <div className="login-modal-header">
-                    <h2>{isLogin ? 'Log In' : 'Register'}</h2>
-                    <p className="login-modal-subtitle">
-                        {isLogin 
-                            ? 'Enter your phone number and PIN to access the system'
-                            : 'Create a new account (requires administrator approval)'
-                        }
-                    </p>
-                </div>
+                {!isLogin && (
+                    <div className="login-modal-header">
+                        <h2>Register</h2>
+                        <p className="login-modal-subtitle">
+                            Create a new account (requires administrator approval)
+                        </p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="login-form">
                     {isLogin ? (
@@ -181,10 +180,9 @@ const LoginModal = ({ onAuthSuccess }) => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    placeholder="Email or username (sysadmin)"
+                                    placeholder="Email"
                                     disabled={loading}
                                 />
-                                <small className="form-hint">You can use 'sysadmin' as username for admin access</small>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="password">Password</label>
