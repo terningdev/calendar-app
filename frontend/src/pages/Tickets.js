@@ -838,8 +838,8 @@ const Tickets = () => {
             <label className="form-label">{t('assignedTo')}</label>
             <select
               className="form-control"
-              value={filters.assignedTo}
-              onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
+              value={filters.assignedTo.length > 0 ? filters.assignedTo[0] : ''}
+              onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value ? [e.target.value] : [] })}
             >
               <option value="">{t('allTechnicians')}</option>
               <option value="unassigned">{t('unassigned')}</option>
