@@ -160,17 +160,66 @@ router.post('/login', async (req, res) => {
 });
 
 // Check authentication status
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
     console.log('🔍 Auth check - Session ID:', req.sessionID);
     console.log('🔍 Auth check - Session user:', req.session.user ? 'exists' : 'missing');
     console.log('🔍 Auth check - Cookies:', req.headers.cookie ? 'present' : 'missing');
     
     if (req.session.user) {
-        res.json({
-            success: true,
-            authenticated: true,
-            user: req.session.user
-        });
+        try {
+            // Fetch fresh user data from database to catch role changes
+            let currentUser;
+            if (req.session.user.username) {
+                currentUser = await UserModel.findOne({ username: req.session.user.username });
+            } else {
+                currentUser = await UserModel.findOne({ email: req.session.user.email });
+            }
+
+            if (!currentUser) {
+                // User was deleted from database
+                req.session.destroy();
+                return res.json({
+                    success: true,
+                    authenticated: false
+                });
+            }
+
+            // Update session with fresh data (catches role changes, etc.)
+            const updatedSessionUser = {
+                username: currentUser.username,
+                firstName: currentUser.firstName,
+                lastName: currentUser.lastName,
+                phone: currentUser.phone,
+                email: currentUser.email,
+                role: currentUser.role,
+                approved: currentUser.approved,
+                requirePasswordReset: currentUser.requirePasswordReset
+            };
+
+            req.session.user = updatedSessionUser;
+            
+            // Save updated session
+            await new Promise((resolve, reject) => {
+                req.session.save((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+
+            res.json({
+                success: true,
+                authenticated: true,
+                user: updatedSessionUser
+            });
+        } catch (error) {
+            console.error('❌ Error refreshing user data:', error);
+            // Fall back to session data
+            res.json({
+                success: true,
+                authenticated: true,
+                user: req.session.user
+            });
+        }
     } else {
         res.json({
             success: true,
