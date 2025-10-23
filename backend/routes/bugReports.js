@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const BugReport = require('../models/BugReport');
+const UserModel = require('../models/UserModel');
 const { PermissionsModel } = require('../models/PermissionsModel');
 
 // Helper function to get user permissions
@@ -23,20 +24,15 @@ const getUserPermissions = async (role) => {
 // GET all bug reports (admin only)
 router.get('/', async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!req.session.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    // Get user role from session or database
-    const User = require('../models/User');
-    const user = await User.findById(req.session.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Get user from session
+    const userRole = req.session.user.role;
 
     // Check viewBugReports permission
-    const permissions = await getUserPermissions(user.role);
+    const permissions = await getUserPermissions(userRole);
     if (!permissions.viewBugReports) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -55,19 +51,15 @@ router.get('/', async (req, res) => {
 // GET count of bug reports
 router.get('/count', async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!req.session.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const User = require('../models/User');
-    const user = await User.findById(req.session.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Get user role from session
+    const userRole = req.session.user.role;
 
     // Check viewBugReports permission
-    const permissions = await getUserPermissions(user.role);
+    const permissions = await getUserPermissions(userRole);
     if (!permissions.viewBugReports) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -83,7 +75,7 @@ router.get('/count', async (req, res) => {
 // POST create new bug report
 router.post('/', async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!req.session.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
@@ -93,26 +85,30 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Bug report message is required' });
     }
 
-    // Get user info
-    const User = require('../models/User');
-    const user = await User.findById(req.session.userId);
+    // Get user info from database using session data
+    let currentUser;
+    if (req.session.user.username) {
+      currentUser = await UserModel.findOne({ username: req.session.user.username });
+    } else {
+      currentUser = await UserModel.findOne({ email: req.session.user.email });
+    }
     
-    if (!user) {
+    if (!currentUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Check submitBugReport permission
-    const permissions = await getUserPermissions(user.role);
+    const permissions = await getUserPermissions(currentUser.role);
     if (!permissions.submitBugReport) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
     const bugReport = new BugReport({
       message: message.trim(),
-      submittedBy: user._id,
-      submittedByName: user.firstName && user.lastName 
-        ? `${user.firstName} ${user.lastName}` 
-        : user.username
+      submittedBy: currentUser._id,
+      submittedByName: currentUser.firstName && currentUser.lastName 
+        ? `${currentUser.firstName} ${currentUser.lastName}` 
+        : currentUser.username
     });
 
     await bugReport.save();
@@ -130,19 +126,15 @@ router.post('/', async (req, res) => {
 // DELETE bug report (admin only)
 router.delete('/:id', async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!req.session.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const User = require('../models/User');
-    const user = await User.findById(req.session.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Get user role from session
+    const userRole = req.session.user.role;
 
     // Check viewBugReports permission
-    const permissions = await getUserPermissions(user.role);
+    const permissions = await getUserPermissions(userRole);
     if (!permissions.viewBugReports) {
       return res.status(403).json({ message: 'Access denied' });
     }
