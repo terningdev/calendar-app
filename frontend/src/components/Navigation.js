@@ -43,8 +43,12 @@ const Navigation = () => {
             });
           } else {
             const rolePermissions = await permissionsService.getRolePermissions(user.role);
+            console.log('🔍 Fetched role permissions for', user.role, ':', rolePermissions);
             if (rolePermissions.success) {
+              console.log('🔍 Setting permissions to:', rolePermissions.permissions.permissions);
               setPermissions(rolePermissions.permissions.permissions);
+            } else {
+              console.error('❌ Failed to fetch permissions:', rolePermissions);
             }
           }
         } catch (error) {
@@ -55,6 +59,11 @@ const Navigation = () => {
 
     fetchPermissions();
   }, [user]);
+
+  // Log permissions whenever they change
+  useEffect(() => {
+    console.log('🔍 Navigation permissions state updated:', permissions);
+  }, [permissions]);
 
   // Re-check auth status when window regains focus (to detect role changes)
   useEffect(() => {
