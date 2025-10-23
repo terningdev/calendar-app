@@ -41,7 +41,8 @@ const Tickets = () => {
     department: [],
     createdBy: 'System User',
     startDate: '',
-    endDate: ''
+    endDate: '',
+    activityNumbers: []
   });
 
   // Function to extract activity number from ticket
@@ -228,20 +229,17 @@ const Tickets = () => {
   const handleEdit = (ticket) => {
     setEditingTicket(ticket);
     
-    // Always use the actual title field - never parse it from ticketNumber
-    let title = ticket.title;
-    let activityNumber = '';
+    // Get activity numbers from the new field, or fallback to extracting from ticketNumber
+    let activityNumbers = ticket.activityNumbers && ticket.activityNumbers.length > 0 
+      ? [...ticket.activityNumbers] 
+      : [];
     
-    // Only try to extract activity number if ticketNumber is different from title
-    if (ticket.ticketNumber && ticket.ticketNumber !== ticket.title) {
-      // Check if ticketNumber starts with the title followed by " - "
-      const titlePrefix = ticket.title + ' - ';
-      if (ticket.ticketNumber.startsWith(titlePrefix)) {
-        // Extract everything after "title - " as the activity number
-        activityNumber = ticket.ticketNumber.substring(titlePrefix.length);
+    // If no activity numbers in the field, try to extract from ticketNumber (for backward compatibility)
+    if (activityNumbers.length === 0) {
+      const extracted = extractActivityNumber(ticket);
+      if (extracted) {
+        activityNumbers = [extracted];
       }
-      // If ticketNumber doesn't follow the "title - activity" pattern, 
-      // it's a custom ticketNumber, so don't try to parse it
     }
     
     // Extract departments from assigned technicians
@@ -263,8 +261,8 @@ const Tickets = () => {
     }
     
     setFormData({
-      title: title,
-      activityNumber: activityNumber,
+      title: ticket.title,
+      activityNumbers: activityNumbers,
       description: ticket.description,
       assignedTo: Array.isArray(ticket.assignedTo) 
         ? ticket.assignedTo.map(tech => tech._id) 
@@ -324,7 +322,7 @@ const Tickets = () => {
     
     setFormData({
       title: '',
-      activityNumber: '',
+      activityNumbers: [],
       description: '',
       assignedTo: [],
       department: defaultDepartments,
@@ -534,7 +532,51 @@ const Tickets = () => {
     }
   };
 
-  // Function to render activity button (Arnika/Sunflower)
+  // Function to render activity buttons (multiple)
+  const renderActivityButtons = (ticket, isMobile = false) => {
+    // Get activity numbers from the new field, or fallback to extracting from ticketNumber
+    let activityNumbers = ticket.activityNumbers && ticket.activityNumbers.length > 0 
+      ? ticket.activityNumbers 
+      : [];
+    
+    // If no activity numbers in the field, try to extract from ticketNumber (for backward compatibility)
+    if (activityNumbers.length === 0) {
+      const extracted = extractActivityNumber(ticket);
+      if (extracted) {
+        activityNumbers = [extracted];
+      }
+    }
+    
+    if (activityNumbers.length === 0) return null;
+    
+    const mobileStyle = isMobile ? { 
+      padding: '6px 12px', 
+      fontSize: '0.75rem',
+      minWidth: '60px'
+    } : {};
+    
+    return activityNumbers.map((activityNumber, index) => {
+      const url = generateActivityURL(activityNumber);
+      if (!url) return null;
+      
+      return (
+        <button 
+          key={`activity-${index}-${activityNumber}`}
+          className="btn btn-small btn-primary"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }}
+          style={mobileStyle}
+          title={`Open activity ${activityNumber}`}
+        >
+          {activityNumber}
+        </button>
+      );
+    }).filter(Boolean);
+  };
+
+  // Function to render activity button (Arnika/Sunflower) - DEPRECATED, kept for compatibility
   const renderActivityButton = (ticket, isMobile = false) => {
     const activityNumber = extractActivityNumber(ticket);
     const url = generateActivityURL(activityNumber);
@@ -981,9 +1023,7 @@ const Tickets = () => {
                             View
                           </button>
                         )}
-                        {renderActivityButton(ticket) && (
-                          renderActivityButton(ticket)
-                        )}
+                        {renderActivityButtons(ticket)}
                       </div>
                     </div>
                   ))}
@@ -1056,10 +1096,7 @@ const Tickets = () => {
                         )}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'row', gap: '4px', flexShrink: 0 }}>
-                      {renderActivityButton(ticket, true) && (
-                        renderActivityButton(ticket, true)
-                      )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
                       {checkTicketOwnership(ticket) ? (
                         <button 
                           className="btn btn-small btn-secondary"
@@ -1077,6 +1114,7 @@ const Tickets = () => {
                           View
                         </button>
                       )}
+                      {renderActivityButtons(ticket, true)}
                     </div>
                   </div>
                 ))}
@@ -1100,8 +1138,8 @@ const Tickets = () => {
             </div>
             
             <form onSubmit={handleSubmit}>
-              {/* Title (66%) - Activity number (33%) */}
-              <div className="form-row-66-33">
+              {/* Title (100%) */}
+              <div className="form-row-100">
                 <div className="form-group">
                   <label className="form-label">Title *</label>
                   <input
@@ -1113,16 +1151,25 @@ const Tickets = () => {
                     placeholder="Enter ticket title"
                   />
                 </div>
-                
+              </div>
+
+              {/* Activity Numbers (100%) */}
+              <div className="form-row-100">
                 <div className="form-group">
-                  <label className="form-label">Activity Number</label>
+                  <label className="form-label">Activity Numbers (comma-separated)</label>
                   <input
                     type="text"
                     className="form-control"
-                    value={formData.activityNumber}
-                    onChange={(e) => setFormData({ ...formData, activityNumber: e.target.value })}
-                    placeholder="Optional: e.g., ACT-2025-001"
+                    value={formData.activityNumbers.join(', ')}
+                    onChange={(e) => {
+                      const numbers = e.target.value.split(',').map(n => n.trim()).filter(n => n !== '');
+                      setFormData({ ...formData, activityNumbers: numbers });
+                    }}
+                    placeholder="Optional: e.g., 123456, 789012"
                   />
+                  <small style={{ color: '#6c757d', fontSize: '0.85rem' }}>
+                    Enter multiple activity numbers separated by commas
+                  </small>
                 </div>
               </div>
               

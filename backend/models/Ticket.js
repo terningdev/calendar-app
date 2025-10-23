@@ -34,6 +34,10 @@ const ticketSchema = new mongoose.Schema({
     type: Date,
     required: false
   },
+  activityNumbers: [{
+    type: String,
+    trim: true
+  }],
   notes: [{
     content: {
       type: String,
