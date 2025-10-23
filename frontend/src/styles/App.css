@@ -1025,14 +1025,14 @@ body {
 
 /* Mobile Tickets Toolbar */
 .mobile-tickets-toolbar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 10px;
   margin-bottom: 15px;
   padding: 10px;
   background-color: #f8f9fa;
   border-radius: 8px;
   position: relative;
+  align-items: center;
 }
 
 /* Circular Search Button */
@@ -1139,22 +1139,38 @@ body {
 
 /* Mobile Filter Selectors for Tickets */
 .mobile-filter-selector {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 12px;
-  background-color: #f8f9fa;
+  background-color: white;
   border: 1px solid #dee2e6;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .mobile-filter-selector:hover {
   background-color: #e9ecef;
   border-color: #adb5bd;
+}
+
+.mobile-selector-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-selector-arrow {
+  margin-left: 5px;
+  flex-shrink: 0;
 }
 
 .mobile-selector-overlay {
