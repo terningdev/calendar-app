@@ -114,10 +114,10 @@ const Navigation = () => {
         <div className="nav-user-info desktop-only">
           <UserMenu 
             pendingUserCount={pendingUserCount}
-            onOpenPendingUsers={openPendingUsersModal}
-            onOpenManageUsers={openManageUsersModal}
-            onOpenSystemStatus={openSystemStatusModal}
-            onOpenManagePermissions={openManagePermissionsModal}
+            onOpenPendingUsers={permissions?.viewUsers === true ? openPendingUsersModal : null}
+            onOpenManageUsers={permissions?.manageUsers === true ? openManageUsersModal : null}
+            onOpenSystemStatus={permissions?.viewSystemStatus === true ? openSystemStatusModal : null}
+            onOpenManagePermissions={permissions?.managePermissions === true ? openManagePermissionsModal : null}
           />
         </div>
         
