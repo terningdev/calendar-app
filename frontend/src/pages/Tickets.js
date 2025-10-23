@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { toast } from 'react-toastify';
 import { ticketService } from '../services/ticketService';
@@ -24,6 +24,8 @@ const Tickets = () => {
   const [showFilterDepartmentSelector, setShowFilterDepartmentSelector] = useState(false);
   const [showFilterTechnicianSelector, setShowFilterTechnicianSelector] = useState(false);
   const [selectedOldTickets, setSelectedOldTickets] = useState([]);
+  const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
+  const mobileSearchRef = useRef(null);
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
@@ -73,6 +75,11 @@ const Tickets = () => {
     });
   };
 
+  // Check if user has permission
+  const hasPermission = (permissionName) => {
+    return user?.permissions?.[permissionName] === true;
+  };
+
   const loadTickets = useCallback(async () => {
     try {
       const ticketsData = await ticketService.getAll(filters);
@@ -94,6 +101,20 @@ const Tickets = () => {
   useEffect(() => {
     loadTickets();
   }, [loadTickets, filters]);
+
+  // Click outside handler for mobile search
+  useEffect(() => {
+    if (!mobileSearchExpanded) return;
+    
+    const handleClickOutside = (event) => {
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target)) {
+        setMobileSearchExpanded(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [mobileSearchExpanded]);
 
   const loadData = async () => {
     try {
@@ -701,9 +722,11 @@ const Tickets = () => {
       <div className="page-header desktop-only">
         <h1 className="page-title">{t('tickets')}</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            {t('createTicket')}
-          </button>
+          {hasPermission('createTickets') && (
+            <button className="btn btn-primary" onClick={openCreateModal}>
+              {t('createTicket')}
+            </button>
+          )}
           <button 
             className="btn btn-secondary" 
             onClick={() => setShowOldActivitiesModal(true)}
@@ -764,55 +787,84 @@ const Tickets = () => {
       </div>
 
       {/* Mobile Filters - Compact Single Line */}
-      <div className="mobile-only" style={{ marginBottom: '12px' }}>
+      <div className="mobile-only" style={{ marginBottom: '12px', position: 'relative' }}>
         <div className="mobile-tickets-toolbar">
+          {/* Circular Search Button */}
           <button 
-            className="mobile-toolbar-btn mobile-search-btn"
-            onClick={() => setShowSearchPopup(true)}
+            className="mobile-search-circular-btn"
+            onClick={() => setMobileSearchExpanded(!mobileSearchExpanded)}
+            title="Search"
           >
-            <span className="btn-icon">🔍</span>
-            <span className="btn-text">Search</span>
+            🔍
           </button>
           
-          <button
-            className="mobile-filter-selector"
-            onClick={() => setShowFilterDepartmentSelector(true)}
-          >
-            <span className="mobile-selector-text">
-              {filters.department.length === 0 
-                ? "📋 None selected" 
-                : filters.department.length === 1
-                  ? `📋 ${departments.find(d => d._id === filters.department[0])?.name || 'Department'}`
-                  : `📋 ${filters.department.length} selected`
-              }
-            </span>
-            <span className="mobile-selector-arrow">▶</span>
-          </button>
+          {/* Expanded Search Overlay */}
+          {mobileSearchExpanded && (
+            <div className="mobile-search-expanded" ref={mobileSearchRef}>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search tickets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                autoFocus
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                className="mobile-search-close"
+                onClick={() => setMobileSearchExpanded(false)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
           
-          <button
-            className="mobile-filter-selector"
-            onClick={() => setShowFilterTechnicianSelector(true)}
-          >
-            <span className="mobile-selector-text">
-              {filters.assignedTo.length === 0 
-                ? "👥 None selected"
-                : filters.assignedTo.length === 1
-                  ? filters.assignedTo[0] === 'unassigned'
-                    ? "👥 Unassigned"
-                    : `👥 ${technicians.find(t => t._id === filters.assignedTo[0])?.fullName || 'Technician'}`
-                  : `👥 ${filters.assignedTo.length} selected`
-              }
-            </span>
-            <span className="mobile-selector-arrow">▶</span>
-          </button>
+          {/* Filter buttons - hidden when search is expanded */}
+          {!mobileSearchExpanded && (
+            <>
+              <button
+                className="mobile-filter-selector"
+                onClick={() => setShowFilterDepartmentSelector(true)}
+              >
+                <span className="mobile-selector-text">
+                  {filters.department.length === 0 
+                    ? "📋 None selected" 
+                    : filters.department.length === 1
+                      ? `📋 ${departments.find(d => d._id === filters.department[0])?.name || 'Department'}`
+                      : `📋 ${filters.department.length} selected`
+                  }
+                </span>
+                <span className="mobile-selector-arrow">▶</span>
+              </button>
+              
+              <button
+                className="mobile-filter-selector"
+                onClick={() => setShowFilterTechnicianSelector(true)}
+              >
+                <span className="mobile-selector-text">
+                  {filters.assignedTo.length === 0 
+                    ? "👥 None selected"
+                    : filters.assignedTo.length === 1
+                      ? filters.assignedTo[0] === 'unassigned'
+                        ? "👥 Unassigned"
+                        : `👥 ${technicians.find(t => t._id === filters.assignedTo[0])?.fullName || 'Technician'}`
+                      : `👥 ${filters.assignedTo.length} selected`
+                  }
+                </span>
+                <span className="mobile-selector-arrow">▶</span>
+              </button>
+            </>
+          )}
           
-          <button 
-            className="mobile-toolbar-btn mobile-create-btn"
-            onClick={openCreateModal}
-          >
-            <span className="btn-icon">+</span>
-            <span className="btn-text">Create</span>
-          </button>
+          {hasPermission('createTickets') && (
+            <button 
+              className="mobile-toolbar-btn mobile-create-btn"
+              onClick={openCreateModal}
+            >
+              <span className="btn-icon">+</span>
+              <span className="btn-text">Create</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -821,9 +873,11 @@ const Tickets = () => {
           <div className="empty-state">
             <h3>No tickets found</h3>
             <p>Create your first ticket to get started</p>
-            <button className="btn btn-primary" onClick={openCreateModal}>
-              Create Ticket
-            </button>
+            {hasPermission('createTickets') && (
+              <button className="btn btn-primary" onClick={openCreateModal}>
+                Create Ticket
+              </button>
+            )}
           </div>
         </div>
       ) : (
