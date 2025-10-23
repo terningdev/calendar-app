@@ -456,6 +456,23 @@ const Tickets = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const formatDateShort = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  };
+
+  const truncateDescription = (text, maxLines) => {
+    if (!text) return '';
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    if (lines.length <= maxLines) {
+      return lines.join('\n');
+    }
+    return lines.slice(0, maxLines).join('\n') + '...';
+  };
+
   const formatDateHeader = (dateString) => {
     const date = new Date(dateString);
     const options = { 
@@ -903,51 +920,49 @@ const Tickets = () => {
                         paddingLeft: '12px'
                       }}
                     >
+                      {/* Activity - Title */}
                       <div>
-                        <div className="agenda-ticket-title">
-                          {ticket.title}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', marginBottom: '4px' }}>
+                          <span className="agenda-activity-number">
+                            {ticket.activityNumber || '-'}
+                          </span>
+                          <span style={{ fontSize: '0.95rem' }}>-</span>
+                          <span className="agenda-ticket-title">
+                            {ticket.title}
+                          </span>
                         </div>
+                        
+                        {/* Description */}
                         {ticket.description && (
-                          <div className="agenda-ticket-description">
-                            {ticket.description}
+                          <div className="agenda-ticket-description" style={{ whiteSpace: 'pre-line' }}>
+                            {truncateDescription(ticket.description, 3)}
                           </div>
                         )}
-                      </div>
-                      
-                      <div>
-                        <div className="agenda-activity-number">
-                          {ticket.activityNumber || '-'}
+                        
+                        {/* Technician - date start - date end */}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px', fontSize: '0.85rem', color: '#6c757d' }}>
+                          <span>
+                            {Array.isArray(ticket.assignedTo) ? (
+                              ticket.assignedTo.length > 0 ? (
+                                ticket.assignedTo.map(tech => tech.fullName).join(', ')
+                              ) : (
+                                <span className="agenda-unassigned">Unassigned</span>
+                              )
+                            ) : ticket.assignedTo ? (
+                              ticket.assignedTo.fullName
+                            ) : (
+                              <span className="agenda-unassigned">Unassigned</span>
+                            )}
+                          </span>
+                          <span>-</span>
+                          <span>{formatDateShort(ticket.startDate)}</span>
+                          <span>-</span>
+                          <span>
+                            {ticket.endDate ? formatDateShort(ticket.endDate) : (
+                              <span style={{ fontStyle: 'italic' }}>Not set</span>
+                            )}
+                          </span>
                         </div>
-                      </div>
-                      
-                      <div>
-                        {Array.isArray(ticket.assignedTo) ? (
-                          ticket.assignedTo.length > 0 ? (
-                            <div>
-                              {ticket.assignedTo.map((tech) => (
-                                <div key={tech._id} style={{ fontSize: '0.9rem', marginBottom: '2px' }}>
-                                  {tech.fullName}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="agenda-unassigned">Unassigned</span>
-                          )
-                        ) : ticket.assignedTo ? (
-                          ticket.assignedTo.fullName
-                        ) : (
-                          <span className="agenda-unassigned">Unassigned</span>
-                        )}
-                      </div>
-                      
-                      <div className="agenda-date-info">
-                        {formatDate(ticket.startDate)}
-                      </div>
-                      
-                      <div className="agenda-date-info">
-                        {ticket.endDate ? formatDate(ticket.endDate) : (
-                          <span className="agenda-date-not-set">Not set</span>
-                        )}
                       </div>
                       
                       <div className="agenda-buttons">
@@ -1005,17 +1020,29 @@ const Tickets = () => {
                     }}
                   >
                     <div style={{ flex: '1', paddingRight: '12px' }}>
+                      {/* Title */}
                       <div className="mobile-agenda-ticket-title">
                         {ticket.title}
                       </div>
-                      <div className="mobile-agenda-ticket-description">
-                        {ticket.activityNumber ? ticket.activityNumber : '-'}
-                        {ticket.description && ` - ${ticket.description}`}
-                      </div>
-                      <div className="mobile-agenda-field">
-                        {formatDate(ticket.startDate)}
-                        {ticket.endDate && ticket.endDate !== ticket.startDate && ` - ${formatDate(ticket.endDate)}`}
+                      
+                      {/* Description */}
+                      {ticket.description && (
+                        <div className="mobile-agenda-ticket-description" style={{ whiteSpace: 'pre-line' }}>
+                          {truncateDescription(ticket.description, 2)}
+                        </div>
+                      )}
+                      
+                      {/* Date start - date end */}
+                      <div className="mobile-agenda-field" style={{ marginTop: '6px' }}>
+                        {formatDateShort(ticket.startDate)}
                         {' - '}
+                        {ticket.endDate ? formatDateShort(ticket.endDate) : (
+                          <span style={{ fontStyle: 'italic' }}>Not set</span>
+                        )}
+                      </div>
+                      
+                      {/* Technician */}
+                      <div className="mobile-agenda-field" style={{ marginTop: '4px' }}>
                         {Array.isArray(ticket.assignedTo) ? (
                           ticket.assignedTo.length > 0 ? (
                             ticket.assignedTo.map(tech => tech.fullName).join(', ')
