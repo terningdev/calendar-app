@@ -877,17 +877,38 @@ body {
     z-index: 999;
   }
   
+  /* Position UserMenu in top-right on mobile */
   .nav-user-info {
-    position: static;
-    transform: none;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
   }
   
-  /* Show UserMenu in mobile navigation */
-  .nav-user-mobile {
-    list-style: none;
-    padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 15px;
+  /* Mobile-friendly dropdown */
+  .user-menu-dropdown {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .user-menu-item {
+    padding: 16px 20px;
+    font-size: 1rem;
+  }
+  
+  .user-menu-button {
+    padding: 10px 14px;
   }
 }
 
