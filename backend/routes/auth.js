@@ -11,16 +11,29 @@ let nextId = 1;
 // Initialize default sysadmin user in MongoDB
 const initializeDefaultUser = async () => {
     try {
-        const existingSysadmin = await UserModel.findOne({ username: 'sysadmin' });
+        // First check if there's a sysadmin by username
+        let existingSysadmin = await UserModel.findOne({ username: 'sysadmin' });
+        
         if (!existingSysadmin) {
-            const sysadmin = new UserModel({
-                username: 'sysadmin',
-                password: '696969',
-                role: 'sysadmin',
-                approved: true
-            });
-            await sysadmin.save();
-            console.log('Default sysadmin user created in MongoDB: sysadmin / 696969');
+            // Check if there's a sysadmin by role without username (old format)
+            const sysadminByRole = await UserModel.findOne({ role: 'sysadmin', username: { $exists: false } });
+            
+            if (sysadminByRole) {
+                // Update existing sysadmin to add username
+                sysadminByRole.username = 'sysadmin';
+                await sysadminByRole.save();
+                console.log('Updated existing sysadmin user with username field');
+            } else {
+                // Create new sysadmin user
+                const sysadmin = new UserModel({
+                    username: 'sysadmin',
+                    password: '696969',
+                    role: 'sysadmin',
+                    approved: true
+                });
+                await sysadmin.save();
+                console.log('Default sysadmin user created in MongoDB: sysadmin / 696969');
+            }
         } else {
             console.log('Sysadmin user already exists in MongoDB');
         }
@@ -145,6 +158,18 @@ router.post('/login', async (req, res) => {
             // Username-based login (typically sysadmin)
             user = await UserModel.findOne({ username });
             console.log('👤 User found by username:', user ? user.username : 'not found');
+            
+            // Fallback: if username is 'sysadmin' and not found, check for sysadmin role without username
+            if (!user && username === 'sysadmin') {
+                user = await UserModel.findOne({ role: 'sysadmin', username: { $exists: false } });
+                if (user) {
+                    console.log('👤 Found sysadmin user without username field, updating...');
+                    user.username = 'sysadmin';
+                    await user.save();
+                    console.log('✅ Sysadmin username field added');
+                }
+            }
+            
             if (!user || user.password !== password) {
                 console.log('❌ Login failed: Invalid credentials');
                 return res.status(401).json({ success: false, message: 'Invalid username or password.' });
