@@ -320,7 +320,8 @@ const GlobalModals = () => {
       phone: userToEdit.phone || '',
       email: userToEdit.email || '',
       role: userToEdit.role || 'user',
-      requirePasswordReset: userToEdit.requirePasswordReset || false
+      requirePasswordReset: userToEdit.requirePasswordReset || false,
+      temporaryPassword: ''
     });
   };
 
@@ -332,7 +333,8 @@ const GlobalModals = () => {
       phone: '',
       email: '',
       role: 'user',
-      requirePasswordReset: false
+      requirePasswordReset: false,
+      temporaryPassword: ''
     });
   };
 
@@ -731,6 +733,22 @@ const GlobalModals = () => {
                     {userFormData.requirePasswordReset 
                       ? 'User will be forced to change password on next login' 
                       : 'Click to require user to change password on next login'}
+                  </small>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Set Temporary Password (Optional)</label>
+                  <input
+                    type="password"
+                    name="temporaryPassword"
+                    className="form-input"
+                    value={userFormData.temporaryPassword}
+                    onChange={handleUserFormChange}
+                    placeholder="Leave empty to keep current password"
+                    autoComplete="new-password"
+                  />
+                  <small className="form-text">
+                    If set, user will be forced to change this password on next login. Minimum 6 characters.
                   </small>
                 </div>
               </div>

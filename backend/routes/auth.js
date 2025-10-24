@@ -598,7 +598,7 @@ router.get('/users', async (req, res) => {
 router.put('/users/:identifier', async (req, res) => {
     try {
         const { identifier } = req.params; // Can be email or username
-        const { firstName, lastName, phone, newEmail, role, requirePasswordReset } = req.body;
+        const { firstName, lastName, phone, newEmail, role, requirePasswordReset, temporaryPassword } = req.body;
 
         // Check authentication
         if (!req.session.user) {
@@ -701,6 +701,19 @@ router.put('/users/:identifier', async (req, res) => {
         if (newEmail) userToUpdate.email = newEmail.toLowerCase();
         if (role) userToUpdate.role = role;
         if (requirePasswordReset !== undefined) userToUpdate.requirePasswordReset = requirePasswordReset;
+        
+        // If temporaryPassword is provided, set it and require password reset
+        if (temporaryPassword) {
+            if (temporaryPassword.length < 6) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Temporary password must be at least 6 characters.' 
+                });
+            }
+            userToUpdate.password = temporaryPassword;
+            userToUpdate.requirePasswordReset = true;
+            console.log(`🔑 Temporary password set for user: ${userToUpdate.email || userToUpdate.username}`);
+        }
         
         await userToUpdate.save();
 
