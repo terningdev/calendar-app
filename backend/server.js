@@ -313,6 +313,15 @@ function getConnectionState(state) {
   return states[state] || 'unknown';
 }
 
+// Serve static files from the React app (AFTER API routes)
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Catch-all route to serve React app for any non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
