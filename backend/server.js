@@ -230,16 +230,6 @@ try {
   console.error('❌ Error loading permissions routes:', error.message);
 }
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Calendar API Server',
-    status: 'Running',
-    timestamp: new Date().toISOString(),
-    endpoints: ['/api/health', '/api/status', '/api/tickets', '/api/departments', '/api/technicians', '/api/absences']
-  });
-});
-
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
