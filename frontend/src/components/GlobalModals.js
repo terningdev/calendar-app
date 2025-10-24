@@ -704,18 +704,33 @@ const GlobalModals = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      name="requirePasswordReset"
-                      checked={userFormData.requirePasswordReset}
-                      onChange={handleUserFormChange}
-                      style={{ marginRight: '8px' }}
-                    />
-                    Require password reset on next login
-                  </label>
+                  <label className="form-label">Password Reset</label>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{
+                      backgroundColor: userFormData.requirePasswordReset ? '#f44336' : '#2196F3',
+                      color: 'white',
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      width: '100%'
+                    }}
+                    onClick={() => setUserFormData(prev => ({ 
+                      ...prev, 
+                      requirePasswordReset: !prev.requirePasswordReset 
+                    }))}
+                  >
+                    {userFormData.requirePasswordReset 
+                      ? '✓ Password Reset Required - Click to Cancel' 
+                      : 'Request Password Reset'}
+                  </button>
                   <small className="form-text">
-                    If checked, user will be forced to change their password on next login
+                    {userFormData.requirePasswordReset 
+                      ? 'User will be forced to change password on next login' 
+                      : 'Click to require user to change password on next login'}
                   </small>
                 </div>
               </div>

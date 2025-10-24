@@ -8,6 +8,8 @@ const LoginModal = ({ onAuthSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showPasswordReset, setShowPasswordReset] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
     
     // Form state
     const [formData, setFormData] = useState({
@@ -17,6 +19,12 @@ const LoginModal = ({ onAuthSuccess }) => {
     firstName: '',
     lastName: '',
     phone: ''
+    });
+    
+    // Password reset form
+    const [resetFormData, setResetFormData] = useState({
+        newPassword: '',
+        confirmPassword: ''
     });
 
     const handleInputChange = (e) => {
@@ -107,8 +115,15 @@ const LoginModal = ({ onAuthSuccess }) => {
                     result = await login({ username: formData.email, password: formData.password });
                 }
                 if (result.success) {
-                    setSuccess('Login successful!');
-                    setTimeout(() => { onAuthSuccess(); }, 500);
+                    // Check if password reset is required
+                    if (result.requirePasswordReset) {
+                        setResetEmail(formData.email);
+                        setShowPasswordReset(true);
+                        setSuccess('Password reset required. Please set a new password.');
+                    } else {
+                        setSuccess('Login successful!');
+                        setTimeout(() => { onAuthSuccess(); }, 500);
+                    }
                 }
             } else {
                 // Register
@@ -156,6 +171,88 @@ const LoginModal = ({ onAuthSuccess }) => {
             phone: ''
         });
     };
+
+    const handlePasswordReset = async (e) => {
+        e.preventDefault();
+        
+        if (!resetFormData.newPassword || resetFormData.newPassword.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+        
+        if (resetFormData.newPassword !== resetFormData.confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+        
+        setLoading(true);
+        setError('');
+        
+        try {
+            const result = await authService.updatePin(formData.password, resetFormData.newPassword);
+            if (result.success) {
+                setSuccess('Password updated successfully! Logging you in...');
+                setTimeout(() => { onAuthSuccess(); }, 1000);
+            }
+        } catch (error) {
+            setError(error.message || 'Failed to update password');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // If password reset is required, show reset form
+    if (showPasswordReset) {
+        return (
+            <div className="login-modal-overlay">
+                <div className="login-modal">
+                    <div className="login-modal-header">
+                        <h2>Password Reset Required</h2>
+                        <p className="login-modal-subtitle">
+                            Please set a new password to continue
+                        </p>
+                    </div>
+
+                    <form onSubmit={handlePasswordReset} className="login-form">
+                        <div className="form-group">
+                            <label htmlFor="newPassword">New Password</label>
+                            <input
+                                type="password"
+                                id="newPassword"
+                                value={resetFormData.newPassword}
+                                onChange={(e) => setResetFormData(prev => ({ ...prev, newPassword: e.target.value }))}
+                                placeholder="Enter new password"
+                                disabled={loading}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword">Confirm New Password</label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                value={resetFormData.confirmPassword}
+                                onChange={(e) => setResetFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                placeholder="Confirm new password"
+                                disabled={loading}
+                            />
+                        </div>
+
+                        {error && <div className="error-message">{error}</div>}
+                        {success && <div className="success-message">{success}</div>}
+
+                        <button 
+                            type="submit" 
+                            className="login-button"
+                            disabled={loading}
+                        >
+                            {loading ? 'Updating...' : 'Update Password'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="login-modal-overlay">

@@ -460,7 +460,7 @@ router.delete('/reject/:email', async (req, res) => {
 });
 
 // Update user password
-router.post('/update-pin', (req, res) => {
+router.post('/update-pin', async (req, res) => {
     try {
         // Check if user is authenticated
         if (!req.session.user) {
@@ -470,12 +470,12 @@ router.post('/update-pin', (req, res) => {
             });
         }
 
-        // Find current user
+        // Find current user from database
         let currentUser;
         if (req.session.user.username) {
-            currentUser = findUserByUsername(req.session.user.username);
+            currentUser = await UserModel.findOne({ username: req.session.user.username });
         } else {
-            currentUser = findUserByEmail(req.session.user.email);
+            currentUser = await UserModel.findOne({ email: req.session.user.email });
         }
 
         if (!currentUser) {
@@ -495,7 +495,7 @@ router.post('/update-pin', (req, res) => {
             });
         }
 
-        if (!User.isValidPassword(newPassword)) {
+        if (newPassword.length < 6) {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Invalid new password. Must be at least 6 characters.' 
@@ -517,9 +517,19 @@ router.post('/update-pin', (req, res) => {
             });
         }
 
-        // Update password
+        // Update password and clear reset flag
         currentUser.password = newPassword;
-        currentUser.requirePasswordReset = false; // Clear reset flag if present
+        currentUser.requirePasswordReset = false;
+        await currentUser.save();
+
+        // Update session
+        req.session.user.requirePasswordReset = false;
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
 
         res.json({
             success: true,
