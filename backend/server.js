@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -314,7 +315,6 @@ function getConnectionState(state) {
 }
 
 // Serve static files from the React app (AFTER API routes)
-const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Catch-all route to serve React app for any non-API routes
