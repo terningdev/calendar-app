@@ -222,22 +222,58 @@ const connectDB = async () => {
 
 connectDB();
 
-// Routes - log each route registration
+// Routes - log each route registration with error handling
 console.log('🔧 Registering API routes...');
-app.use('/api/auth', require('./routes/auth'));
-console.log('  ✅ /api/auth');
-app.use('/api/departments', require('./routes/departments'));
-console.log('  ✅ /api/departments');
-app.use('/api/technicians', require('./routes/technicians'));
-console.log('  ✅ /api/technicians');
-app.use('/api/tickets', require('./routes/tickets'));
-console.log('  ✅ /api/tickets');
-app.use('/api/absences', require('./routes/absences'));
-console.log('  ✅ /api/absences');
-app.use('/api/skills', require('./routes/skills'));
-console.log('  ✅ /api/skills');
-app.use('/api/bugreports', require('./routes/bugReports'));
-console.log('  ✅ /api/bugreports');
+
+try {
+  const authRoutes = require('./routes/auth');
+  app.use('/api/auth', authRoutes);
+  console.log('  ✅ /api/auth registered successfully');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/auth:', error.message);
+}
+
+try {
+  app.use('/api/departments', require('./routes/departments'));
+  console.log('  ✅ /api/departments');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/departments:', error.message);
+}
+
+try {
+  app.use('/api/technicians', require('./routes/technicians'));
+  console.log('  ✅ /api/technicians');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/technicians:', error.message);
+}
+
+try {
+  app.use('/api/tickets', require('./routes/tickets'));
+  console.log('  ✅ /api/tickets');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/tickets:', error.message);
+}
+
+try {
+  app.use('/api/absences', require('./routes/absences'));
+  console.log('  ✅ /api/absences');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/absences:', error.message);
+}
+
+try {
+  app.use('/api/skills', require('./routes/skills'));
+  console.log('  ✅ /api/skills');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/skills:', error.message);
+}
+
+try {
+  app.use('/api/bugreports', require('./routes/bugReports'));
+  console.log('  ✅ /api/bugreports');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/bugreports:', error.message);
+}
 
 // Permissions routes - load with error handling
 try {
@@ -322,8 +358,28 @@ function getConnectionState(state) {
   return states[state] || 'unknown';
 }
 
+// CRITICAL: Ensure /api routes NEVER serve static files
+app.use('/api', (req, res, next) => {
+  // This middleware runs for ALL /api routes
+  // If we get here and no route handled it, return 404 JSON, not HTML
+  next();
+});
+
+// 404 handler for API routes - this runs if no API route matched
+app.use('/api/*', (req, res) => {
+  console.log(`⚠️ API route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    success: false, 
+    message: `API endpoint not found: ${req.method} ${req.path}` 
+  });
+});
+
 // Serve static files from the React app (AFTER API routes)
-app.use(express.static(path.join(__dirname, 'public')));
+// IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
+app.use(express.static(path.join(__dirname, 'public'), {
+  index: false, // Don't automatically serve index.html
+  fallthrough: true // Continue to next middleware if file not found
+}));
 
 // Catch-all route to serve React app for any non-API routes
 // IMPORTANT: Only serve index.html for routes that DON'T start with /api
