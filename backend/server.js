@@ -286,7 +286,15 @@ try {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  console.log('🏥 Health check endpoint called');
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Test endpoint to verify routes work
+app.post('/api/test', (req, res) => {
+  console.log('🧪 Test POST endpoint called');
+  console.log('🧪 Request body:', req.body);
+  res.json({ success: true, message: 'Test POST endpoint working', receivedBody: req.body });
 });
 
 // System status endpoint
@@ -358,14 +366,14 @@ function getConnectionState(state) {
   return states[state] || 'unknown';
 }
 
-// CRITICAL: Ensure /api routes NEVER serve static files
-app.use('/api', (req, res, next) => {
-  // This middleware runs for ALL /api routes
-  // If we get here and no route handled it, return 404 JSON, not HTML
-  next();
-});
+// Serve static files from the React app (AFTER API routes)
+// IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
+app.use(express.static(path.join(__dirname, 'public'), {
+  index: false, // Don't automatically serve index.html
+  fallthrough: true // Continue to next middleware if file not found
+}));
 
-// 404 handler for API routes - this runs if no API route matched
+// 404 handler for API routes - MUST come after all API routes but after static files
 app.use('/api/*', (req, res) => {
   console.log(`⚠️ API route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ 
@@ -373,13 +381,6 @@ app.use('/api/*', (req, res) => {
     message: `API endpoint not found: ${req.method} ${req.path}` 
   });
 });
-
-// Serve static files from the React app (AFTER API routes)
-// IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
-app.use(express.static(path.join(__dirname, 'public'), {
-  index: false, // Don't automatically serve index.html
-  fallthrough: true // Continue to next middleware if file not found
-}));
 
 // Catch-all route to serve React app for any non-API routes
 // IMPORTANT: Only serve index.html for routes that DON'T start with /api
