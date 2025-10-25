@@ -56,6 +56,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Additional middleware to track which handler processes each request
+app.use((req, res, next) => {
+  const originalSend = res.send;
+  res.send = function(data) {
+    console.log(`📤 Response for ${req.method} ${req.path}: ${typeof data === 'string' && data.includes('<!doctype html>') ? 'HTML' : 'Data'}`);
+    originalSend.call(this, data);
+  };
+  next();
+});
+
 app.use(express.json());
 
 // Session configuration with MongoDB store
@@ -212,14 +222,22 @@ const connectDB = async () => {
 
 connectDB();
 
-// Routes
+// Routes - log each route registration
+console.log('🔧 Registering API routes...');
 app.use('/api/auth', require('./routes/auth'));
+console.log('  ✅ /api/auth');
 app.use('/api/departments', require('./routes/departments'));
+console.log('  ✅ /api/departments');
 app.use('/api/technicians', require('./routes/technicians'));
+console.log('  ✅ /api/technicians');
 app.use('/api/tickets', require('./routes/tickets'));
+console.log('  ✅ /api/tickets');
 app.use('/api/absences', require('./routes/absences'));
+console.log('  ✅ /api/absences');
 app.use('/api/skills', require('./routes/skills'));
+console.log('  ✅ /api/skills');
 app.use('/api/bugreports', require('./routes/bugReports'));
+console.log('  ✅ /api/bugreports');
 
 // Permissions routes - load with error handling
 try {
@@ -308,7 +326,12 @@ function getConnectionState(state) {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Catch-all route to serve React app for any non-API routes
-app.get('*', (req, res) => {
+// IMPORTANT: Only serve index.html for routes that DON'T start with /api
+app.get('*', (req, res, next) => {
+  // Skip serving index.html for API routes
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
