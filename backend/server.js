@@ -50,9 +50,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Request logging middleware
+// Request logging middleware - log ALL requests with full details
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'none'} - Protocol: ${req.protocol}`);
+  const logPrefix = process.env.NODE_ENV === 'production' ? '[PROD]' : '[DEV]';
+  console.log(`${logPrefix} 📨 ${req.method} ${req.originalUrl || req.path}`);
+  console.log(`${logPrefix}    Origin: ${req.get('Origin') || 'none'}`);
+  console.log(`${logPrefix}    Content-Type: ${req.get('Content-Type') || 'none'}`);
+  console.log(`${logPrefix}    User-Agent: ${req.get('User-Agent')?.substring(0, 50) || 'none'}...`);
   next();
 });
 
