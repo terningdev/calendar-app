@@ -73,6 +73,20 @@ const Navigation = () => {
     setIsMenuOpen(false);
   };
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   // Get current page title based on route
   const getCurrentPageTitle = () => {
     switch (location.pathname) {
