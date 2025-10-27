@@ -815,9 +815,11 @@ const Calendar = () => {
               <div className="form-row-100">
                 <div className="form-group">
                   <label className="form-label">Department</label>
+                  
+                  {/* Desktop: Multi-select */}
                   <select
                     multiple
-                    className="form-control form-select-modern"
+                    className="form-control form-select-modern desktop-only"
                     value={formData.department}
                     onChange={(e) => {
                       const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
@@ -838,8 +840,53 @@ const Calendar = () => {
                       </option>
                     ))}
                   </select>
+                  
+                  {/* Mobile: Checkboxes */}
+                  <div className="mobile-only" style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    backgroundColor: '#f8f9fa',
+                    maxHeight: '150px',
+                    overflowY: 'auto'
+                  }}>
+                    {departments.map(dept => (
+                      <label key={dept._id} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        backgroundColor: formData.department.includes(dept._id) ? '#e7f3ff' : 'transparent',
+                        borderRadius: '4px',
+                        marginBottom: '4px'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.department.includes(dept._id)}
+                          onChange={(e) => {
+                            const newDepartments = e.target.checked
+                              ? [...formData.department, dept._id]
+                              : formData.department.filter(id => id !== dept._id);
+                            
+                            setFormData({
+                              ...formData,
+                              department: newDepartments,
+                              assignedTo: formData.assignedTo.filter(techId => {
+                                const tech = getFormFilteredTechnicians().find(t => t._id === techId);
+                                return tech && newDepartments.includes(tech.department._id);
+                              })
+                            });
+                          }}
+                          style={{ marginRight: '8px' }}
+                        />
+                        <span>📋 {dept.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  
                   <small style={{ color: '#666', fontSize: '0.85rem' }}>
-                    Hold Ctrl (Windows) or Cmd (Mac) to select multiple
+                    <span className="desktop-only">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</span>
+                    <span className="mobile-only">Tap to select multiple departments</span>
                   </small>
                 </div>
               </div>
@@ -848,9 +895,11 @@ const Calendar = () => {
               <div className="form-row-100">
                 <div className="form-group">
                   <label className="form-label">Assigned To</label>
+                  
+                  {/* Desktop: Multi-select */}
                   <select
                     multiple
-                    className="form-control form-select-modern"
+                    className="form-control form-select-modern desktop-only"
                     value={formData.assignedTo}
                     onChange={(e) => {
                       const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
@@ -869,8 +918,60 @@ const Calendar = () => {
                       ))
                     )}
                   </select>
+                  
+                  {/* Mobile: Checkboxes */}
+                  <div className="mobile-only" style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    backgroundColor: formData.department.length === 0 ? '#f0f0f0' : '#f8f9fa',
+                    maxHeight: '180px',
+                    overflowY: 'auto',
+                    opacity: formData.department.length === 0 ? 0.6 : 1
+                  }}>
+                    {formData.department.length === 0 ? (
+                      <div style={{ color: '#999', fontStyle: 'italic', padding: '8px', textAlign: 'center' }}>
+                        Please select departments first
+                      </div>
+                    ) : getFormFilteredTechnicians().length === 0 ? (
+                      <div style={{ color: '#999', fontStyle: 'italic', padding: '8px', textAlign: 'center' }}>
+                        No technicians available
+                      </div>
+                    ) : (
+                      getFormFilteredTechnicians().map(tech => (
+                        <label key={tech._id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '8px',
+                          cursor: 'pointer',
+                          backgroundColor: formData.assignedTo.includes(tech._id) ? '#e7f3ff' : 'transparent',
+                          borderRadius: '4px',
+                          marginBottom: '4px'
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={formData.assignedTo.includes(tech._id)}
+                            onChange={(e) => {
+                              const newAssignedTo = e.target.checked
+                                ? [...formData.assignedTo, tech._id]
+                                : formData.assignedTo.filter(id => id !== tech._id);
+                              
+                              setFormData({
+                                ...formData,
+                                assignedTo: newAssignedTo
+                              });
+                            }}
+                            style={{ marginRight: '8px' }}
+                          />
+                          <span>👤 {tech.fullName} {tech.department && `(${tech.department.name})`}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  
                   <small style={{ color: '#666', fontSize: '0.85rem' }}>
-                    Hold Ctrl (Windows) or Cmd (Mac) to select multiple
+                    <span className="desktop-only">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</span>
+                    <span className="mobile-only">Tap to select multiple technicians</span>
                   </small>
                 </div>
               </div>
