@@ -24,7 +24,11 @@ const Calendar = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    department: [],
+    assignedTo: []
+  });
 
   // Check permission
   const hasPermission = (permissionName) => {
@@ -72,19 +76,71 @@ const Calendar = () => {
 
   // Convert tickets to FullCalendar events
   const getEvents = () => {
-    // Filter tickets by selected department
+    // Start with all tickets
     let filteredTickets = tickets;
     
-    if (selectedDepartment) {
-      filteredTickets = tickets.filter(ticket => {
-        if (!ticket.assignedTo) return false;
+    // Filter by search term
+    if (searchTerm && searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase().trim();
+      filteredTickets = filteredTickets.filter(ticket => {
+        // Search in title
+        const titleMatch = ticket.title?.toLowerCase().includes(term);
         
-        const technicians = Array.isArray(ticket.assignedTo) ? ticket.assignedTo : [ticket.assignedTo];
-        return technicians.some(tech => {
-          if (!tech || !tech.department) return false;
-          const deptId = tech.department._id || tech.department;
-          return deptId === selectedDepartment;
-        });
+        // Search in description
+        const descriptionMatch = ticket.description?.toLowerCase().includes(term);
+        
+        // Search in assigned technician names
+        const technicianMatch = Array.isArray(ticket.assignedTo) 
+          ? ticket.assignedTo.some(tech => tech?.fullName?.toLowerCase().includes(term))
+          : ticket.assignedTo?.fullName?.toLowerCase().includes(term);
+        
+        // Search in activity numbers
+        const activityNumberMatch = ticket.activityNumbers && Array.isArray(ticket.activityNumbers)
+          ? ticket.activityNumbers.some(actNum => actNum?.toLowerCase().includes(term))
+          : false;
+        
+        return titleMatch || descriptionMatch || technicianMatch || activityNumberMatch;
+      });
+    }
+    
+    // Filter by department
+    if (filters.department && filters.department.length > 0) {
+      filteredTickets = filteredTickets.filter(ticket => {
+        if (!ticket.assignedTo || (Array.isArray(ticket.assignedTo) && ticket.assignedTo.length === 0)) {
+          return true; // Include unassigned tickets
+        }
+        
+        if (Array.isArray(ticket.assignedTo)) {
+          return ticket.assignedTo.some(tech => 
+            tech.department && filters.department.includes(tech.department._id)
+          );
+        } else {
+          return ticket.assignedTo.department && 
+                 filters.department.includes(ticket.assignedTo.department._id);
+        }
+      });
+    }
+    
+    // Filter by assigned technician
+    if (filters.assignedTo && filters.assignedTo.length > 0) {
+      filteredTickets = filteredTickets.filter(ticket => {
+        // Check for unassigned filter
+        if (filters.assignedTo.includes('unassigned')) {
+          const isUnassigned = !ticket.assignedTo || (Array.isArray(ticket.assignedTo) && ticket.assignedTo.length === 0);
+          if (isUnassigned) return true;
+        }
+        
+        // Check for specific technician filters
+        const technicianIds = filters.assignedTo.filter(id => id !== 'unassigned');
+        if (technicianIds.length > 0) {
+          if (Array.isArray(ticket.assignedTo)) {
+            return ticket.assignedTo.some(tech => technicianIds.includes(tech._id));
+          } else if (ticket.assignedTo) {
+            return technicianIds.includes(ticket.assignedTo._id);
+          }
+        }
+        
+        return false;
       });
     }
 
@@ -229,32 +285,101 @@ const Calendar = () => {
 
   return (
     <div className="page-container">
-      {/* Header with Department Filter */}
-      <div 
-        className="page-header" 
-        style={{ 
-          alignItems: 'center', 
-          gap: '15px', 
-          flexWrap: 'wrap',
-          padding: isMobile ? '10px 15px' : undefined
-        }}
-      >
-        {!isMobile && <h1 className="page-title" style={{ margin: 0 }}>{t('calendar')}</h1>}
-        <select
-          className="form-control"
-          value={selectedDepartment}
-          onChange={(e) => setSelectedDepartment(e.target.value)}
-          style={{ 
-            maxWidth: isMobile ? '100%' : '200px', 
-            minWidth: isMobile ? '100%' : '150px', 
-            fontSize: '0.9rem' 
-          }}
-        >
-          <option value="">{t('allDepartments')}</option>
-          {departments.map(dept => (
-            <option key={dept._id} value={dept._id}>{dept.name}</option>
-          ))}
-        </select>
+      {/* Page Title - Mobile Only */}
+      {!isMobile && (
+        <div className="page-header">
+          <h1 className="page-title">{t('calendar')}</h1>
+        </div>
+      )}
+      
+      {/* Desktop Filters */}
+      <div className="card desktop-only" style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">{t('search')}</label>
+            <div className="search-input">
+              <input
+                type="text"
+                className="form-control"
+                placeholder={t('search') + '...'}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">{t('department')}</label>
+            <select
+              className="form-control"
+              value={filters.department.length > 0 ? filters.department[0] : ''}
+              onChange={(e) => setFilters({ ...filters, department: e.target.value ? [e.target.value] : [] })}
+            >
+              <option value="">{t('allDepartments')}</option>
+              {departments.map(dept => (
+                <option key={dept._id} value={dept._id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">{t('assignedTo')}</label>
+            <select
+              className="form-control"
+              value={filters.assignedTo.length > 0 ? filters.assignedTo[0] : ''}
+              onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value ? [e.target.value] : [] })}
+            >
+              <option value="">{t('allTechnicians')}</option>
+              <option value="unassigned">{t('unassigned')}</option>
+              {technicians.filter(t => t.isActive).map(tech => (
+                <option key={tech._id} value={tech._id}>
+                  {tech.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Filters - Compact */}
+      <div className="mobile-only" style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            className="form-control"
+            placeholder={t('search') + '...'}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ flex: '1 1 100%', minWidth: '200px' }}
+          />
+          <select
+            className="form-control"
+            value={filters.department.length > 0 ? filters.department[0] : ''}
+            onChange={(e) => setFilters({ ...filters, department: e.target.value ? [e.target.value] : [] })}
+            style={{ flex: '1 1 45%' }}
+          >
+            <option value="">{t('allDepartments')}</option>
+            {departments.map(dept => (
+              <option key={dept._id} value={dept._id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="form-control"
+            value={filters.assignedTo.length > 0 ? filters.assignedTo[0] : ''}
+            onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value ? [e.target.value] : [] })}
+            style={{ flex: '1 1 45%' }}
+          >
+            <option value="">{t('allTechnicians')}</option>
+            <option value="unassigned">{t('unassigned')}</option>
+            {technicians.filter(t => t.isActive).map(tech => (
+              <option key={tech._id} value={tech._id}>
+                {tech.fullName}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Calendar */}
