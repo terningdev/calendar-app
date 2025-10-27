@@ -1,7 +1,7 @@
 ﻿/* Theme Variables */
 [data-theme="light"] {
   /* Modern Light Theme - Clean and Professional */
-  --topbar-bg: #1e3a8a;           /* Deep blue for authority */
+  --topbar-bg: #89CFF0;           /* Baby blue - fresh and clean */
   --page-bg: #f8fafc;             /* Very light blue-gray */
   --text-primary: #1e293b;        /* Dark slate for excellent readability */
   --text-secondary: #64748b;      /* Medium slate for secondary text */
@@ -16,6 +16,9 @@
   --filter-btn-bg: #f1f5f9;       /* Light gray buttons */
   --filter-btn-border: #cbd5e1;
   --filter-btn-hover: #e2e8f0;
+  --mobile-menu-bg: #89CFF0;      /* Match topbar */
+  --agenda-header-bg: #f1f5f9;
+  --agenda-header-text: #334155;
 }
 
 [data-theme="dark"] {
@@ -35,6 +38,9 @@
   --filter-btn-bg: #0f172a;       /* Darker buttons */
   --filter-btn-border: #334155;
   --filter-btn-hover: #334155;
+  --mobile-menu-bg: #1e293b;      /* Dark menu background */
+  --agenda-header-bg: #334155;
+  --agenda-header-text: #e2e8f0;
 }
 
 /* Global Styles */
@@ -596,9 +602,9 @@ body {
     width: 280px;
     height: calc(100vh - 60px);
     flex-direction: column;
-    background-color: #2c3e50;
+    background-color: var(--mobile-menu-bg, #2c3e50);
     padding: 20px 0;
-    transition: left 0.3s ease;
+    transition: left 0.3s ease, background-color 0.3s ease;
     overflow-y: auto;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     align-items: flex-start;
@@ -1545,17 +1551,18 @@ body {
 
 /* Agenda View Styles */
 .agenda-date-header {
-  background-color: #f8f9fa;
+  background-color: var(--agenda-header-bg, #f8f9fa);
   padding: 12px 15px;
   font-weight: 600;
   font-size: 1rem;
-  border-bottom: 2px solid #dee2e6;
-  color: #495057;
+  border-bottom: 2px solid var(--card-border, #dee2e6);
+  color: var(--agenda-header-text, #495057);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .agenda-ticket-row {
   padding: 15px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--card-border, #e9ecef);
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 15px;
@@ -1564,23 +1571,23 @@ body {
 }
 
 .agenda-ticket-row:hover {
-  background-color: #f8f9fa;
+  background-color: var(--hover-bg, #f8f9fa);
 }
 
 .agenda-ticket-title {
   font-weight: 600;
   font-size: 1rem;
-  color: #212529;
+  color: var(--text-primary, #212529);
 }
 
 .agenda-activity-number {
-  color: #6c757d;
+  color: var(--text-secondary, #6c757d);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 .agenda-ticket-description {
-  color: #6c757d;
+  color: var(--text-secondary, #6c757d);
   font-size: 0.9rem;
   margin-top: 4px;
   line-height: 1.4;
@@ -1600,16 +1607,18 @@ body {
 
 /* Mobile Agenda View Styles */
 .mobile-agenda-date-header {
-  background-color: #2c3e50;
+  background-color: var(--topbar-bg, #2c3e50);
   color: white;
   padding: 10px 12px;
   font-weight: 600;
   font-size: 0.9rem;
   border-radius: 8px 8px 0 0;
+  transition: background-color 0.3s ease;
 }
 
 .mobile-agenda-ticket {
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--card-border, #e9ecef);
+  transition: border-color 0.3s ease;
 }
 
 .mobile-agenda-ticket:last-child {
@@ -1619,19 +1628,19 @@ body {
 .mobile-agenda-ticket-title {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #212529;
+  color: var(--text-primary, #212529);
   margin-bottom: 4px;
 }
 
 .mobile-agenda-ticket-description {
-  color: #6c757d;
+  color: var(--text-secondary, #6c757d);
   font-size: 0.85rem;
   line-height: 1.4;
   margin-bottom: 4px;
 }
 
 .mobile-agenda-field {
-  color: #495057;
+  color: var(--text-primary, #495057);
   font-size: 0.85rem;
 }
 
