@@ -282,7 +282,7 @@ const Calendar = () => {
           editable={false}
           selectable={false}
           selectMirror={true}
-          dayMaxEvents={isMobile ? 2 : 3}
+          dayMaxEvents={false}
           eventTimeFormat={{
             hour: '2-digit',
             minute: '2-digit',
@@ -298,9 +298,6 @@ const Calendar = () => {
           eventDisplay="block"
           displayEventTime={false}
           displayEventEnd={false}
-          eventMaxStack={3}
-          moreLinkClick="popover"
-          moreLinkContent={(args) => `+${args.num} more`}
           buttonText={{
             today: 'Today',
             month: 'Month',
