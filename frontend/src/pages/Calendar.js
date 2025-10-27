@@ -24,6 +24,7 @@ const Calendar = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
 
   // Check permission
   const hasPermission = (permissionName) => {
@@ -71,7 +72,23 @@ const Calendar = () => {
 
   // Convert tickets to FullCalendar events
   const getEvents = () => {
-    return tickets.map(ticket => {
+    // Filter tickets by selected department
+    let filteredTickets = tickets;
+    
+    if (selectedDepartment) {
+      filteredTickets = tickets.filter(ticket => {
+        if (!ticket.assignedTo) return false;
+        
+        const technicians = Array.isArray(ticket.assignedTo) ? ticket.assignedTo : [ticket.assignedTo];
+        return technicians.some(tech => {
+          if (!tech || !tech.department) return false;
+          const deptId = tech.department._id || tech.department;
+          return deptId === selectedDepartment;
+        });
+      });
+    }
+
+    return filteredTickets.map(ticket => {
       // Get technician names
       const techNames = Array.isArray(ticket.assignedTo)
         ? ticket.assignedTo.map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`).join(', ')
@@ -82,11 +99,19 @@ const Calendar = () => {
       // Create display title
       const displayTitle = isMobile ? ticket.title : `${techNames} - ${ticket.title}`;
 
+      // Calculate end date - add 1 day if there's no endDate or if it's the same day
+      let endDate = ticket.endDate || ticket.startDate;
+      const start = new Date(ticket.startDate);
+      const end = new Date(endDate);
+      
+      // For FullCalendar, the end date is exclusive, so we need to add 1 day
+      end.setDate(end.getDate() + 1);
+      
       return {
         id: ticket._id,
         title: displayTitle,
         start: ticket.startDate,
-        end: ticket.endDate || ticket.startDate,
+        end: end.toISOString().split('T')[0], // Format as YYYY-MM-DD
         allDay: true,
         extendedProps: {
           ticket: ticket,
@@ -207,6 +232,28 @@ const Calendar = () => {
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">{t('calendar')}</h1>
+      </div>
+
+      {/* Department Filter */}
+      <div className="card" style={{ marginBottom: '20px' }}>
+        <div style={{ padding: '15px' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>
+              {t('department')}:
+            </label>
+            <select
+              className="form-control"
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              style={{ maxWidth: '300px' }}
+            >
+              <option value="">{t('allDepartments')}</option>
+              {departments.map(dept => (
+                <option key={dept._id} value={dept._id}>{dept.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Calendar */}
