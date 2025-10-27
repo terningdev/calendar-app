@@ -824,7 +824,6 @@ const Tickets = () => {
     <div>
       {/* Desktop Header */}
       <div className="page-header desktop-only">
-        <h1 className="page-title">{t('tickets')}</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           {hasPermission('createTickets') && (
             <button className="btn btn-primary" onClick={openCreateModal}>
