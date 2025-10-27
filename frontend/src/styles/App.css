@@ -175,9 +175,10 @@ body {
   width: 100%;
 }
 
-/* Calendar page uses full width */
+/* Calendar page uses full width - remove max-width constraint */
 .calendar-wrapper {
-  max-width: 100%;
+  max-width: none;
+  padding: 20px;
 }
 
 /* Page Headers */

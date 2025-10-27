@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -17,6 +17,24 @@ import Tickets from './pages/Tickets';
 import Absences from './pages/Absences';
 import Skills from './pages/Skills';
 
+function MainContent() {
+  const location = useLocation();
+  const isCalendarPage = location.pathname === '/calendar';
+
+  return (
+    <main className={isCalendarPage ? 'main-content calendar-wrapper' : 'main-content'}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/administrator" element={<Administrator />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/absences" element={<Absences />} />
+        <Route path="/skills" element={<Skills />} />
+      </Routes>
+    </main>
+  );
+}
+
 function App() {
   return (
     <LanguageProvider>
@@ -27,16 +45,7 @@ function App() {
               <AuthWrapper>
                 <Navigation />
                 <GlobalModals />
-                <main className="main-content">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/administrator" element={<Administrator />} />
-                    <Route path="/tickets" element={<Tickets />} />
-                    <Route path="/absences" element={<Absences />} />
-                    <Route path="/skills" element={<Skills />} />
-                  </Routes>
-                </main>
+                <MainContent />
               </AuthWrapper>
               <ToastContainer 
               position="top-right"
