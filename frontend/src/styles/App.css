@@ -1829,6 +1829,8 @@ body {
   flex-direction: column;
   gap: 2px;
   padding: 2px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .fc-event-tech {
@@ -1836,16 +1838,28 @@ body {
   font-size: 0.75rem;
   opacity: 0.9;
   font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .fc-event-title-custom {
   font-weight: 500;
   font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .fc-event-title-mobile {
   font-weight: 500;
   font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .fc-daygrid-day-number {
