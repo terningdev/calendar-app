@@ -19,6 +19,7 @@
   --mobile-menu-bg: #89CFF0;      /* Match topbar */
   --agenda-header-bg: #f1f5f9;
   --agenda-header-text: #334155;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px); /* Safe area for mobile */
 }
 
 [data-theme="dark"] {
@@ -41,6 +42,7 @@
   --mobile-menu-bg: #1e293b;      /* Dark menu background */
   --agenda-header-bg: #334155;
   --agenda-header-text: #e2e8f0;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px); /* Safe area for mobile */
 }
 
 /* Global Styles */
@@ -58,7 +60,7 @@ body {
 }
 
 .App {
-  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
   display: flex;
   flex-direction: column;
 }
@@ -585,6 +587,11 @@ body {
   display: none;
 }
 
+/* Ensure mobile user menu is hidden on desktop */
+.mobile-user-menu-container {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none !important;
@@ -594,16 +601,21 @@ body {
     display: block !important;
   }
 
+  /* Show mobile user menu container on mobile */
+  .mobile-user-menu-container {
+    display: block !important;
+  }
+
   /* Mobile Navigation */
   .nav-links {
     position: fixed;
     top: 60px;
     left: -100%;
     width: 280px;
-    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px); /* Dynamic viewport height for mobile */
     flex-direction: column;
     background-color: var(--mobile-menu-bg, #2c3e50);
-    padding: 20px 0;
+    padding: 20px 0 env(safe-area-inset-bottom, 20px) 0; /* Safe area for bottom */
     transition: left 0.3s ease, background-color 0.3s ease;
     overflow-y: auto;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
