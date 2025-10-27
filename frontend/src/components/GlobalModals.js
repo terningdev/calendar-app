@@ -280,7 +280,9 @@ const GlobalModals = () => {
     try {
       await authService.approveUser(email);
       toast.success('User approved successfully');
-      loadPendingUsers();
+      // Reload both the full list and the count
+      await loadPendingUsers();
+      await loadPendingUsersCount();
     } catch (error) {
       toast.error(error.message || 'Failed to approve user');
     }
@@ -293,7 +295,9 @@ const GlobalModals = () => {
     try {
       await authService.rejectUser(email);
       toast.success('User registration rejected');
-      loadPendingUsers();
+      // Reload both the full list and the count
+      await loadPendingUsers();
+      await loadPendingUsersCount();
     } catch (error) {
       toast.error(error.message || 'Failed to reject user');
     }
