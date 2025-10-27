@@ -230,13 +230,25 @@ const Calendar = () => {
   return (
     <div className="page-container">
       {/* Header with Department Filter */}
-      <div className="page-header" style={{ alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>{t('calendar')}</h1>
+      <div 
+        className="page-header" 
+        style={{ 
+          alignItems: 'center', 
+          gap: '15px', 
+          flexWrap: 'wrap',
+          padding: isMobile ? '10px 15px' : undefined
+        }}
+      >
+        {!isMobile && <h1 className="page-title" style={{ margin: 0 }}>{t('calendar')}</h1>}
         <select
           className="form-control"
           value={selectedDepartment}
           onChange={(e) => setSelectedDepartment(e.target.value)}
-          style={{ maxWidth: '200px', minWidth: '150px', fontSize: '0.9rem' }}
+          style={{ 
+            maxWidth: isMobile ? '100%' : '200px', 
+            minWidth: isMobile ? '100%' : '150px', 
+            fontSize: '0.9rem' 
+          }}
         >
           <option value="">{t('allDepartments')}</option>
           {departments.map(dept => (
