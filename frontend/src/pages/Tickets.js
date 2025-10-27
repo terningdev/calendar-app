@@ -709,7 +709,12 @@ const Tickets = () => {
         const startDateMatch = formatDate(ticket.startDate)?.toLowerCase().includes(term);
         const endDateMatch = ticket.endDate ? formatDate(ticket.endDate)?.toLowerCase().includes(term) : false;
         
-        return titleMatch || descriptionMatch || technicianMatch || startDateMatch || endDateMatch;
+        // Search in activity numbers
+        const activityNumberMatch = ticket.activityNumbers && Array.isArray(ticket.activityNumbers)
+          ? ticket.activityNumbers.some(actNum => actNum?.toLowerCase().includes(term))
+          : false;
+        
+        return titleMatch || descriptionMatch || technicianMatch || startDateMatch || endDateMatch || activityNumberMatch;
       });
     }
     
