@@ -773,10 +773,122 @@ body {
     font-size: 1.4rem;
   }
 
+  /* Mobile Modal Fixes */
   .modal-content {
     margin: 10px;
     max-width: calc(100vw - 20px);
-    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    padding: 20px !important;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .modal-title {
+    font-size: 1.2rem !important;
+    word-break: break-word;
+  }
+
+  .modal-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Mobile Table Fixes - Make tables scrollable */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -12px;
+    padding: 0 12px;
+  }
+
+  .table {
+    min-width: 600px; /* Force horizontal scroll for wide tables */
+    font-size: 0.85rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 8px;
+    white-space: nowrap;
+  }
+
+  /* Mobile Pending Users Card Fixes */
+  .pending-user-card {
+    padding: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .pending-user-card > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .pending-user-card button {
+    width: 100%;
+    margin: 5px 0 !important;
+  }
+
+  .pending-users-list {
+    max-height: calc(100dvh - 200px);
+    overflow-y: auto;
+  }
+
+  /* Mobile User Card in Manage Users Modal */
+  .pending-user-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .pending-user-card > div:last-child {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .pending-user-card > div:last-child button {
+    flex: 1;
+  }
+
+  /* Mobile Form Fixes */
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+  }
+
+  /* Mobile Page Header Adjustments */
+  .page-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .page-header-actions .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  /* Mobile Card Adjustments for Departments, Technicians, Absences */
+  .card {
+    padding: 15px;
+    margin: 0 0 15px 0;
+  }
+
+  /* Mobile Filter Improvements */
+  .card select.form-control {
+    width: 100%;
+    font-size: 16px;
   }
 }
 
