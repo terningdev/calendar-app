@@ -1,7 +1,7 @@
 ﻿/* Theme Variables */
 [data-theme="light"] {
   /* Modern Light Theme - Clean and Professional */
-  --topbar-bg: #f54927;           /* Orange-red - vibrant and energetic */
+  --topbar-bg: #c5aa6a;           /* Gold/tan - warm and professional */
   --page-bg: #f8fafc;             /* Very light blue-gray */
   --text-primary: #1e293b;        /* Dark slate for excellent readability */
   --text-secondary: #64748b;      /* Medium slate for secondary text */
@@ -16,7 +16,7 @@
   --filter-btn-bg: #f1f5f9;       /* Light gray buttons */
   --filter-btn-border: #cbd5e1;
   --filter-btn-hover: #e2e8f0;
-  --mobile-menu-bg: #f54927;      /* Match topbar */
+  --mobile-menu-bg: #c5aa6a;      /* Match topbar */
   --agenda-header-bg: #f1f5f9;
   --agenda-header-text: #334155;
   --safe-area-bottom: env(safe-area-inset-bottom, 0px); /* Safe area for mobile */
