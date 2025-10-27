@@ -229,31 +229,20 @@ const Calendar = () => {
 
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header">
-        <h1 className="page-title">{t('calendar')}</h1>
-      </div>
-
-      {/* Department Filter */}
-      <div className="card" style={{ marginBottom: '20px' }}>
-        <div style={{ padding: '15px' }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>
-              {t('department')}:
-            </label>
-            <select
-              className="form-control"
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              style={{ maxWidth: '300px' }}
-            >
-              <option value="">{t('allDepartments')}</option>
-              {departments.map(dept => (
-                <option key={dept._id} value={dept._id}>{dept.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+      {/* Header with Department Filter */}
+      <div className="page-header" style={{ alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>{t('calendar')}</h1>
+        <select
+          className="form-control"
+          value={selectedDepartment}
+          onChange={(e) => setSelectedDepartment(e.target.value)}
+          style={{ maxWidth: '200px', minWidth: '150px', fontSize: '0.9rem' }}
+        >
+          <option value="">{t('allDepartments')}</option>
+          {departments.map(dept => (
+            <option key={dept._id} value={dept._id}>{dept.name}</option>
+          ))}
+        </select>
       </div>
 
       {/* Calendar */}
@@ -261,11 +250,11 @@ const Calendar = () => {
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-          initialView={isMobile ? 'listWeek' : 'dayGridMonth'}
+          initialView={isMobile ? 'dayGridMonth' : 'dayGridMonth'}
           headerToolbar={{
             left: isMobile ? 'prev,next' : 'prev,next today',
             center: 'title',
-            right: isMobile ? 'listWeek,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            right: isMobile ? 'dayGridMonth,timeGridWeek,listWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
           }}
           events={getEvents()}
           eventClick={handleEventClick}
