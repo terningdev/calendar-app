@@ -22,12 +22,23 @@ const Calendar = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     department: [],
     assignedTo: []
+  });
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    assignedTo: [],
+    department: [],
+    startDate: '',
+    endDate: '',
+    activityNumbers: []
   });
 
   // Check permission
@@ -215,11 +226,52 @@ const Calendar = () => {
     return '#6c757d';
   };
 
-  // Handle event click
+  // Handle event click - show action selection
   const handleEventClick = (clickInfo) => {
     const ticket = clickInfo.event.extendedProps.ticket;
     setSelectedEvent(ticket);
-    setShowModal(true);
+    setShowActionModal(true);
+  };
+
+  // Handle view action
+  const handleViewAction = () => {
+    setShowActionModal(false);
+    setShowViewModal(true);
+  };
+
+  // Handle edit action
+  const handleEditAction = () => {
+    setShowActionModal(false);
+    
+    // Get activity numbers
+    let activityNumbers = selectedEvent.activityNumbers && selectedEvent.activityNumbers.length > 0 
+      ? [...selectedEvent.activityNumbers] 
+      : [];
+    
+    // Extract departments from assigned technicians
+    let selectedDepartments = [];
+    if (selectedEvent.assignedTo && selectedEvent.assignedTo.length > 0) {
+      const assignedTechnicians = Array.isArray(selectedEvent.assignedTo) ? selectedEvent.assignedTo : [selectedEvent.assignedTo];
+      const departmentIds = assignedTechnicians
+        .filter(tech => tech && tech.department)
+        .map(tech => tech.department._id);
+      selectedDepartments = [...new Set(departmentIds)];
+    }
+    
+    setFormData({
+      title: selectedEvent.title,
+      activityNumbers: activityNumbers,
+      description: selectedEvent.description,
+      assignedTo: Array.isArray(selectedEvent.assignedTo) 
+        ? selectedEvent.assignedTo.map(tech => tech._id) 
+        : selectedEvent.assignedTo 
+        ? [selectedEvent.assignedTo._id] 
+        : [],
+      department: selectedDepartments,
+      startDate: new Date(selectedEvent.startDate).toISOString().slice(0, 10),
+      endDate: selectedEvent.endDate ? new Date(selectedEvent.endDate).toISOString().slice(0, 10) : ''
+    });
+    setShowEditModal(true);
   };
 
   // Handle date click (for creating new tickets - future enhancement)
@@ -228,10 +280,63 @@ const Calendar = () => {
     console.log('Date clicked:', dateClickInfo.dateStr);
   };
 
-  // Close modal
-  const closeModal = () => {
-    setShowModal(false);
+  // Get filtered technicians based on selected departments in form
+  const getFormFilteredTechnicians = () => {
+    if (formData.department.length === 0) {
+      return [];
+    }
+    return technicians.filter(tech => 
+      tech.isActive && tech.department && formData.department.includes(tech.department._id)
+    );
+  };
+
+  // Close modals
+  const closeActionModal = () => {
+    setShowActionModal(false);
     setSelectedEvent(null);
+  };
+
+  const closeViewModal = () => {
+    setShowViewModal(false);
+    setSelectedEvent(null);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedEvent(null);
+    setFormData({
+      title: '',
+      description: '',
+      assignedTo: [],
+      department: [],
+      startDate: '',
+      endDate: '',
+      activityNumbers: []
+    });
+  };
+
+  // Handle update ticket
+  const handleUpdateTicket = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const cleanData = {
+        ...formData,
+        activityNumbers: formData.activityNumbers.filter(n => n !== '')
+      };
+
+      await ticketService.update(selectedEvent._id, cleanData);
+      toast.success('Ticket updated successfully');
+      
+      // Reload data
+      const ticketsData = await ticketService.getAll();
+      setTickets(ticketsData);
+      
+      closeEditModal();
+    } catch (error) {
+      console.error('Error updating ticket:', error);
+      toast.error('Failed to update ticket');
+    }
   };
 
   // Format date
@@ -396,6 +501,14 @@ const Calendar = () => {
           events={getEvents()}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
+          dayCellClassNames={(arg) => {
+            // Highlight today's date
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const cellDate = new Date(arg.date);
+            cellDate.setHours(0, 0, 0, 0);
+            return cellDate.getTime() === today.getTime() ? 'fc-day-today-custom' : '';
+          }}
           eventContent={(arg) => {
             // Custom event content to style technician names separately
             if (isMobile) {
@@ -450,79 +563,292 @@ const Calendar = () => {
         />
       </div>
 
-      {/* Event Detail Modal */}
-      {showModal && selectedEvent && ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content ticket-modal" onClick={(e) => e.stopPropagation()}>
+      {/* Action Selection Modal */}
+      {showActionModal && selectedEvent && ReactDOM.createPortal(
+        <>
+          <div className="modal-backdrop" onClick={closeActionModal}></div>
+          <div className="modal" style={{ display: 'flex' }}>
+            <div className="modal-content" style={{ maxWidth: '400px', width: '90%' }}>
+              <div className="modal-header">
+                <h2 className="modal-title">Select Action</h2>
+                <button className="modal-close" onClick={closeActionModal}>×</button>
+              </div>
+              <div className="modal-body">
+                <p style={{ marginBottom: '20px', color: '#666' }}>
+                  What would you like to do with this ticket?
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleViewAction}
+                    style={{ width: '100%', padding: '12px' }}
+                  >
+                    👁️ View Details
+                  </button>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={handleEditAction}
+                    style={{ width: '100%', padding: '12px' }}
+                  >
+                    ✏️ Edit Ticket
+                  </button>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={closeActionModal}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* View Ticket Modal */}
+      {showViewModal && selectedEvent && ReactDOM.createPortal(
+        <>
+          <div className="modal-backdrop" onClick={closeViewModal}></div>
+          <div className="modal" style={{ display: 'flex' }}>
+            <div className="modal-content" style={{ maxWidth: '600px', width: '90%' }}>
+              <div className="modal-header">
+                <h2 className="modal-title">Ticket Details</h2>
+                <button className="modal-close" onClick={closeViewModal}>×</button>
+              </div>
+              <div className="modal-body">
+                <div className="view-ticket-content">
+                  {/* Title */}
+                  <div className="view-field">
+                    <label className="view-label">Title:</label>
+                    <div className="view-value">{selectedEvent.title}</div>
+                  </div>
+
+                  {/* Activity Numbers */}
+                  {selectedEvent.activityNumbers && selectedEvent.activityNumbers.length > 0 && (
+                    <div className="view-field">
+                      <label className="view-label">Activity Numbers:</label>
+                      <div className="view-value">
+                        {selectedEvent.activityNumbers.join(' + ')}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Description */}
+                  <div className="view-field">
+                    <label className="view-label">Description:</label>
+                    <div className="view-value" style={{ whiteSpace: 'pre-wrap' }}>
+                      {selectedEvent.description || 'No description'}
+                    </div>
+                  </div>
+                  
+                  {/* Department - Technician */}
+                  <div className="view-row">
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Department:</label>
+                      <div className="view-value">
+                        {Array.isArray(selectedEvent.assignedTo) && selectedEvent.assignedTo.length > 0
+                          ? [...new Set(selectedEvent.assignedTo
+                              .filter(tech => tech.department)
+                              .map(tech => tech.department.name))]
+                              .join(', ')
+                          : selectedEvent.assignedTo?.department?.name || 'Not assigned'}
+                      </div>
+                    </div>
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Technician:</label>
+                      <div className="view-value">
+                        {Array.isArray(selectedEvent.assignedTo) && selectedEvent.assignedTo.length > 0
+                          ? selectedEvent.assignedTo
+                              .map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`)
+                              .join(', ')
+                          : selectedEvent.assignedTo
+                            ? selectedEvent.assignedTo.fullName || `${selectedEvent.assignedTo.firstName} ${selectedEvent.assignedTo.lastName}`
+                            : 'Unassigned'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Start Date - End Date */}
+                  <div className="view-row">
+                    <div className="view-field view-field-half">
+                      <label className="view-label">Start Date:</label>
+                      <div className="view-value">{formatDate(selectedEvent.startDate)}</div>
+                    </div>
+                    {selectedEvent.endDate && (
+                      <div className="view-field view-field-half">
+                        <label className="view-label">End Date:</label>
+                        <div className="view-value">{formatDate(selectedEvent.endDate)}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={closeViewModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* Edit Ticket Modal */}
+      {showEditModal && selectedEvent && ReactDOM.createPortal(
+        <div className="modal">
+          <div className="modal-content ticket-modal" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
-              <h2>{selectedEvent.title}</h2>
-              <button className="modal-close" onClick={closeModal}>×</button>
+              <h2 className="modal-title">Edit Ticket</h2>
+              <button className="modal-close" onClick={closeEditModal}>×</button>
             </div>
             
-            <div className="modal-body">
+            <form onSubmit={handleUpdateTicket}>
+              {/* Title */}
+              <div className="form-row-100">
+                <div className="form-group">
+                  <label className="form-label">Title *</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
               {/* Activity Numbers */}
-              {selectedEvent.activityNumbers && selectedEvent.activityNumbers.length > 0 && (
-                <div className="detail-section">
-                  <label className="detail-label">Activity Numbers:</label>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
-                    {selectedEvent.activityNumbers.map((actNum, idx) => (
-                      <span key={idx} className="activity-badge" style={{ 
-                        backgroundColor: '#0066cc',
-                        color: 'white',
-                        padding: '4px 12px',
-                        borderRadius: '4px',
-                        fontSize: '0.9rem'
-                      }}>
-                        {actNum}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Dates */}
-              <div className="detail-section">
-                <label className="detail-label">Start Date:</label>
-                <div className="detail-value">{formatDate(selectedEvent.startDate)}</div>
-              </div>
-
-              {selectedEvent.endDate && (
-                <div className="detail-section">
-                  <label className="detail-label">End Date:</label>
-                  <div className="detail-value">{formatDate(selectedEvent.endDate)}</div>
-                </div>
-              )}
-
-              {/* Assigned Technicians */}
-              <div className="detail-section">
-                <label className="detail-label">Assigned To:</label>
-                <div className="detail-value">
-                  {Array.isArray(selectedEvent.assignedTo)
-                    ? selectedEvent.assignedTo.length > 0
-                      ? selectedEvent.assignedTo.map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`).join(', ')
-                      : 'Unassigned'
-                    : selectedEvent.assignedTo
-                      ? selectedEvent.assignedTo.fullName || `${selectedEvent.assignedTo.firstName} ${selectedEvent.assignedTo.lastName}`
-                      : 'Unassigned'}
+              <div className="form-row-100">
+                <div className="form-group">
+                  <label className="form-label">Activity Numbers</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.activityNumbers.join(' + ')}
+                    onChange={(e) => {
+                      const numbers = e.target.value.split('+').map(n => n.trim());
+                      setFormData({ ...formData, activityNumbers: numbers });
+                    }}
+                    onBlur={() => {
+                      const cleaned = formData.activityNumbers.filter(n => n !== '');
+                      setFormData({ ...formData, activityNumbers: cleaned });
+                    }}
+                    placeholder="Optional: e.g., 123456 + 789012"
+                  />
                 </div>
               </div>
-
+              
               {/* Description */}
-              {selectedEvent.description && (
-                <div className="detail-section">
-                  <label className="detail-label">Description:</label>
-                  <div className="detail-value" style={{ whiteSpace: 'pre-wrap' }}>
-                    {selectedEvent.description}
-                  </div>
+              <div className="form-row-100">
+                <div className="form-group">
+                  <label className="form-label">Description</label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
                 </div>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={closeModal}>
-                Close
-              </button>
-            </div>
+              </div>
+              
+              {/* Department */}
+              <div className="form-row-100">
+                <div className="form-group">
+                  <label className="form-label">Department</label>
+                  <select
+                    multiple
+                    className="form-control form-select-modern"
+                    value={formData.department}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                      setFormData({
+                        ...formData,
+                        department: selectedOptions,
+                        assignedTo: formData.assignedTo.filter(techId => {
+                          const tech = getFormFilteredTechnicians().find(t => t._id === techId);
+                          return tech && selectedOptions.includes(tech.department._id);
+                        })
+                      });
+                    }}
+                    size="4"
+                  >
+                    {departments.map(dept => (
+                      <option key={dept._id} value={dept._id}>
+                        📋 {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small style={{ color: '#666', fontSize: '0.85rem' }}>
+                    Hold Ctrl (Windows) or Cmd (Mac) to select multiple
+                  </small>
+                </div>
+              </div>
+              
+              {/* Technician */}
+              <div className="form-row-100">
+                <div className="form-group">
+                  <label className="form-label">Assigned To</label>
+                  <select
+                    multiple
+                    className="form-control form-select-modern"
+                    value={formData.assignedTo}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                      setFormData({ ...formData, assignedTo: selectedOptions });
+                    }}
+                    disabled={formData.department.length === 0}
+                    size="5"
+                  >
+                    {formData.department.length === 0 ? (
+                      <option disabled>Please select departments first</option>
+                    ) : (
+                      getFormFilteredTechnicians().map(tech => (
+                        <option key={tech._id} value={tech._id}>
+                          👤 {tech.fullName} {tech.department && `(${tech.department.name})`}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <small style={{ color: '#666', fontSize: '0.85rem' }}>
+                    Hold Ctrl (Windows) or Cmd (Mac) to select multiple
+                  </small>
+                </div>
+              </div>
+              
+              {/* Dates */}
+              <div className="form-row-50-50">
+                <div className="form-group">
+                  <label className="form-label">Start Date *</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">End Date (Optional)</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={closeEditModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Update
+                </button>
+              </div>
+            </form>
           </div>
         </div>,
         document.body

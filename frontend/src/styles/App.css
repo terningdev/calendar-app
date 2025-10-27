@@ -1862,6 +1862,12 @@ body {
   width: 100%;
 }
 
+/* Highlight today's date with border */
+.fc-day-today-custom {
+  border: 3px solid #0066cc !important;
+  background-color: rgba(0, 102, 204, 0.05) !important;
+}
+
 .fc-daygrid-day-number {
   padding: 4px;
   font-size: 0.9rem;
