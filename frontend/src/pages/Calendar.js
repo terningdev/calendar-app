@@ -96,8 +96,8 @@ const Calendar = () => {
           ? ticket.assignedTo.fullName || `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
           : 'Unassigned';
 
-      // Create display title
-      const displayTitle = isMobile ? ticket.title : `${techNames} - ${ticket.title}`;
+      // Create display title - on mobile show just title, on desktop separate techs from title
+      const displayTitle = isMobile ? ticket.title : ticket.title;
 
       // Calculate end date - add 1 day if there's no endDate or if it's the same day
       let endDate = ticket.endDate || ticket.startDate;
@@ -271,6 +271,22 @@ const Calendar = () => {
           events={getEvents()}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
+          eventContent={(arg) => {
+            // Custom event content to style technician names separately
+            if (isMobile) {
+              return { html: `<div class="fc-event-title-mobile">${arg.event.title}</div>` };
+            } else {
+              const technicians = arg.event.extendedProps.technicians;
+              return { 
+                html: `
+                  <div class="fc-event-content-custom">
+                    <div class="fc-event-tech">${technicians}</div>
+                    <div class="fc-event-title-custom">${arg.event.title}</div>
+                  </div>
+                ` 
+              };
+            }
+          }}
           height={isMobile ? 'auto' : '85vh'}
           contentHeight={isMobile ? 'auto' : undefined}
           aspectRatio={isMobile ? undefined : 1.8}

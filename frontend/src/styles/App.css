@@ -175,6 +175,11 @@ body {
   width: 100%;
 }
 
+/* Calendar page uses full width */
+.calendar-wrapper {
+  max-width: 100%;
+}
+
 /* Page Headers */
 .page-header {
   display: flex;
@@ -1815,6 +1820,31 @@ body {
 
 .fc-event-title {
   font-weight: 500;
+}
+
+/* Custom event content styling */
+.fc-event-content-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px;
+}
+
+.fc-event-tech {
+  font-style: italic;
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.fc-event-title-custom {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.fc-event-title-mobile {
+  font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .fc-daygrid-day-number {
