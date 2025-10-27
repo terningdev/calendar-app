@@ -5,7 +5,7 @@ import { useTranslation } from '../utils/translations';
 import bugReportService from '../services/bugReportService';
 import { toast } from 'react-toastify';
 
-const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus, onOpenManagePermissions, onOpenBugReports }) => {
+const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpenManageUsers, onOpenSystemStatus, onOpenManagePermissions, onOpenBugReports, isMobileMenu = false, onCloseMenu }) => {
   const { user, logout, updateUserPin } = useAuth();
   const { language, changeLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,6 +54,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
     try {
       await logout();
       setIsMenuOpen(false);
+      if (onCloseMenu) onCloseMenu(); // Close mobile menu if in mobile view
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -62,6 +63,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
   const openSettings = () => {
     setIsSettingsOpen(true);
     setIsMenuOpen(false);
+    if (onCloseMenu) onCloseMenu(); // Close mobile menu if in mobile view
     // Reset password fields and messages when opening settings
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setPasswordError('');
@@ -122,6 +124,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
     setIsBugReportOpen(true);
     setIsMenuOpen(false);
     setBugReportMessage('');
+    if (onCloseMenu) onCloseMenu(); // Close mobile menu if in mobile view
   };
 
   const closeBugReport = () => {
@@ -160,6 +163,347 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
     return user?.permissions?.[permission] === true;
   };
 
+  // Render Settings Modal
+  const renderSettingsModal = () => {
+    if (!isSettingsOpen) return null;
+    
+    return ReactDOM.createPortal(
+      <div 
+        className="modal" 
+        style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000
+      }}>
+        <div className="modal-content" style={{ 
+          maxWidth: '600px',
+          width: '90%',
+          backgroundColor: 'white',
+          padding: '30px',
+          borderRadius: '8px',
+          position: 'relative',
+          maxHeight: '90vh',
+          overflowY: 'auto'
+        }}>
+          <div className="modal-header">
+            <h2 className="modal-title">⚙️ Settings</h2>
+            <button className="modal-close" onClick={closeSettings}>×</button>
+          </div>
+          
+          {/* Appearance Section */}
+          <div style={{ marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #e0e0e0' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#333' }}>🎨 Appearance</h3>
+            
+            <div className="form-group">
+              <label className="form-label">Theme</label>
+              <select 
+                className="form-control" 
+                value={theme} 
+                onChange={handleThemeChange}
+              >
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌙 Dark</option>
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Language</label>
+              <select 
+                className="form-control" 
+                value={language} 
+                onChange={handleLanguageChange}
+              >
+                <option value="en">🇬🇧 English</option>
+                <option value="no">🇳🇴 Norsk</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Security Section */}
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#333' }}>🔐 Security</h3>
+            
+            <form onSubmit={handlePasswordSubmit}>
+              {passwordError && (
+                <div className="alert alert-error" style={{ marginBottom: '15px' }}>
+                  {passwordError}
+                </div>
+              )}
+              
+              {passwordSuccess && (
+                <div className="alert alert-success" style={{ marginBottom: '15px' }}>
+                  {passwordSuccess}
+                </div>
+              )}
+              
+              <div className="form-group">
+                <label className="form-label">Current Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  placeholder="Enter current password"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  placeholder="Enter new password"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  placeholder="Confirm new password"
+                />
+              </div>
+              
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                style={{ width: '100%', marginBottom: '10px' }}
+                disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+              >
+                Update Password
+              </button>
+            </form>
+          </div>
+          
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={closeSettings}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  // Render Bug Report Modal
+  const renderBugReportModal = () => {
+    if (!isBugReportOpen) return null;
+    
+    return ReactDOM.createPortal(
+      <div 
+        className="modal" 
+        style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999
+      }}>
+        <div 
+          className="modal-content" 
+          style={{ 
+            backgroundColor: 'var(--card-background)',
+            padding: '0',
+            borderRadius: '8px',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="modal-header" style={{ 
+            padding: '20px',
+            borderBottom: '1px solid var(--border-color)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <h2 style={{ margin: 0 }}>🐛 Report a Bug</h2>
+            <button 
+              onClick={closeBugReport}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                color: 'var(--text-color)'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="modal-body" style={{ 
+            padding: '20px',
+            overflowY: 'auto',
+            flex: '1'
+          }}>
+            <form onSubmit={handleBugReportSubmit}>
+              <div className="form-group">
+                <label className="form-label">Bug Description</label>
+                <textarea
+                  className="form-control"
+                  value={bugReportMessage}
+                  onChange={(e) => setBugReportMessage(e.target.value)}
+                  placeholder="Please describe the bug you encountered..."
+                  rows="6"
+                  style={{ resize: 'vertical' }}
+                  required
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  style={{ flex: 1 }}
+                  disabled={isSubmittingBug || !bugReportMessage.trim()}
+                >
+                  {isSubmittingBug ? 'Sending...' : 'Send Report'}
+                </button>
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  style={{ flex: 1 }}
+                  onClick={closeBugReport}
+                  disabled={isSubmittingBug}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  // Mobile menu version - expandable section at bottom
+  if (isMobileMenu) {
+    return (
+      <>
+        <div className="mobile-user-section">
+          <button
+            className="mobile-user-button"
+            onClick={toggleMenu}
+          >
+            <div className="mobile-user-info">
+              <div className="user-avatar">
+                {(user?.firstName?.[0] || user?.fullName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
+              </div>
+              <span className="mobile-user-name">
+                {user?.firstName || user?.fullName || user?.username || 'User'}
+              </span>
+              {totalNotifications > 0 && (
+                <span className="badge-notification-mobile">
+                  {totalNotifications}
+                </span>
+              )}
+            </div>
+            <span className={`mobile-menu-arrow ${isMenuOpen ? 'open' : ''}`}>▼</span>
+          </button>
+
+          {isMenuOpen && (
+            <div className="mobile-user-menu-expanded">
+              {onOpenPendingUsers && hasPermission('approveUsers') && (
+                <div className="mobile-user-menu-item" onClick={() => { 
+                  setIsMenuOpen(false); 
+                  onOpenPendingUsers();
+                  if (onCloseMenu) onCloseMenu();
+                }}>
+                  👥 Pending Users
+                  {pendingUserCount > 0 && (
+                    <span className="badge-small">
+                      {pendingUserCount}
+                    </span>
+                  )}
+                </div>
+              )}
+              {onOpenManageUsers && hasPermission('manageUsers') && (
+                <div className="mobile-user-menu-item" onClick={() => { 
+                  setIsMenuOpen(false); 
+                  onOpenManageUsers();
+                  if (onCloseMenu) onCloseMenu();
+                }}>
+                  👥 Manage Users
+                </div>
+              )}
+              {onOpenBugReports && hasPermission('viewBugReports') && (
+                <div className="mobile-user-menu-item" onClick={() => { 
+                  setIsMenuOpen(false); 
+                  onOpenBugReports();
+                  if (onCloseMenu) onCloseMenu();
+                }}>
+                  🐛 Manage Bug Reports
+                  {bugReportCount > 0 && (
+                    <span className="badge-small">
+                      {bugReportCount}
+                    </span>
+                  )}
+                </div>
+              )}
+              {onOpenManagePermissions && hasPermission('managePermissions') && (
+                <div className="mobile-user-menu-item" onClick={() => { 
+                  setIsMenuOpen(false); 
+                  onOpenManagePermissions();
+                  if (onCloseMenu) onCloseMenu();
+                }}>
+                  🔐 Manage RBAC
+                </div>
+              )}
+              {onOpenSystemStatus && (
+                <div className="mobile-user-menu-item" onClick={() => { 
+                  setIsMenuOpen(false); 
+                  onOpenSystemStatus();
+                  if (onCloseMenu) onCloseMenu();
+                }}>
+                  📊 System Status
+                </div>
+              )}
+              {hasPermission('submitBugReport') && (
+                <div className="mobile-user-menu-item" onClick={openBugReport}>
+                  🐛 Report a Bug!
+                </div>
+              )}
+              <div className="mobile-user-menu-item" onClick={openSettings}>
+                ⚙️ Settings
+              </div>
+              <div className="mobile-user-menu-item danger" onClick={handleLogout}>
+                🚪 Logout
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Modals are shared between mobile and desktop */}
+        {isSettingsOpen && renderSettingsModal()}
+        {isBugReportOpen && renderBugReportModal()}
+      </>
+    );
+  }
+
+  // Desktop version - original dropdown menu
   return (
     <>
       <div className="nav-user-menu">
@@ -279,232 +623,10 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
       </div>
 
       {/* Settings Modal */}
-      {isSettingsOpen && ReactDOM.createPortal(
-        <div 
-          className="modal" 
-          style={{ 
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10000
-        }}>
-          <div className="modal-content" style={{ 
-            maxWidth: '600px',
-            width: '90%',
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '8px',
-            position: 'relative',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <div className="modal-header">
-              <h2 className="modal-title">⚙️ Settings</h2>
-              <button className="modal-close" onClick={closeSettings}>×</button>
-            </div>
-            
-            {/* Appearance Section */}
-            <div style={{ marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #e0e0e0' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#333' }}>🎨 Appearance</h3>
-              
-              <div className="form-group">
-                <label className="form-label">Theme</label>
-                <select 
-                  className="form-control" 
-                  value={theme} 
-                  onChange={handleThemeChange}
-                >
-                  <option value="light">☀️ Light</option>
-                  <option value="dark">🌙 Dark</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label className="form-label">Language</label>
-                <select 
-                  className="form-control" 
-                  value={language} 
-                  onChange={handleLanguageChange}
-                >
-                  <option value="en">🇬🇧 English</option>
-                  <option value="no">🇳🇴 Norsk</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Security Section */}
-            <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: '#333' }}>🔐 Security</h3>
-              
-              <form onSubmit={handlePasswordSubmit}>
-                {passwordError && (
-                  <div className="alert alert-error" style={{ marginBottom: '15px' }}>
-                    {passwordError}
-                  </div>
-                )}
-                
-                {passwordSuccess && (
-                  <div className="alert alert-success" style={{ marginBottom: '15px' }}>
-                    {passwordSuccess}
-                  </div>
-                )}
-                
-                <div className="form-group">
-                  <label className="form-label">Current Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    placeholder="Enter current password"
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">New Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    placeholder="Enter new password"
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Confirm New Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    placeholder="Confirm new password"
-                  />
-                </div>
-                
-                <button 
-                  type="submit" 
-                  className="btn btn-primary" 
-                  style={{ width: '100%', marginBottom: '10px' }}
-                  disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                >
-                  Update Password
-                </button>
-              </form>
-            </div>
-            
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={closeSettings}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {renderSettingsModal()}
 
       {/* Bug Report Modal */}
-      {isBugReportOpen && ReactDOM.createPortal(
-        <div 
-          className="modal" 
-          style={{ 
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <div 
-            className="modal-content" 
-            style={{ 
-              backgroundColor: 'var(--card-background)',
-              padding: '0',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '500px',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header" style={{ 
-              padding: '20px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h2 style={{ margin: 0 }}>🐛 Report a Bug</h2>
-              <button 
-                onClick={closeBugReport}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: 'var(--text-color)'
-                }}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="modal-body" style={{ 
-              padding: '20px',
-              overflowY: 'auto',
-              flex: '1'
-            }}>
-              <form onSubmit={handleBugReportSubmit}>
-                <div className="form-group">
-                  <label className="form-label">Bug Description</label>
-                  <textarea
-                    className="form-control"
-                    value={bugReportMessage}
-                    onChange={(e) => setBugReportMessage(e.target.value)}
-                    placeholder="Please describe the bug you encountered..."
-                    rows="6"
-                    style={{ resize: 'vertical' }}
-                    required
-                  />
-                </div>
-                
-                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary" 
-                    style={{ flex: 1 }}
-                    disabled={isSubmittingBug || !bugReportMessage.trim()}
-                  >
-                    {isSubmittingBug ? 'Sending...' : 'Send Report'}
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn btn-secondary" 
-                    style={{ flex: 1 }}
-                    onClick={closeBugReport}
-                    disabled={isSubmittingBug}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {renderBugReportModal()}
     </>
   );
 };

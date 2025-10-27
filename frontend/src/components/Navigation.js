@@ -126,8 +126,8 @@ const Navigation = () => {
           {getCurrentPageTitle()}
         </div>
 
-        {/* User menu - desktop in right side, mobile also in top bar */}
-        <div className="nav-user-info">
+        {/* User menu - desktop only in top bar */}
+        <div className="nav-user-info desktop-only">
           <UserMenu 
             pendingUserCount={pendingUserCount}
             bugReportCount={bugReportCount}
@@ -188,6 +188,21 @@ const Navigation = () => {
               </Link>
             </li>
           )}
+
+          {/* User menu in mobile - at bottom */}
+          <li className="mobile-user-menu-container mobile-only">
+            <UserMenu 
+              pendingUserCount={pendingUserCount}
+              bugReportCount={bugReportCount}
+              onOpenPendingUsers={permissions?.viewUsers === true ? openPendingUsersModal : null}
+              onOpenManageUsers={permissions?.manageUsers === true ? openManageUsersModal : null}
+              onOpenBugReports={permissions?.viewBugReports === true ? openBugReportsModal : null}
+              onOpenSystemStatus={permissions?.viewSystemStatus === true ? openSystemStatusModal : null}
+              onOpenManagePermissions={permissions?.managePermissions === true ? openManagePermissionsModal : null}
+              isMobileMenu={true}
+              onCloseMenu={closeMenu}
+            />
+          </li>
         </ul>
         
         {/* Mobile overlay backdrop */}
