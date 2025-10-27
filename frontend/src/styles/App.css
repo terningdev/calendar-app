@@ -595,7 +595,7 @@ body {
 
 /* Ensure mobile user menu is hidden on desktop */
 .mobile-user-menu-container {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 768px) {
