@@ -153,11 +153,7 @@ const Tickets = () => {
       setTechnicians(technicians.filter(t => t.isActive));
       setDepartments(departments.filter(d => d.isActive));
       
-      // Set default department to Trondheim if it exists
-      const trondheimDept = departments.find(d => d.name === 'Trondheim' && d.isActive);
-      if (trondheimDept) {
-        setFilters(prev => ({ ...prev, department: [trondheimDept._id] }));
-      }
+      // Default to all departments (no filter)
     } catch (error) {
       toast.error('Error loading data');
       console.error('Error loading data:', error);
@@ -275,13 +271,7 @@ const Tickets = () => {
       selectedDepartments = [...new Set(departmentIds)]; // Remove duplicates
     }
     
-    // If no departments from technicians, default to Trondheim
-    if (selectedDepartments.length === 0) {
-      const trondheimDept = departments.find(dept => dept.name === 'Trondheim');
-      if (trondheimDept) {
-        selectedDepartments = [trondheimDept._id];
-      }
-    }
+    // If no departments from technicians, leave empty (no default)
     
     setFormData({
       title: ticket.title,
@@ -341,9 +331,8 @@ const Tickets = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // Default to Trondheim department
-    const trondheimDept = departments.find(dept => dept.name === 'Trondheim');
-    const defaultDepartments = trondheimDept ? [trondheimDept._id] : [];
+    // Default to no department (user can select)
+    const defaultDepartments = [];
     
     setFormData({
       title: '',
