@@ -2085,6 +2085,13 @@ body {
   }
 }
 
+/* Responsive RBAC Role Selection */
+@media (max-width: 768px) {
+  .modal-body > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .detail-section {
   margin-bottom: 15px;
 }

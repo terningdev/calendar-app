@@ -998,9 +998,10 @@ const GlobalModals = () => {
                     Configure what each role can view and do in the application. Changes take effect immediately for all users with that role.
                   </p>
 
-                  {/* Role Selection Dropdown */}
-                  <div style={{ marginBottom: '30px', display: 'flex', alignItems: 'flex-end', gap: '15px' }}>
-                    <div style={{ flex: 1 }}>
+                  {/* Role Selection Section - Side by Side Layout */}
+                  <div style={{ marginBottom: '30px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
+                    {/* Select Role to Edit */}
+                    <div style={{ padding: '20px', backgroundColor: 'var(--accent-bg)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                       <label style={{ 
                         display: 'block', 
                         marginBottom: '10px', 
@@ -1009,6 +1010,9 @@ const GlobalModals = () => {
                       }}>
                         Select Role to Edit:
                       </label>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        Choose a role to view and modify its permissions.
+                      </p>
                       <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value)}
@@ -1016,7 +1020,7 @@ const GlobalModals = () => {
                         style={{ 
                           fontSize: '1rem',
                           padding: '10px',
-                          maxWidth: '300px'
+                          width: '100%'
                         }}
                       >
                         <option value="">-- Select a Role --</option>
@@ -1032,6 +1036,45 @@ const GlobalModals = () => {
                         ))}
                       </select>
                     </div>
+
+                    {/* Default Role for New Users */}
+                    <div style={{ padding: '20px', backgroundColor: 'var(--accent-bg)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '10px', 
+                        fontWeight: 'bold',
+                        fontSize: '1.1rem'
+                      }}>
+                        🎯 Default Role for New Users:
+                      </label>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        Assigned to newly registered users when approved.
+                      </p>
+                      <select
+                        value={defaultRole}
+                        onChange={(e) => handleDefaultRoleChange(e.target.value)}
+                        className="form-control"
+                        style={{ 
+                          fontSize: '1rem',
+                          padding: '10px',
+                          width: '100%'
+                        }}
+                      >
+                        {allPermissions.filter(rp => rp.role !== 'sysadmin').map((rolePerms) => (
+                          <option key={rolePerms.role} value={rolePerms.role}>
+                            {rolePerms.role === 'user' && '👤 '}
+                            {rolePerms.role === 'technician' && '🔧 '}
+                            {rolePerms.role === 'administrator' && '👑 '}
+                            {rolePerms.isCustomRole && '✨ '}
+                            {rolePerms.role.charAt(0).toUpperCase() + rolePerms.role.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Create Role Button */}
+                  <div style={{ marginBottom: '30px', textAlign: 'center' }}>
                     <button
                       onClick={() => setShowCreateRoleModal(true)}
                       className="btn btn-primary"
@@ -1043,41 +1086,6 @@ const GlobalModals = () => {
                     >
                       ➕ Create Role
                     </button>
-                  </div>
-
-                  {/* Default Role for New Users */}
-                  <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: 'var(--accent-bg)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '10px', 
-                      fontWeight: 'bold',
-                      fontSize: '1.1rem'
-                    }}>
-                      🎯 Default Role for New User Registrations:
-                    </label>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                      This role will be automatically assigned to newly registered users when their registration is approved.
-                    </p>
-                    <select
-                      value={defaultRole}
-                      onChange={(e) => handleDefaultRoleChange(e.target.value)}
-                      className="form-control"
-                      style={{ 
-                        fontSize: '1rem',
-                        padding: '10px',
-                        maxWidth: '400px'
-                      }}
-                    >
-                      {allPermissions.filter(rp => rp.role !== 'sysadmin').map((rolePerms) => (
-                        <option key={rolePerms.role} value={rolePerms.role}>
-                          {rolePerms.role === 'user' && '👤 '}
-                          {rolePerms.role === 'technician' && '🔧 '}
-                          {rolePerms.role === 'administrator' && '👑 '}
-                          {rolePerms.isCustomRole && '✨ '}
-                          {rolePerms.role.charAt(0).toUpperCase() + rolePerms.role.slice(1)}
-                        </option>
-                      ))}
-                    </select>
                   </div>
 
                   {/* Permissions for Selected Role */}
