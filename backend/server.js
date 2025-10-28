@@ -169,10 +169,16 @@ const connectDB = async () => {
       await authRoutes.initializeDefaultUser();
     }
     
-    // Initialize default role permissions after DB connection
+    // Initialize default role permissions after DB connection (only creates sysadmin)
     const { initializeDefaultPermissions } = require('./models/PermissionsModel');
     if (initializeDefaultPermissions) {
       await initializeDefaultPermissions();
+    }
+    
+    // Initialize system settings
+    const { initializeDefaultSettings } = require('./models/SettingsModel');
+    if (initializeDefaultSettings) {
+      await initializeDefaultSettings();
     }
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
@@ -207,10 +213,16 @@ const connectDB = async () => {
           await authRoutes.initializeDefaultUser();
         }
         
-        // Initialize default role permissions after DB connection
+        // Initialize default role permissions after DB connection (only creates sysadmin)
         const { initializeDefaultPermissions } = require('./models/PermissionsModel');
         if (initializeDefaultPermissions) {
           await initializeDefaultPermissions();
+        }
+        
+        // Initialize system settings
+        const { initializeDefaultSettings } = require('./models/SettingsModel');
+        if (initializeDefaultSettings) {
+          await initializeDefaultSettings();
         }
         return;
       } catch (fallbackError) {

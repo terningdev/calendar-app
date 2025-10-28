@@ -37,6 +37,7 @@ const GlobalModals = () => {
   const [loadingPermissions, setLoadingPermissions] = useState(false);
   const [editedPermissions, setEditedPermissions] = useState({});
   const [selectedRole, setSelectedRole] = useState('');
+  const [defaultRole, setDefaultRole] = useState('tekniker_mobil');
   
   // Create role modal state
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
@@ -244,6 +245,17 @@ const GlobalModals = () => {
         initialEdited[rolePerms.role] = { ...rolePerms.permissions };
       });
       setEditedPermissions(initialEdited);
+      
+      // Load default role setting
+      try {
+        const defaultRoleResponse = await permissionsService.getDefaultRole();
+        if (defaultRoleResponse && defaultRoleResponse.defaultRole) {
+          setDefaultRole(defaultRoleResponse.defaultRole);
+        }
+      } catch (error) {
+        console.error('Error loading default role:', error);
+      }
+      
       // Set default selected role to technician if available
       if (permissionsArray.length > 0) {
         const techRole = permissionsArray.find(r => r.role === 'technician');
@@ -444,6 +456,16 @@ const GlobalModals = () => {
       toast.error(error.message || 'Failed to rename role');
     } finally {
       setRenamingRole(false);
+    }
+  };
+
+  const handleDefaultRoleChange = async (newDefaultRole) => {
+    try {
+      const response = await permissionsService.updateDefaultRole(newDefaultRole);
+      setDefaultRole(newDefaultRole);
+      toast.success(response.message || 'Default role updated successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update default role');
     }
   };
 
@@ -1021,6 +1043,41 @@ const GlobalModals = () => {
                     >
                       ➕ Create Role
                     </button>
+                  </div>
+
+                  {/* Default Role for New Users */}
+                  <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: 'var(--accent-bg)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '10px', 
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem'
+                    }}>
+                      🎯 Default Role for New User Registrations:
+                    </label>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                      This role will be automatically assigned to newly registered users when their registration is approved.
+                    </p>
+                    <select
+                      value={defaultRole}
+                      onChange={(e) => handleDefaultRoleChange(e.target.value)}
+                      className="form-control"
+                      style={{ 
+                        fontSize: '1rem',
+                        padding: '10px',
+                        maxWidth: '400px'
+                      }}
+                    >
+                      {allPermissions.filter(rp => rp.role !== 'sysadmin').map((rolePerms) => (
+                        <option key={rolePerms.role} value={rolePerms.role}>
+                          {rolePerms.role === 'user' && '👤 '}
+                          {rolePerms.role === 'technician' && '🔧 '}
+                          {rolePerms.role === 'administrator' && '👑 '}
+                          {rolePerms.isCustomRole && '✨ '}
+                          {rolePerms.role.charAt(0).toUpperCase() + rolePerms.role.slice(1)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Permissions for Selected Role */}

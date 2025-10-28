@@ -69,6 +69,26 @@ const permissionsService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to rename role');
     }
+  },
+
+  // Get default role for new user registrations
+  getDefaultRole: async () => {
+    try {
+      const response = await api.get('/permissions/settings/default-role');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch default role');
+    }
+  },
+
+  // Update default role for new user registrations
+  updateDefaultRole: async (role) => {
+    try {
+      const response = await api.put('/permissions/settings/default-role', { role });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update default role');
+    }
   }
 };
 

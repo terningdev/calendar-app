@@ -63,104 +63,13 @@ try {
 }
 
 // Function to initialize default permissions for all roles
+// DISABLED: This function is no longer called automatically to allow custom roles only
+// Users should create their own roles via the RBAC interface
 async function initializeDefaultPermissions() {
     try {
-        console.log('Initializing default role permissions...');
+        console.log('Note: initializeDefaultPermissions is disabled. Create roles via RBAC interface.');
         
-        // Default permissions for User role (basic, read-only access)
-        const userPermissions = {
-            role: 'user',
-            permissions: {
-                viewDashboard: true,
-                viewCalendar: true,
-                viewTickets: false,
-                viewAdministrator: false,
-                viewAbsences: false,
-                viewSkills: false,
-                
-                createTickets: false,
-                editOwnTickets: false,
-                editAllTickets: false,
-                deleteTickets: false,
-                assignTickets: false,
-                
-                viewUsers: false,
-                manageUsers: false,
-                approveUsers: false,
-                
-                submitBugReport: true,
-                viewBugReports: false,
-                
-                manageDepartments: false,
-                manageTechnicians: false,
-                viewSystemStatus: false,
-                managePermissions: false
-            }
-        };
-        
-        // Default permissions for Technician role
-        const technicianPermissions = {
-            role: 'technician',
-            permissions: {
-                viewDashboard: true,
-                viewCalendar: true,
-                viewTickets: true,
-                viewAdministrator: false,
-                viewAbsences: false,
-                viewSkills: false,
-                
-                createTickets: true,
-                editOwnTickets: true,
-                editAllTickets: false,
-                deleteTickets: false,
-                assignTickets: false,
-                
-                viewUsers: false,
-                manageUsers: false,
-                approveUsers: false,
-                
-                submitBugReport: true,
-                viewBugReports: false,
-                
-                manageDepartments: false,
-                manageTechnicians: false,
-                viewSystemStatus: false,
-                managePermissions: false
-            }
-        };
-        
-        // Default permissions for Administrator role
-        const administratorPermissions = {
-            role: 'administrator',
-            permissions: {
-                viewDashboard: true,
-                viewCalendar: true,
-                viewTickets: true,
-                viewAdministrator: true,
-                viewAbsences: true,
-                viewSkills: true,
-                
-                createTickets: true,
-                editOwnTickets: true,
-                editAllTickets: true,
-                deleteTickets: true,
-                assignTickets: true,
-                
-                viewUsers: true,
-                manageUsers: true,
-                approveUsers: true,
-                
-                submitBugReport: true,
-                viewBugReports: true,
-                
-                manageDepartments: true,
-                manageTechnicians: true,
-                viewSystemStatus: true,
-                managePermissions: true
-            }
-        };
-        
-        // Default permissions for Sysadmin role
+        // Only create sysadmin role if it doesn't exist (required for system)
         const sysadminPermissions = {
             role: 'sysadmin',
             permissions: {
@@ -191,15 +100,13 @@ async function initializeDefaultPermissions() {
             }
         };
         
-        // Create or update permissions for each role
-        for (const rolePermissions of [userPermissions, technicianPermissions, administratorPermissions, sysadminPermissions]) {
-            const existing = await PermissionsModel.findOne({ role: rolePermissions.role });
-            if (!existing) {
-                await PermissionsModel.create(rolePermissions);
-                console.log(`Created default permissions for ${rolePermissions.role} role`);
-            } else {
-                console.log(`Permissions for ${rolePermissions.role} role already exist`);
-            }
+        // Only create sysadmin if it doesn't exist
+        const existing = await PermissionsModel.findOne({ role: 'sysadmin' });
+        if (!existing) {
+            await PermissionsModel.create(sysadminPermissions);
+            console.log('Created sysadmin role (required for system)');
+        } else {
+            console.log('Sysadmin role already exists');
         }
         
         console.log('Default permissions initialization complete');

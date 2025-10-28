@@ -375,4 +375,62 @@ router.put('/roles/:role/rename', isAuthenticated, canManagePermissions, async (
     }
 });
 
+// GET /api/permissions/settings/default-role - Get default role for new users
+router.get('/settings/default-role', isAuthenticated, canManagePermissions, async (req, res) => {
+    try {
+        const { getSetting } = require('../models/SettingsModel');
+        const defaultRole = await getSetting('defaultUserRole', 'tekniker_mobil');
+        
+        res.json({ 
+            success: true, 
+            defaultRole 
+        });
+    } catch (error) {
+        console.error('Error fetching default role:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch default role' 
+        });
+    }
+});
+
+// PUT /api/permissions/settings/default-role - Update default role for new users
+router.put('/settings/default-role', isAuthenticated, canManagePermissions, async (req, res) => {
+    try {
+        const { role } = req.body;
+        
+        if (!role || typeof role !== 'string' || role.trim() === '') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Valid role name is required' 
+            });
+        }
+        
+        // Verify the role exists in permissions
+        const roleExists = await PermissionsModel.findOne({ role: role.trim() });
+        if (!roleExists) {
+            return res.status(404).json({ 
+                success: false, 
+                message: `Role '${role}' does not exist` 
+            });
+        }
+        
+        // Update the setting
+        const { updateSetting } = require('../models/SettingsModel');
+        await updateSetting('defaultUserRole', role.trim(), 'Default role assigned to newly approved users');
+        
+        res.json({ 
+            success: true, 
+            message: `Default role updated to '${role}' successfully`,
+            defaultRole: role.trim()
+        });
+    } catch (error) {
+        console.error('Error updating default role:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to update default role' 
+        });
+    }
+});
+
 module.exports = router;

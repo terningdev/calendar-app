@@ -98,6 +98,10 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email already registered.' });
         }
 
+        // Get default role from settings
+        const { getSetting } = require('../models/SettingsModel');
+        const defaultRole = await getSetting('defaultUserRole', 'tekniker_mobil');
+
         // Create new user (awaiting approval)
         const newUser = new UserModel({
             firstName,
@@ -105,7 +109,7 @@ router.post('/register', async (req, res) => {
             phone,
             email: email.toLowerCase(),
             password,
-            role: 'tekniker_mobil',
+            role: defaultRole,
             approved: false
         });
         await newUser.save();
