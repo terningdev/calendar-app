@@ -225,12 +225,13 @@ const Skills = () => {
       <div className="skills-management-section" style={{ 
         marginBottom: '30px',
         padding: '20px',
-        backgroundColor: '#f8f9fa',
+        backgroundColor: 'var(--card-bg)',
+        border: '1px solid var(--border-color)',
         borderRadius: '8px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ margin: 0 }}>📚 Categories & Products</h2>
+            <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>📚 Categories & Products</h2>
             <button 
               onClick={() => setCategoriesExpanded(!categoriesExpanded)}
               style={{
@@ -239,13 +240,13 @@ const Skills = () => {
                 cursor: 'pointer',
                 fontSize: '1.2rem',
                 padding: '5px',
-                color: '#666'
+                color: 'var(--text-secondary)'
               }}
               title={categoriesExpanded ? 'Collapse' : 'Expand'}
             >
               {categoriesExpanded ? '▼' : '▶'}
             </button>
-            <span style={{ fontSize: '0.9rem', color: '#666' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
               ({categories.length} {categories.length === 1 ? 'category' : 'categories'})
             </span>
           </div>
@@ -257,17 +258,17 @@ const Skills = () => {
         {categoriesExpanded && (
           <>
             {categories.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>
                 No categories yet. Click "Add Category" to get started.
               </p>
             ) : (
-              <div style={{ backgroundColor: 'white', borderRadius: '6px', border: '1px solid #dee2e6' }}>
+              <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                  <thead style={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)' }}>
                     <tr>
-                      <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Category</th>
-                      <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600' }}>Products</th>
-                      <th style={{ padding: '12px 15px', textAlign: 'center', fontWeight: '600', width: '180px' }}>Actions</th>
+                      <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>Category</th>
+                      <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: '600', color: 'var(--text-primary)' }}>Products</th>
+                      <th style={{ padding: '12px 15px', textAlign: 'center', fontWeight: '600', width: '180px', color: 'var(--text-primary)' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -280,13 +281,13 @@ const Skills = () => {
                         <tr 
                           key={category._id} 
                           style={{ 
-                            borderBottom: index < categories.length - 1 ? '1px solid #dee2e6' : 'none'
+                            borderBottom: index < categories.length - 1 ? '1px solid var(--border-color)' : 'none'
                           }}
                         >
                           <td style={{ padding: '12px 15px', verticalAlign: 'top' }}>
-                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{category.name}</div>
+                            <div style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--text-primary)' }}>{category.name}</div>
                             {category.description && (
-                              <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '2px' }}>
+                              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                                 {category.description}
                               </div>
                             )}
@@ -300,11 +301,11 @@ const Skills = () => {
                                     style={{
                                       display: 'inline-block',
                                       padding: '4px 10px',
-                                      backgroundColor: '#e7f3ff',
-                                      border: '1px solid #b8daff',
+                                      backgroundColor: 'var(--accent-bg)',
+                                      border: '1px solid var(--accent-border)',
                                       borderRadius: '4px',
                                       fontSize: '0.85rem',
-                                      color: '#004085'
+                                      color: 'var(--accent-text)'
                                     }}
                                   >
                                     {product.name}
@@ -312,7 +313,7 @@ const Skills = () => {
                                 ))}
                               </div>
                             ) : (
-                              <span style={{ fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
                                 No products
                               </span>
                             )}
@@ -350,11 +351,11 @@ const Skills = () => {
 
       {/* Skill Matrix Section */}
       <div className="skills-matrix-section">
-        <h2 style={{ marginBottom: '20px' }}>📊 Skill Matrix</h2>
+        <h2 style={{ marginBottom: '20px', color: 'var(--text-primary)' }}>📊 Skill Matrix</h2>
         
         <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
               Select Category:
             </label>
             <select
@@ -370,7 +371,7 @@ const Skills = () => {
           </div>
           
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
               Select Department:
             </label>
             <select
@@ -389,11 +390,11 @@ const Skills = () => {
         {selectedCategoryId && selectedDepartmentId && (
           <>
             {matrixTechnicians.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>
                 No technicians found in this department.
               </p>
             ) : matrixProducts.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px' }}>
                 No products found in this category.
               </p>
             ) : (
@@ -401,17 +402,17 @@ const Skills = () => {
                 <table style={{ 
                   width: '100%', 
                   borderCollapse: 'collapse',
-                  backgroundColor: 'white',
+                  backgroundColor: 'var(--card-bg)',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#3498db', color: 'white' }}>
+                    <tr style={{ backgroundColor: 'var(--primary-color)', color: 'white' }}>
                       <th style={{ 
                         padding: '15px',
                         textAlign: 'left',
                         position: 'sticky',
                         left: 0,
-                        backgroundColor: '#3498db',
+                        backgroundColor: 'var(--primary-color)',
                         zIndex: 2
                       }}>
                         Technician
@@ -429,15 +430,16 @@ const Skills = () => {
                   </thead>
                   <tbody>
                     {matrixTechnicians.map(tech => (
-                      <tr key={tech._id} style={{ borderBottom: '1px solid #dee2e6' }}>
+                      <tr key={tech._id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ 
                           padding: '15px',
                           fontWeight: 'bold',
                           position: 'sticky',
                           left: 0,
-                          backgroundColor: 'white',
+                          backgroundColor: 'var(--card-bg)',
+                          color: 'var(--text-primary)',
                           zIndex: 1,
-                          borderRight: '2px solid #dee2e6'
+                          borderRight: '2px solid var(--border-color)'
                         }}>
                           {tech.name}
                         </td>
@@ -456,10 +458,10 @@ const Skills = () => {
                                 style={{
                                   width: '100%',
                                   padding: '10px',
-                                  border: '2px solid #dee2e6',
+                                  border: '2px solid var(--border-color)',
                                   borderRadius: '6px',
                                   backgroundColor: getSkillLevelColor(level),
-                                  color: level ? 'white' : '#666',
+                                  color: level ? 'white' : 'var(--text-secondary)',
                                   fontWeight: 'bold',
                                   cursor: 'pointer',
                                   transition: 'all 0.2s',

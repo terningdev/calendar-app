@@ -88,11 +88,14 @@ const Dashboard = () => {
   const getMaxTickets = () => {
     let max = 0;
     ticketsByDate.forEach(day => {
+      // Calculate the sum of all departments for this day (stacked bar total)
+      let dayTotal = 0;
       departments.forEach(dept => {
-        if (day[dept._id] > max) {
-          max = day[dept._id];
-        }
+        dayTotal += (day[dept._id] || 0);
       });
+      if (dayTotal > max) {
+        max = dayTotal;
+      }
     });
     return Math.max(max, 5); // Minimum height of 5
   };

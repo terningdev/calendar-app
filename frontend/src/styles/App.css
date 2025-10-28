@@ -3,10 +3,14 @@
   /* Modern Light Theme - Clean and Professional */
   --topbar-bg: #c5aa6a;           /* Gold/tan - warm and professional */
   --page-bg: #f8fafc;             /* Very light blue-gray */
+  --bg-primary: #ffffff;          /* White background */
+  --bg-secondary: #f8f9fa;        /* Light gray background */
   --text-primary: #1e293b;        /* Dark slate for excellent readability */
   --text-secondary: #64748b;      /* Medium slate for secondary text */
+  --text-tertiary: #999999;       /* Lighter gray for subtle text */
   --card-bg: #ffffff;             /* Pure white cards */
   --card-border: #e2e8f0;         /* Light border */
+  --border-color: #dee2e6;        /* Standard border color */
   --hover-bg: rgba(59, 130, 246, 0.08);  /* Subtle blue hover */
   --modal-bg: #ffffff;
   --input-bg: #f8fafc;
@@ -19,6 +23,10 @@
   --mobile-menu-bg: #c5aa6a;      /* Match topbar */
   --agenda-header-bg: #f1f5f9;
   --agenda-header-text: #334155;
+  --primary-color: #3498db;       /* Blue primary color */
+  --accent-bg: #e7f3ff;           /* Light blue accent background */
+  --accent-border: #b8daff;       /* Light blue accent border */
+  --accent-text: #004085;         /* Dark blue accent text */
   --safe-area-bottom: env(safe-area-inset-bottom, 0px); /* Safe area for mobile */
 }
 
@@ -26,10 +34,14 @@
   /* Modern Dark Theme - Easy on the Eyes */
   --topbar-bg: #0f172a;           /* Very dark blue-slate */
   --page-bg: #0f172a;             /* Matching dark background */
+  --bg-primary: #1e293b;          /* Dark slate background */
+  --bg-secondary: #334155;        /* Medium dark background */
   --text-primary: #f1f5f9;        /* Light gray for readability */
   --text-secondary: #94a3b8;      /* Medium gray for secondary text */
+  --text-tertiary: #64748b;       /* Darker gray for subtle text */
   --card-bg: #1e293b;             /* Dark slate cards */
   --card-border: #334155;         /* Subtle border */
+  --border-color: #334155;        /* Standard border color */
   --hover-bg: rgba(59, 130, 246, 0.15);  /* Subtle blue hover */
   --modal-bg: #1e293b;
   --input-bg: #0f172a;
@@ -42,6 +54,10 @@
   --mobile-menu-bg: #1e293b;      /* Dark menu background */
   --agenda-header-bg: #334155;
   --agenda-header-text: #e2e8f0;
+  --primary-color: #3498db;       /* Blue primary color */
+  --accent-bg: #1e3a5f;           /* Dark blue accent background */
+  --accent-border: #2d5a8f;       /* Dark blue accent border */
+  --accent-text: #66b3ff;         /* Light blue accent text */
   --safe-area-bottom: env(safe-area-inset-bottom, 0px); /* Safe area for mobile */
 }
 
