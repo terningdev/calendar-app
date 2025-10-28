@@ -485,9 +485,11 @@ const Maps = () => {
                   <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem', fontWeight: 'bold' }}>
                     {ticket.title}
                   </h3>
-                  <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                    <strong>Ticket #:</strong> {ticket.ticketNumber || ticket.title || 'N/A'}
-                  </p>
+                  {ticket.activityNumbers && ticket.activityNumbers.length > 0 && (
+                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                      <strong>Activity:</strong> {ticket.activityNumbers.join(', ')}
+                    </p>
+                  )}
                   {ticket.description && (
                     <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
                       <strong>Description:</strong> {ticket.description}
