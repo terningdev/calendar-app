@@ -59,6 +59,8 @@ const Dashboard = () => {
   const processTicketsByTimeView = (tickets, departmentsData, view) => {
     const ticketsByPeriodMap = {};
     
+    console.log('Processing tickets:', tickets.length, 'departments:', departmentsData.length, 'view:', view);
+    
     tickets.forEach(ticket => {
       const date = new Date(ticket.startDate);
       let period;
@@ -104,6 +106,7 @@ const Dashboard = () => {
     }
     
     const chartData = limitedPeriods.map(period => ticketsByPeriodMap[period]);
+    console.log('Chart data:', chartData);
     setTicketsByDate(chartData);
   };
 
@@ -353,6 +356,7 @@ const Dashboard = () => {
                     const x = 50 + (index * ((Math.max(800, ticketsByDate.length * 60) - 70) / (ticketsByDate.length - 1 || 1)));
                     const count = period[dept._id] || 0;
                     const y = 350 - ((count / maxTickets) * 300);
+                    console.log('Point data:', { dept: dept.name, period: period.displayFormat, count, deptId: dept._id, periodKeys: Object.keys(period) });
                     return { x, y, count };
                   });
 
@@ -385,6 +389,19 @@ const Dashboard = () => {
                             strokeWidth="2"
                           />
                           <title>{`${dept.name}: ${p.count} ticket${p.count !== 1 ? 's' : ''}`}</title>
+                          {/* Display count on chart */}
+                          {p.count > 0 && (
+                            <text
+                              x={p.x}
+                              y={p.y - 10}
+                              textAnchor="middle"
+                              fontSize="11"
+                              fontWeight="bold"
+                              fill={color}
+                            >
+                              {p.count}
+                            </text>
+                          )}
                         </g>
                       ))}
                     </g>
