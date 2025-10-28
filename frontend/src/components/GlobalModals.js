@@ -44,6 +44,11 @@ const GlobalModals = () => {
   const [basedOnRole, setBasedOnRole] = useState('user');
   const [creatingRole, setCreatingRole] = useState(false);
   
+  // Rename role modal state
+  const [showRenameRoleModal, setShowRenameRoleModal] = useState(false);
+  const [renameRoleName, setRenameRoleName] = useState('');
+  const [renamingRole, setRenamingRole] = useState(false);
+  
   // Edit user modal state
   const [editingUser, setEditingUser] = useState(null);
   const [userFormData, setUserFormData] = useState({
@@ -413,6 +418,32 @@ const GlobalModals = () => {
       loadAllPermissions(); // Reload to get updated data
     } catch (error) {
       toast.error(error.message || 'Failed to delete role');
+    }
+  };
+
+  const handleRenameRole = async () => {
+    if (!renameRoleName.trim()) {
+      toast.error('Please enter a new role name');
+      return;
+    }
+    
+    if (renameRoleName.trim() === selectedRole) {
+      toast.error('New name must be different from current name');
+      return;
+    }
+    
+    setRenamingRole(true);
+    try {
+      const response = await permissionsService.renameRole(selectedRole, renameRoleName.trim());
+      toast.success(response.message || `Role renamed successfully. ${response.usersUpdated || 0} user(s) updated.`);
+      setShowRenameRoleModal(false);
+      setRenameRoleName('');
+      setSelectedRole(renameRoleName.trim()); // Update selected role to new name
+      loadAllPermissions(); // Reload to get updated data
+    } catch (error) {
+      toast.error(error.message || 'Failed to rename role');
+    } finally {
+      setRenamingRole(false);
     }
   };
 
@@ -1040,12 +1071,21 @@ const GlobalModals = () => {
                             🔄 Reset to Defaults
                           </button>
                           {!['user', 'technician', 'administrator', 'sysadmin'].includes(selectedRole) && (
-                            <button
-                              onClick={() => handleDeleteRole(selectedRole)}
-                              className="btn btn-danger"
-                            >
-                              🗑️ Delete Role
-                            </button>
+                            <>
+                              <button
+                                onClick={() => setShowRenameRoleModal(true)}
+                                className="btn btn-secondary"
+                                style={{ marginRight: '10px' }}
+                              >
+                                ✏️ Rename Role
+                              </button>
+                              <button
+                                onClick={() => handleDeleteRole(selectedRole)}
+                                className="btn btn-danger"
+                              >
+                                🗑️ Delete Role
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -1554,6 +1594,121 @@ const GlobalModals = () => {
                 disabled={creatingRole || !newRoleName.trim()}
               >
                 {creatingRole ? 'Creating...' : '✨ Create Role'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Rename Role Modal */}
+      {showRenameRoleModal && ReactDOM.createPortal(
+        <div 
+          className="modal" 
+          style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001
+          }}
+        >
+          <div className="modal-content" style={{ 
+            maxWidth: '500px',
+            width: '90%'
+          }}>
+            <div className="modal-header">
+              <h2 className="modal-title">✏️ Rename Role</h2>
+              <button className="modal-close" onClick={() => {
+                setShowRenameRoleModal(false);
+                setRenameRoleName('');
+              }}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: 'bold'
+                }}>
+                  Current Role Name:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={selectedRole}
+                  disabled
+                  style={{ 
+                    fontSize: '1rem',
+                    padding: '10px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    cursor: 'not-allowed'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: 'bold'
+                }}>
+                  New Role Name:
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={renameRoleName}
+                  onChange={(e) => setRenameRoleName(e.target.value)}
+                  placeholder="Enter new role name"
+                  style={{ 
+                    fontSize: '1rem',
+                    padding: '10px'
+                  }}
+                />
+                <small style={{ color: 'var(--text-secondary)', marginTop: '5px', display: 'block' }}>
+                  Only letters, numbers, underscores, and hyphens allowed
+                </small>
+              </div>
+
+              <div style={{
+                padding: '15px',
+                backgroundColor: 'var(--accent-bg)',
+                border: '1px solid var(--accent-border)',
+                borderRadius: '6px',
+                marginBottom: '10px'
+              }}>
+                <div style={{ color: 'var(--accent-text)', fontSize: '0.9rem' }}>
+                  ℹ️ <strong>Important:</strong> All users currently assigned the "{selectedRole}" role will automatically be updated to the new role name. Their permissions will remain unchanged.
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRenameRoleModal(false);
+                  setRenameRoleName('');
+                }}
+                className="btn btn-secondary"
+                disabled={renamingRole}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRenameRole}
+                className="btn btn-primary"
+                disabled={renamingRole || !renameRoleName.trim()}
+              >
+                {renamingRole ? 'Renaming...' : '✏️ Rename Role'}
               </button>
             </div>
           </div>

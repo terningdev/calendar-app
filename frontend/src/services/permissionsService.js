@@ -59,6 +59,16 @@ const permissionsService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to delete role');
     }
+  },
+
+  // Rename a role
+  renameRole: async (oldRoleName, newRoleName) => {
+    try {
+      const response = await api.put(`/permissions/roles/${oldRoleName}/rename`, { newRoleName });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to rename role');
+    }
   }
 };
 

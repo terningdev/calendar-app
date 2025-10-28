@@ -297,4 +297,85 @@ router.delete('/roles/:role', isAuthenticated, canManagePermissions, async (req,
     }
 });
 
+// PUT /api/permissions/roles/:role/rename - Rename a role
+router.put('/roles/:role/rename', isAuthenticated, canManagePermissions, async (req, res) => {
+    try {
+        const { role } = req.params;
+        const { newRoleName } = req.body;
+        
+        if (!newRoleName || typeof newRoleName !== 'string') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'New role name is required' 
+            });
+        }
+        
+        // Validate new role name (alphanumeric, underscores, hyphens only)
+        if (!/^[a-zA-Z0-9_-]+$/.test(newRoleName)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Role name can only contain letters, numbers, underscores, and hyphens' 
+            });
+        }
+        
+        // Prevent renaming system roles
+        if (['user', 'technician', 'administrator', 'sysadmin'].includes(role)) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Cannot rename system roles' 
+            });
+        }
+        
+        // Prevent using reserved names
+        if (['user', 'technician', 'administrator', 'sysadmin'].includes(newRoleName.toLowerCase())) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Cannot use reserved role names' 
+            });
+        }
+        
+        // Check if the old role exists
+        const existingRole = await PermissionsModel.findOne({ role, isCustomRole: true });
+        if (!existingRole) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Custom role not found' 
+            });
+        }
+        
+        // Check if new role name already exists
+        const roleNameExists = await PermissionsModel.findOne({ role: newRoleName });
+        if (roleNameExists) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'A role with this name already exists' 
+            });
+        }
+        
+        // Update the role name in PermissionsModel
+        existingRole.role = newRoleName;
+        await existingRole.save();
+        
+        // Update all users who have this role
+        const UserModel = require('../models/UserModel');
+        const updateResult = await UserModel.updateMany(
+            { role: role },
+            { $set: { role: newRoleName } }
+        );
+        
+        res.json({ 
+            success: true, 
+            message: `Role '${role}' renamed to '${newRoleName}' successfully`,
+            usersUpdated: updateResult.modifiedCount,
+            role: existingRole 
+        });
+    } catch (error) {
+        console.error('Error renaming role:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to rename role' 
+        });
+    }
+});
+
 module.exports = router;
