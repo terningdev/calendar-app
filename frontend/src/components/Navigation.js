@@ -102,6 +102,8 @@ const Navigation = () => {
         return t('administrator');
       case '/skills':
         return t('skills');
+      case '/maps':
+        return 'Maps';
       default:
         return t('dashboard');
     }
@@ -159,6 +161,13 @@ const Navigation = () => {
             <li>
               <Link to="/tickets" className={isActive('/tickets')} onClick={closeMenu}>
                 {t('tickets')}
+              </Link>
+            </li>
+          )}
+          {permissions?.viewTickets === true && (
+            <li>
+              <Link to="/maps" className={isActive('/maps')} onClick={closeMenu}>
+                Maps
               </Link>
             </li>
           )}

@@ -38,6 +38,11 @@ const ticketSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  address: {
+    type: String,
+    required: false,
+    trim: true
+  },
   notes: [{
     content: {
       type: String,

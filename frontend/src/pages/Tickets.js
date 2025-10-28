@@ -42,7 +42,8 @@ const Tickets = () => {
     createdBy: 'System User',
     startDate: '',
     endDate: '',
-    activityNumbers: []
+    activityNumbers: [],
+    address: ''
   });
 
   // Function to extract activity number from ticket
@@ -274,7 +275,8 @@ const Tickets = () => {
       department: selectedDepartments,
       createdBy: ticket.createdBy,
       startDate: new Date(ticket.startDate).toISOString().slice(0, 10),
-      endDate: ticket.endDate ? new Date(ticket.endDate).toISOString().slice(0, 10) : ''
+      endDate: ticket.endDate ? new Date(ticket.endDate).toISOString().slice(0, 10) : '',
+      address: ticket.address || ''
     });
     setShowModal(true);
   };
@@ -330,7 +332,8 @@ const Tickets = () => {
       department: defaultDepartments,
       createdBy: 'System User',
       startDate: tomorrow.toISOString().slice(0, 10),
-      endDate: ''
+      endDate: '',
+      address: ''
     });
     setShowModal(true);
   };
@@ -1255,6 +1258,20 @@ const Tickets = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Optional: Enter ticket description..."
+                  />
+                </div>
+              </div>
+              
+              {/* Address (100%) */}
+              <div className="form-row-100">
+                <div className="form-group">
+                  <label className="form-label">Address</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="Optional: Enter address for location on map..."
                   />
                 </div>
               </div>

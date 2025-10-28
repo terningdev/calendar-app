@@ -16,6 +16,7 @@ import Administrator from './pages/Administrator';
 import Tickets from './pages/Tickets';
 import Absences from './pages/Absences';
 import Skills from './pages/Skills';
+import Maps from './pages/Maps';
 
 function MainContent() {
   const location = useLocation();
@@ -30,6 +31,7 @@ function MainContent() {
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/absences" element={<Absences />} />
         <Route path="/skills" element={<Skills />} />
+        <Route path="/maps" element={<Maps />} />
       </Routes>
     </main>
   );
