@@ -13,8 +13,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
-  'https://onitio.planlegger.info',
-  'http://onitio.planlegger.info',
+  'https://onitio.terning.info',
+  'http://onitio.terning.info',
   'https://calendar-app-9uov.onrender.com'
 ];
 
