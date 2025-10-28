@@ -43,6 +43,11 @@ const ticketSchema = new mongoose.Schema({
     required: false,
     trim: true
   },
+  attendanceTime: {
+    type: String,
+    required: false,
+    trim: true
+  },
   notes: [{
     content: {
       type: String,

@@ -43,7 +43,8 @@ const Tickets = () => {
     startDate: '',
     endDate: '',
     activityNumbers: [],
-    address: ''
+    address: '',
+    attendanceTime: ''
   });
   
   // Address autocomplete state
@@ -295,7 +296,8 @@ const Tickets = () => {
       createdBy: ticket.createdBy,
       startDate: new Date(ticket.startDate).toISOString().slice(0, 10),
       endDate: ticket.endDate ? new Date(ticket.endDate).toISOString().slice(0, 10) : '',
-      address: ticket.address || ''
+      address: ticket.address || '',
+      attendanceTime: ticket.attendanceTime || ''
     });
     setShowModal(true);
   };
@@ -352,7 +354,8 @@ const Tickets = () => {
       createdBy: 'System User',
       startDate: tomorrow.toISOString().slice(0, 10),
       endDate: '',
-      address: ''
+      address: '',
+      attendanceTime: ''
     });
     setShowModal(true);
   };
@@ -1128,6 +1131,7 @@ const Tickets = () => {
                           <span className="agenda-ticket-title">
                             {ticket.title}
                             {ticket.address && <span style={{ marginLeft: '6px' }}>📍</span>}
+                            {ticket.attendanceTime && <span style={{ marginLeft: '6px' }}>⏰ {ticket.attendanceTime}</span>}
                             {getTicketDayInfo(ticket, date) && (
                               <span style={{ 
                                 marginLeft: '8px', 
@@ -1232,6 +1236,7 @@ const Tickets = () => {
                       <div className="mobile-agenda-ticket-title">
                         {ticket.title}
                         {ticket.address && <span style={{ marginLeft: '4px' }}>📍</span>}
+                        {ticket.attendanceTime && <span style={{ marginLeft: '4px' }}>⏰ {ticket.attendanceTime}</span>}
                         {getTicketDayInfo(ticket, date) && (
                           <span style={{ 
                             marginLeft: '6px', 
@@ -1320,8 +1325,8 @@ const Tickets = () => {
             </div>
             
             <form onSubmit={handleSubmit}>
-              {/* Title (100%) */}
-              <div className="form-row-100">
+              {/* Title and Attendance Time Row (50% + 50%) */}
+              <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Title *</label>
                   <input
@@ -1331,6 +1336,16 @@ const Tickets = () => {
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
                     placeholder="Enter ticket title"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Attendance</label>
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={formData.attendanceTime}
+                    onChange={(e) => setFormData({ ...formData, attendanceTime: e.target.value })}
+                    placeholder="HH:MM"
                   />
                 </div>
               </div>
@@ -2103,6 +2118,7 @@ const Tickets = () => {
                       <div className="view-value">
                         {viewingTicket.title}
                         {viewingTicket.address && <span style={{ marginLeft: '6px' }}>📍</span>}
+                        {viewingTicket.attendanceTime && <span style={{ marginLeft: '6px' }}>⏰ {viewingTicket.attendanceTime}</span>}
                       </div>
                     </div>
                     <div className="view-field view-field-half">
