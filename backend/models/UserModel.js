@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     },
     role: { 
         type: String, 
-        default: 'technician'
+        default: 'tekniker_mobil'
         // Note: No enum constraint to allow custom roles from PermissionsModel
     },
     approved: { 

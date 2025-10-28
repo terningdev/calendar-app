@@ -41,7 +41,7 @@ const Administrator = () => {
     lastName: '',
     phone: '',
     email: '',
-    role: 'user',
+    role: 'tekniker_mobil',
     requirePasswordReset: false
   });
 
@@ -428,7 +428,7 @@ const Administrator = () => {
       lastName: '',
       phone: '',
       email: '',
-      role: 'user',
+      role: 'tekniker_mobil',
       requirePasswordReset: false,
       temporaryPassword: ''
     });

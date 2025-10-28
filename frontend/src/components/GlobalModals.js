@@ -41,7 +41,7 @@ const GlobalModals = () => {
   // Create role modal state
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
-  const [basedOnRole, setBasedOnRole] = useState('user');
+  const [basedOnRole, setBasedOnRole] = useState('tekniker_mobil');
   const [creatingRole, setCreatingRole] = useState(false);
   
   // Rename role modal state
@@ -56,7 +56,7 @@ const GlobalModals = () => {
     lastName: '',
     phone: '',
     email: '',
-    role: 'user',
+    role: 'tekniker_mobil',
     requirePasswordReset: false
   });
 
@@ -328,7 +328,7 @@ const GlobalModals = () => {
       lastName: userToEdit.lastName || '',
       phone: userToEdit.phone || '',
       email: userToEdit.email || '',
-      role: userToEdit.role || 'user',
+      role: userToEdit.role || 'tekniker_mobil',
       requirePasswordReset: userToEdit.requirePasswordReset || false,
       temporaryPassword: ''
     });
@@ -341,7 +341,7 @@ const GlobalModals = () => {
       lastName: '',
       phone: '',
       email: '',
-      role: 'user',
+      role: 'tekniker_mobil',
       requirePasswordReset: false,
       temporaryPassword: ''
     });
@@ -392,7 +392,7 @@ const GlobalModals = () => {
       toast.success(`Role '${newRoleName}' created successfully`);
       setShowCreateRoleModal(false);
       setNewRoleName('');
-      setBasedOnRole('user');
+      setBasedOnRole('tekniker_mobil');
       loadAllPermissions(); // Reload to get updated data including new role
     } catch (error) {
       toast.error(error.message || 'Failed to create role');

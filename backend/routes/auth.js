@@ -105,7 +105,7 @@ router.post('/register', async (req, res) => {
             phone,
             email: email.toLowerCase(),
             password,
-            role: 'user',
+            role: 'tekniker_mobil',
             approved: false
         });
         await newUser.save();
