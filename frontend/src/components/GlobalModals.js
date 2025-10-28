@@ -508,16 +508,16 @@ const GlobalModals = () => {
                 <div className="pending-users-list">
                   {pendingUsers.map((user) => (
                     <div key={user.email} className="pending-user-card" style={{
-                      border: '1px solid #ddd',
                       borderRadius: '8px',
                       padding: '15px',
                       marginBottom: '12px',
-                      backgroundColor: '#fafafa'
+                      backgroundColor: 'var(--card-bg)',
+                      border: '1px solid var(--border-color)'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', marginBottom: '4px' }}>
-                            {user.firstName} {user.lastName} - <span style={{ color: '#666', fontSize: '0.95rem' }}>{user.email}</span>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                            {user.firstName} {user.lastName} - <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{user.email}</span>
                           </div>
                         </div>
                         <button 
@@ -530,7 +530,7 @@ const GlobalModals = () => {
                         </button>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                           +47 {user.phone} - <span style={{ fontStyle: 'italic' }}>Registered: {new Date(user.createdAt).toLocaleDateString()}</span>
                         </div>
                         <button 
@@ -582,11 +582,11 @@ const GlobalModals = () => {
                 <div className="pending-users-list">
                   {allUsers.map(u => (
                     <div key={u.email || u.username} className="pending-user-card" style={{
-                      border: '1px solid #ddd',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '8px',
                       padding: '18px',
                       marginBottom: '12px',
-                      backgroundColor: '#fafafa',
+                      backgroundColor: 'var(--card-bg)',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -594,19 +594,19 @@ const GlobalModals = () => {
                     }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ marginBottom: '8px', fontSize: '1.05rem' }}>
-                          <span style={{ fontWeight: '600', color: '#333' }}>
+                          <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
                             {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.username || 'Unknown')}
                           </span>
                           {u.phone && (
                             <>
-                              <span style={{ margin: '0 8px', color: '#999' }}>•</span>
-                              <span style={{ color: '#666' }}>+47 {u.phone}</span>
+                              <span style={{ margin: '0 8px', color: 'var(--text-tertiary)' }}>•</span>
+                              <span style={{ color: 'var(--text-secondary)' }}>+47 {u.phone}</span>
                             </>
                           )}
                           {u.email && (
                             <>
-                              <span style={{ margin: '0 8px', color: '#999' }}>•</span>
-                              <span style={{ color: '#666' }}>{u.email}</span>
+                              <span style={{ margin: '0 8px', color: 'var(--text-tertiary)' }}>•</span>
+                              <span style={{ color: 'var(--text-secondary)' }}>{u.email}</span>
                             </>
                           )}
                         </div>
@@ -839,8 +839,8 @@ const GlobalModals = () => {
                     style={{
                       padding: '8px 16px',
                       borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      background: 'white',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--card-bg)',
                       cursor: statusLoading ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -852,7 +852,7 @@ const GlobalModals = () => {
                 </div>
 
                 <div style={{ 
-                  border: '1px solid #ddd',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   padding: '15px',
                   marginBottom: '15px'
@@ -903,7 +903,7 @@ const GlobalModals = () => {
                     <div style={{ 
                       marginTop: '15px',
                       padding: '10px',
-                      background: '#f8f9fa',
+                      background: 'var(--accent-bg)',
                       borderRadius: '4px',
                       fontSize: '14px'
                     }}>
@@ -972,7 +972,7 @@ const GlobalModals = () => {
                 </div>
               ) : (
                 <div>
-                  <p style={{ marginBottom: '20px', color: '#666' }}>
+                  <p style={{ marginBottom: '20px', color: 'var(--text-secondary)' }}>
                     Configure what each role can view and do in the application. Changes take effect immediately for all users with that role.
                   </p>
 
@@ -1030,7 +1030,7 @@ const GlobalModals = () => {
                         padding: '25px',
                         border: '2px solid #3498db',
                         borderRadius: '8px',
-                        backgroundColor: '#f8f9fa'
+                        backgroundColor: 'var(--accent-bg)'
                       }}
                     >
                       <div style={{ 
@@ -1039,7 +1039,7 @@ const GlobalModals = () => {
                         alignItems: 'center',
                         marginBottom: '20px',
                         paddingBottom: '15px',
-                        borderBottom: '2px solid #dee2e6'
+                        borderBottom: '2px solid var(--border-color)'
                       }}>
                         <h3 style={{ 
                           margin: 0,
@@ -1107,10 +1107,10 @@ const GlobalModals = () => {
                       <div style={{ marginBottom: '25px' }}>
                         <h4 style={{ 
                           fontSize: '1.1rem', 
-                          color: '#2c3e50', 
+                          color: 'var(--text-primary)', 
                           marginBottom: '15px',
                           paddingBottom: '10px',
-                          borderBottom: '1px solid #dee2e6'
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
                           📊 Tab Visibility
                         </h4>
@@ -1120,9 +1120,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1138,9 +1138,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1156,9 +1156,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1174,9 +1174,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1192,9 +1192,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1210,9 +1210,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1230,10 +1230,10 @@ const GlobalModals = () => {
                       <div style={{ marginBottom: '25px' }}>
                         <h4 style={{ 
                           fontSize: '1.1rem', 
-                          color: '#2c3e50', 
+                          color: 'var(--text-primary)', 
                           marginBottom: '15px',
                           paddingBottom: '10px',
-                          borderBottom: '1px solid #dee2e6'
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
                           👤 User Menu Access
                         </h4>
@@ -1243,9 +1243,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1261,9 +1261,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1279,9 +1279,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1297,9 +1297,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1317,10 +1317,10 @@ const GlobalModals = () => {
                       <div style={{ marginBottom: '25px' }}>
                         <h4 style={{ 
                           fontSize: '1.1rem', 
-                          color: '#2c3e50', 
+                          color: 'var(--text-primary)', 
                           marginBottom: '15px',
                           paddingBottom: '10px',
-                          borderBottom: '1px solid #dee2e6'
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
                           🎫 Ticket Permissions
                         </h4>
@@ -1330,9 +1330,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1348,9 +1348,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1366,9 +1366,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1384,9 +1384,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1402,9 +1402,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1422,10 +1422,10 @@ const GlobalModals = () => {
                       <div style={{ marginBottom: '20px' }}>
                         <h4 style={{ 
                           fontSize: '1.1rem', 
-                          color: '#2c3e50', 
+                          color: 'var(--text-primary)', 
                           marginBottom: '15px',
                           paddingBottom: '10px',
-                          borderBottom: '1px solid #dee2e6'
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
                           ⚙️ Administrative Permissions
                         </h4>
@@ -1435,9 +1435,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1453,9 +1453,9 @@ const GlobalModals = () => {
                             alignItems: 'center', 
                             cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
                             padding: '10px',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--card-bg)',
                             borderRadius: '6px',
-                            border: '1px solid #dee2e6'
+                            border: '1px solid var(--border-color)'
                           }}>
                             <input
                               type="checkbox"
@@ -1545,7 +1545,7 @@ const GlobalModals = () => {
                     padding: '10px'
                   }}
                 />
-                <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                <small style={{ color: 'var(--text-secondary)', marginTop: '5px', display: 'block' }}>
                   Only letters, numbers, underscores, and hyphens allowed
                 </small>
               </div>
@@ -1572,7 +1572,7 @@ const GlobalModals = () => {
                   <option value="administrator">👑 Administrator (Full permissions)</option>
                   <option value="sysadmin">⚙️ Sysadmin (All permissions)</option>
                 </select>
-                <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                <small style={{ color: 'var(--text-secondary)', marginTop: '5px', display: 'block' }}>
                   The new role will start with these permissions, which you can then customize
                 </small>
               </div>
