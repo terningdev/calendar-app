@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [ticketsByDate, setTicketsByDate] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [timeView, setTimeView] = useState('day'); // 'day', 'month', 'year'
 
   useEffect(() => {
     loadDashboardData();
@@ -46,38 +47,8 @@ const Dashboard = () => {
 
       setDepartments(departmentsData);
 
-      // Process tickets by date and department
-      const ticketsByDateMap = {};
-      
-      tickets.forEach(ticket => {
-        const date = new Date(ticket.startDate).toLocaleDateString('en-CA'); // YYYY-MM-DD format
-        if (!ticketsByDateMap[date]) {
-          ticketsByDateMap[date] = {};
-          departmentsData.forEach(dept => {
-            ticketsByDateMap[date][dept._id] = 0;
-          });
-        }
-        
-        if (ticket.department) {
-          const deptId = typeof ticket.department === 'object' ? ticket.department._id : ticket.department;
-          if (ticketsByDateMap[date][deptId] !== undefined) {
-            ticketsByDateMap[date][deptId]++;
-          }
-        }
-      });
-
-      // Convert to array and sort by date (last 30 dates)
-      const sortedDates = Object.keys(ticketsByDateMap)
-        .sort((a, b) => new Date(a) - new Date(b))
-        .slice(-30);
-      
-      const chartData = sortedDates.map(date => ({
-        date,
-        displayDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        ...ticketsByDateMap[date]
-      }));
-
-      setTicketsByDate(chartData);
+      // Process tickets by date and department based on time view
+      processTicketsByTimeView(tickets, departmentsData, timeView);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -85,19 +56,88 @@ const Dashboard = () => {
     }
   };
 
-  const getMaxTickets = () => {
-    let max = 0;
-    ticketsByDate.forEach(day => {
-      // Calculate the sum of all departments for this day (stacked bar total)
-      let dayTotal = 0;
-      departments.forEach(dept => {
-        dayTotal += (day[dept._id] || 0);
-      });
-      if (dayTotal > max) {
-        max = dayTotal;
+  const processTicketsByTimeView = (tickets, departmentsData, view) => {
+    const ticketsByPeriodMap = {};
+    
+    tickets.forEach(ticket => {
+      const date = new Date(ticket.startDate);
+      let period;
+      let displayFormat;
+      
+      if (view === 'day') {
+        period = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+        displayFormat = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      } else if (view === 'month') {
+        period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; // YYYY-MM
+        displayFormat = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      } else if (view === 'year') {
+        period = String(date.getFullYear()); // YYYY
+        displayFormat = String(date.getFullYear());
+      }
+      
+      if (!ticketsByPeriodMap[period]) {
+        ticketsByPeriodMap[period] = { period, displayFormat };
+        departmentsData.forEach(dept => {
+          ticketsByPeriodMap[period][dept._id] = 0;
+        });
+      }
+      
+      if (ticket.department) {
+        const deptId = typeof ticket.department === 'object' ? ticket.department._id : ticket.department;
+        if (ticketsByPeriodMap[period][deptId] !== undefined) {
+          ticketsByPeriodMap[period][deptId]++;
+        }
       }
     });
+
+    // Convert to array and sort by period
+    const sortedPeriods = Object.keys(ticketsByPeriodMap).sort();
+    
+    // Limit data points based on view
+    let limitedPeriods;
+    if (view === 'day') {
+      limitedPeriods = sortedPeriods.slice(-30); // Last 30 days
+    } else if (view === 'month') {
+      limitedPeriods = sortedPeriods.slice(-12); // Last 12 months
+    } else {
+      limitedPeriods = sortedPeriods.slice(-10); // Last 10 years
+    }
+    
+    const chartData = limitedPeriods.map(period => ticketsByPeriodMap[period]);
+    setTicketsByDate(chartData);
+  };
+
+  // Re-process data when time view changes
+  useEffect(() => {
+    if (departments.length > 0 && !loading) {
+      const reloadData = async () => {
+        try {
+          const tickets = await ticketService.getAll();
+          processTicketsByTimeView(tickets, departments, timeView);
+        } catch (error) {
+          console.error('Error reloading tickets:', error);
+        }
+      };
+      reloadData();
+    }
+  }, [timeView]);
+
+  const getMaxTickets = () => {
+    let max = 0;
+    ticketsByDate.forEach(period => {
+      departments.forEach(dept => {
+        const count = period[dept._id] || 0;
+        if (count > max) {
+          max = count;
+        }
+      });
+    });
     return Math.max(max, 5); // Minimum height of 5
+  };
+
+  const getDepartmentColor = (index) => {
+    const colors = ['#3498db', '#27ae60', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e', '#e67e22'];
+    return colors[index % colors.length];
   };
 
   if (loading) {
@@ -182,8 +222,31 @@ const Dashboard = () => {
 
       {/* Tickets by Date Chart */}
       <div className="card">
-        <div className="card-header">
-          <h2 className="card-title">Tickets per Date by Department</h2>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <h2 className="card-title">Tickets per {timeView === 'day' ? 'Day' : timeView === 'month' ? 'Month' : 'Year'} by Department</h2>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => setTimeView('day')}
+              className={`btn ${timeView === 'day' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '6px 15px', fontSize: '0.9rem' }}
+            >
+              Day
+            </button>
+            <button
+              onClick={() => setTimeView('month')}
+              className={`btn ${timeView === 'month' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '6px 15px', fontSize: '0.9rem' }}
+            >
+              Month
+            </button>
+            <button
+              onClick={() => setTimeView('year')}
+              className={`btn ${timeView === 'year' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '6px 15px', fontSize: '0.9rem' }}
+            >
+              Year
+            </button>
+          </div>
         </div>
         
         {ticketsByDate.length === 0 ? (
@@ -199,44 +262,135 @@ const Dashboard = () => {
                 <div key={dept._id} className="legend-item">
                   <span 
                     className="legend-color" 
-                    style={{ backgroundColor: index === 0 ? '#3498db' : '#27ae60' }}
+                    style={{ backgroundColor: getDepartmentColor(index) }}
                   ></span>
                   <span className="legend-label">{dept.name}</span>
                 </div>
               ))}
             </div>
 
-            {/* Bar Chart */}
-            <div className="bar-chart-container">
-              <div className="bar-chart-scroll">
-                {ticketsByDate.map((day, dayIndex) => (
-                  <div key={dayIndex} className="bar-chart-column">
-                    <div className="bar-chart-bars">
-                      {departments.map((dept, deptIndex) => {
-                        const count = day[dept._id] || 0;
-                        const heightPercent = (count / maxTickets) * 100;
-                        const color = deptIndex === 0 ? '#3498db' : '#27ae60';
-                        
-                        return (
-                          <div 
-                            key={dept._id} 
-                            className="bar-chart-bar"
-                            style={{ 
-                              height: `${heightPercent}%`,
-                              backgroundColor: color,
-                              opacity: count === 0 ? 0.2 : 1
-                            }}
-                            title={`${dept.name}: ${count} ticket${count !== 1 ? 's' : ''}`}
-                          >
-                            {count > 0 && <span className="bar-label">{count}</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="bar-chart-label">{day.displayDate}</div>
-                  </div>
-                ))}
-              </div>
+            {/* Line Chart */}
+            <div className="line-chart-container" style={{ 
+              padding: '20px', 
+              overflowX: 'auto',
+              position: 'relative'
+            }}>
+              <svg
+                width={Math.max(800, ticketsByDate.length * 60)}
+                height="400"
+                style={{ minWidth: '100%' }}
+              >
+                {/* Y-axis grid lines and labels */}
+                {[0, 1, 2, 3, 4, 5].map(i => {
+                  const y = 350 - (i * 60);
+                  const value = Math.round((maxTickets / 5) * i);
+                  return (
+                    <g key={i}>
+                      <line
+                        x1="50"
+                        y1={y}
+                        x2={Math.max(800, ticketsByDate.length * 60) - 20}
+                        y2={y}
+                        stroke="var(--border-color)"
+                        strokeWidth="1"
+                        opacity="0.3"
+                      />
+                      <text
+                        x="40"
+                        y={y + 5}
+                        textAnchor="end"
+                        fontSize="12"
+                        fill="var(--text-secondary)"
+                      >
+                        {value}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* X-axis */}
+                <line
+                  x1="50"
+                  y1="350"
+                  x2={Math.max(800, ticketsByDate.length * 60) - 20}
+                  y2="350"
+                  stroke="var(--text-primary)"
+                  strokeWidth="2"
+                />
+
+                {/* Y-axis */}
+                <line
+                  x1="50"
+                  y1="50"
+                  x2="50"
+                  y2="350"
+                  stroke="var(--text-primary)"
+                  strokeWidth="2"
+                />
+
+                {/* X-axis labels */}
+                {ticketsByDate.map((period, index) => {
+                  const x = 50 + (index * ((Math.max(800, ticketsByDate.length * 60) - 70) / (ticketsByDate.length - 1 || 1)));
+                  return (
+                    <text
+                      key={index}
+                      x={x}
+                      y="370"
+                      textAnchor="middle"
+                      fontSize="11"
+                      fill="var(--text-secondary)"
+                      transform={`rotate(-45, ${x}, 370)`}
+                    >
+                      {period.displayFormat}
+                    </text>
+                  );
+                })}
+
+                {/* Department lines */}
+                {departments.map((dept, deptIndex) => {
+                  const color = getDepartmentColor(deptIndex);
+                  const points = ticketsByDate.map((period, index) => {
+                    const x = 50 + (index * ((Math.max(800, ticketsByDate.length * 60) - 70) / (ticketsByDate.length - 1 || 1)));
+                    const count = period[dept._id] || 0;
+                    const y = 350 - ((count / maxTickets) * 300);
+                    return { x, y, count };
+                  });
+
+                  // Create path for line
+                  const pathData = points.map((p, i) => 
+                    `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
+                  ).join(' ');
+
+                  return (
+                    <g key={dept._id}>
+                      {/* Line */}
+                      <path
+                        d={pathData}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      
+                      {/* Data points */}
+                      {points.map((p, i) => (
+                        <g key={i}>
+                          <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r="5"
+                            fill={color}
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                          <title>{`${dept.name}: ${p.count} ticket${p.count !== 1 ? 's' : ''}`}</title>
+                        </g>
+                      ))}
+                    </g>
+                  );
+                })}
+              </svg>
             </div>
           </div>
         )}

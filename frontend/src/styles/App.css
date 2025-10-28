@@ -544,6 +544,17 @@ body {
   color: var(--text-primary, #2c3e50);
 }
 
+/* Line Chart Styles */
+.line-chart-container {
+  padding: 20px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.line-chart-container svg {
+  display: block;
+}
+
 .bar-chart-container {
   overflow-x: auto;
   overflow-y: visible;
