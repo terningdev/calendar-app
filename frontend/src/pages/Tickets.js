@@ -45,6 +45,13 @@ const Tickets = () => {
     activityNumbers: [],
     address: ''
   });
+  
+  // Address autocomplete state
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const addressTimeoutRef = useRef(null);
+  const addressInputRef = useRef(null);
 
   // Function to extract activity number from ticket
   const extractActivityNumber = (ticket) => {
@@ -117,6 +124,15 @@ const Tickets = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [mobileSearchExpanded]);
+
+  // Cleanup address timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (addressTimeoutRef.current) {
+        clearTimeout(addressTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadData = async () => {
     try {
@@ -457,6 +473,75 @@ const Tickets = () => {
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  // Address autocomplete search function
+  const searchAddresses = async (query) => {
+    if (!query || query.length < 3) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
+
+    setIsLoadingAddresses(true);
+    
+    try {
+      // Use Nominatim API with focus on Norway
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `format=json&` +
+        `q=${encodeURIComponent(query)}&` +
+        `countrycodes=no&` + // Limit to Norway
+        `limit=5&` +
+        `addressdetails=1`
+      );
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const suggestions = data.map(item => ({
+          display_name: item.display_name,
+          address: item.address,
+          lat: item.lat,
+          lon: item.lon
+        }));
+        
+        setAddressSuggestions(suggestions);
+        setShowAddressSuggestions(true);
+      } else {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      }
+    } catch (error) {
+      console.error('Address search error:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  };
+
+  // Handle address input change with debouncing
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, address: value });
+
+    // Clear existing timeout
+    if (addressTimeoutRef.current) {
+      clearTimeout(addressTimeoutRef.current);
+    }
+
+    // Set new timeout for search
+    addressTimeoutRef.current = setTimeout(() => {
+      searchAddresses(value);
+    }, 300); // Wait 300ms after user stops typing
+  };
+
+  // Handle address suggestion selection
+  const handleAddressSelect = (suggestion) => {
+    setFormData({ ...formData, address: suggestion.display_name });
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   const formatDateShort = (dateString) => {
@@ -1264,15 +1349,83 @@ const Tickets = () => {
               
               {/* Address (100%) */}
               <div className="form-row-100">
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative' }}>
                   <label className="form-label">Address</label>
                   <input
+                    ref={addressInputRef}
                     type="text"
                     className="form-control"
                     value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Optional: Enter address for location on map..."
+                    onChange={handleAddressChange}
+                    onFocus={() => {
+                      if (addressSuggestions.length > 0) {
+                        setShowAddressSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Delay hiding to allow click on suggestion
+                      setTimeout(() => setShowAddressSuggestions(false), 200);
+                    }}
+                    placeholder="Optional: Start typing address (e.g., 'Oslovegen, Trondheim')..."
+                    autoComplete="off"
                   />
+                  {isLoadingAddresses && (
+                    <div style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '38px',
+                      fontSize: '0.9rem',
+                      color: '#666'
+                    }}>
+                      Searching...
+                    </div>
+                  )}
+                  {showAddressSuggestions && addressSuggestions.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'var(--card-bg)',
+                      border: '1px solid var(--card-border)',
+                      borderRadius: '6px',
+                      marginTop: '4px',
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      boxShadow: '0 4px 12px var(--shadow)',
+                      zIndex: 1000
+                    }}>
+                      {addressSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          onClick={() => handleAddressSelect(suggestion)}
+                          style={{
+                            padding: '12px',
+                            cursor: 'pointer',
+                            borderBottom: index < addressSuggestions.length - 1 ? '1px solid var(--card-border)' : 'none',
+                            transition: 'background-color 0.2s',
+                            fontSize: '0.95rem',
+                            color: 'var(--text-primary)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <div style={{ fontWeight: '500', marginBottom: '4px' }}>
+                            {suggestion.address?.road || suggestion.address?.hamlet || suggestion.address?.village || 'Address'}
+                            {suggestion.address?.house_number && ` ${suggestion.address.house_number}`}
+                          </div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            {suggestion.address?.postcode && `${suggestion.address.postcode} `}
+                            {suggestion.address?.city || suggestion.address?.town || suggestion.address?.municipality || ''}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               
