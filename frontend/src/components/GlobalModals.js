@@ -402,8 +402,8 @@ const GlobalModals = () => {
   };
 
   const handleDeleteRole = async (role) => {
-    if (['user', 'technician', 'administrator', 'sysadmin'].includes(role)) {
-      toast.error('Cannot delete system roles');
+    if (role === 'sysadmin') {
+      toast.error('Cannot delete sysadmin role');
       return;
     }
     
@@ -1070,7 +1070,7 @@ const GlobalModals = () => {
                           >
                             🔄 Reset to Defaults
                           </button>
-                          {!['user', 'technician', 'administrator', 'sysadmin'].includes(selectedRole) && (
+                          {selectedRole !== 'sysadmin' && (
                             <>
                               <button
                                 onClick={() => setShowRenameRoleModal(true)}

@@ -264,35 +264,32 @@ router.delete('/roles/:role', isAuthenticated, canManagePermissions, async (req,
     try {
         const { role } = req.params;
         
-        // Prevent deleting system roles
-        if (['user', 'technician', 'administrator', 'sysadmin'].includes(role)) {
+        // Prevent deleting sysadmin role only
+        if (role === 'sysadmin') {
             return res.status(403).json({ 
                 success: false, 
-                message: 'Cannot delete system roles' 
+                message: 'Cannot delete sysadmin role' 
             });
         }
         
-        const deletedRole = await PermissionsModel.findOneAndDelete({ 
-            role,
-            isCustomRole: true 
-        });
+        const deletedRole = await PermissionsModel.findOneAndDelete({ role });
         
         if (!deletedRole) {
             return res.status(404).json({ 
                 success: false, 
-                message: 'Custom role not found' 
+                message: 'Role not found' 
             });
         }
         
         res.json({ 
             success: true, 
-            message: `Custom role '${role}' deleted successfully` 
+            message: `Role '${role}' deleted successfully` 
         });
     } catch (error) {
-        console.error('Error deleting custom role:', error);
+        console.error('Error deleting role:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to delete custom role' 
+            message: 'Failed to delete role' 
         });
     }
 });
@@ -318,28 +315,28 @@ router.put('/roles/:role/rename', isAuthenticated, canManagePermissions, async (
             });
         }
         
-        // Prevent renaming system roles
-        if (['user', 'technician', 'administrator', 'sysadmin'].includes(role)) {
+        // Prevent renaming sysadmin role only
+        if (role === 'sysadmin') {
             return res.status(403).json({ 
                 success: false, 
-                message: 'Cannot rename system roles' 
+                message: 'Cannot rename sysadmin role' 
             });
         }
         
-        // Prevent using reserved names
-        if (['user', 'technician', 'administrator', 'sysadmin'].includes(newRoleName.toLowerCase())) {
+        // Prevent using sysadmin as new name
+        if (newRoleName.toLowerCase() === 'sysadmin') {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Cannot use reserved role names' 
+                message: 'Cannot use sysadmin as role name' 
             });
         }
         
         // Check if the old role exists
-        const existingRole = await PermissionsModel.findOne({ role, isCustomRole: true });
+        const existingRole = await PermissionsModel.findOne({ role });
         if (!existingRole) {
             return res.status(404).json({ 
                 success: false, 
-                message: 'Custom role not found' 
+                message: 'Role not found' 
             });
         }
         

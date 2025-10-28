@@ -8,41 +8,17 @@ const { PermissionsModel } = require('../models/PermissionsModel'); // For fetch
 let users = [];
 let nextId = 1;
 
-// Initialize default sysadmin user in MongoDB
+// Initialize default sysadmin user - REMOVED
+// Sysadmin role can now be assigned to regular users through the Administrator panel
 const initializeDefaultUser = async () => {
     try {
-        // First check if there's a sysadmin by username
-        let existingSysadmin = await UserModel.findOne({ username: 'sysadmin' });
-        
-        if (!existingSysadmin) {
-            // Check if there's a sysadmin by role without username (old format)
-            const sysadminByRole = await UserModel.findOne({ role: 'sysadmin', username: { $exists: false } });
-            
-            if (sysadminByRole) {
-                // Update existing sysadmin to add username
-                sysadminByRole.username = 'sysadmin';
-                await sysadminByRole.save();
-                console.log('Updated existing sysadmin user with username field');
-            } else {
-                // Create new sysadmin user
-                const sysadmin = new UserModel({
-                    username: 'sysadmin',
-                    password: '696969',
-                    role: 'sysadmin',
-                    approved: true
-                });
-                await sysadmin.save();
-                console.log('Default sysadmin user created in MongoDB: sysadmin / 696969');
-            }
-        } else {
-            console.log('Sysadmin user already exists in MongoDB');
-        }
+        console.log('Sysadmin user initialization skipped - use regular user with sysadmin role');
     } catch (error) {
-        console.error('Error initializing default user:', error);
+        console.error('Error in initializeDefaultUser:', error);
     }
 };
 
-// Note: initializeDefaultUser() will be called from server.js after DB connection
+// Note: initializeDefaultUser() is kept for compatibility but does nothing
 
 // Helper function to find user by email
 const findUserByEmail = async (email) => {
@@ -802,14 +778,6 @@ router.delete('/users/:identifier', async (req, res) => {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Cannot delete unapproved user. Please approve or reject from pending users list.' 
-            });
-        }
-
-        // Prevent deleting sysadmin
-        if (userToDelete.username === 'sysadmin') {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Cannot delete sysadmin user.' 
             });
         }
 

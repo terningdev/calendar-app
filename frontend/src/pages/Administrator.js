@@ -1193,8 +1193,8 @@ const Administrator = () => {
                         <button
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDeleteUser(u.username || u.email)}
-                          disabled={u.role === 'sysadmin' || (u.email && u.email === user?.email) || (u.username && u.username === user?.username)}
-                          title={u.role === 'sysadmin' ? 'Cannot delete sysadmin' : ((u.email && u.email === user?.email) || (u.username && u.username === user?.username)) ? 'Cannot delete yourself' : 'Delete user'}
+                          disabled={(u.email && u.email === user?.email) || (u.username && u.username === user?.username)}
+                          title={((u.email && u.email === user?.email) || (u.username && u.username === user?.username)) ? 'Cannot delete yourself' : 'Delete user'}
                         >
                           🗑️ Delete
                         </button>
