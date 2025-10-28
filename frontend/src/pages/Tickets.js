@@ -1127,6 +1127,7 @@ const Tickets = () => {
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', marginBottom: '4px' }}>
                           <span className="agenda-ticket-title">
                             {ticket.title}
+                            {ticket.address && <span style={{ marginLeft: '6px' }}>📍</span>}
                             {getTicketDayInfo(ticket, date) && (
                               <span style={{ 
                                 marginLeft: '8px', 
@@ -1230,6 +1231,7 @@ const Tickets = () => {
                       {/* Title */}
                       <div className="mobile-agenda-ticket-title">
                         {ticket.title}
+                        {ticket.address && <span style={{ marginLeft: '4px' }}>📍</span>}
                         {getTicketDayInfo(ticket, date) && (
                           <span style={{ 
                             marginLeft: '6px', 
@@ -2098,7 +2100,10 @@ const Tickets = () => {
                   <div className="view-row">
                     <div className="view-field view-field-half">
                       <label className="view-label">Title:</label>
-                      <div className="view-value">{viewingTicket.title}</div>
+                      <div className="view-value">
+                        {viewingTicket.title}
+                        {viewingTicket.address && <span style={{ marginLeft: '6px' }}>📍</span>}
+                      </div>
                     </div>
                     <div className="view-field view-field-half">
                       <label className="view-label">Activity Number:</label>
