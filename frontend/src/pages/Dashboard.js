@@ -59,6 +59,12 @@ const Dashboard = () => {
   const processTicketsByTimeView = (tickets, departmentsData, view) => {
     const ticketsByPeriodMap = {};
     
+    // Debug: Log the first ticket and first department to see structure
+    if (tickets.length > 0 && departmentsData.length > 0) {
+      console.log('Sample ticket:', JSON.stringify(tickets[0], null, 2));
+      console.log('Sample department:', JSON.stringify(departmentsData[0], null, 2));
+    }
+    
     tickets.forEach(ticket => {
       const date = new Date(ticket.startDate);
       let period;
@@ -84,8 +90,12 @@ const Dashboard = () => {
       
       if (ticket.department) {
         const deptId = typeof ticket.department === 'object' ? ticket.department._id : ticket.department;
+        console.log('Ticket department ID:', deptId, 'Available dept IDs:', departmentsData.map(d => d._id));
         if (ticketsByPeriodMap[period][deptId] !== undefined) {
           ticketsByPeriodMap[period][deptId]++;
+          console.log('Incremented count for', deptId, 'in period', period, 'to', ticketsByPeriodMap[period][deptId]);
+        } else {
+          console.log('Department ID not found:', deptId);
         }
       }
     });
@@ -104,6 +114,7 @@ const Dashboard = () => {
     }
     
     const chartData = limitedPeriods.map(period => ticketsByPeriodMap[period]);
+    console.log('Final chart data:', chartData);
     setTicketsByDate(chartData);
   };
 
