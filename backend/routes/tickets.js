@@ -303,6 +303,7 @@ router.put('/:id', requireAuth, [
     if (req.body.hasOwnProperty('ticketNumber')) updateData.ticketNumber = req.body.ticketNumber;
     if (req.body.hasOwnProperty('title')) updateData.title = req.body.title;
     if (req.body.hasOwnProperty('description')) updateData.description = req.body.description !== undefined ? req.body.description : '';
+    if (req.body.hasOwnProperty('address')) updateData.address = req.body.address !== undefined ? req.body.address : '';
     if (req.body.hasOwnProperty('startDate')) updateData.startDate = req.body.startDate;
     if (req.body.hasOwnProperty('endDate')) updateData.endDate = req.body.endDate;
     if (req.body.hasOwnProperty('assignedTo')) updateData.assignedTo = req.body.assignedTo;

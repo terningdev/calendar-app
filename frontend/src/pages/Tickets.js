@@ -211,6 +211,9 @@ const Tickets = () => {
       // Ensure description is always a string (empty string if no content)
       cleanData.description = cleanData.description || '';
       
+      // Ensure address is always a string (empty string if no content)
+      cleanData.address = cleanData.address || '';
+      
       // Remove endDate if empty
       if (!cleanData.endDate || cleanData.endDate === '') {
         delete cleanData.endDate;
