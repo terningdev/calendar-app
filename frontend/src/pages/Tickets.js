@@ -540,9 +540,34 @@ const Tickets = () => {
     }, 300); // Wait 300ms after user stops typing
   };
 
+  // Format address in Norwegian style: "Street Number, Postcode City"
+  const formatNorwegianAddress = (address) => {
+    const parts = [];
+    
+    // Street and house number
+    if (address.road) {
+      const street = address.road;
+      const number = address.house_number || '';
+      parts.push(number ? `${street} ${number}` : street);
+    }
+    
+    // Postal code and city/town
+    const location = address.city || address.town || address.municipality || address.village || '';
+    if (address.postcode && location) {
+      parts.push(`${address.postcode} ${location}`);
+    } else if (address.postcode) {
+      parts.push(address.postcode);
+    } else if (location) {
+      parts.push(location);
+    }
+    
+    return parts.join(', ');
+  };
+
   // Handle address suggestion selection
   const handleAddressSelect = (suggestion) => {
-    setFormData({ ...formData, address: suggestion.display_name });
+    const formattedAddress = formatNorwegianAddress(suggestion.address);
+    setFormData({ ...formData, address: formattedAddress });
     setShowAddressSuggestions(false);
     setAddressSuggestions([]);
   };
