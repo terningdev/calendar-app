@@ -38,7 +38,6 @@ const Maps = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [geocodedTickets, setGeocodedTickets] = useState([]);
-  const [selectedTicket, setSelectedTicket] = useState(null);
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [showFilterDepartmentSelector, setShowFilterDepartmentSelector] = useState(false);
   const [showFilterTechnicianSelector, setShowFilterTechnicianSelector] = useState(false);
@@ -192,7 +191,9 @@ const Maps = () => {
 
       // Department filter
       if (filters.department.length > 0) {
-        const ticketDepts = Array.isArray(ticket.department) ? ticket.department : [];
+        const ticketDepts = Array.isArray(ticket.department) 
+          ? ticket.department.map(d => typeof d === 'object' ? d._id : d)
+          : [];
         if (!filters.department.some(deptId => ticketDepts.includes(deptId))) {
           return false;
         }
@@ -257,12 +258,6 @@ const Maps = () => {
 
   return (
     <div className="maps-container">
-      <div className="page-header">
-        <button className="btn btn-secondary" onClick={loadData} disabled={loading}>
-          🔄 Refresh
-        </button>
-      </div>
-
       {/* Desktop Filters */}
       <div className="card desktop-only" style={{ marginBottom: '12px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
@@ -484,9 +479,6 @@ const Maps = () => {
             <Marker 
               key={ticket._id}
               position={[ticket.coordinates.lat, ticket.coordinates.lng]}
-              eventHandlers={{
-                click: () => setSelectedTicket(ticket),
-              }}
             >
               <Popup>
                 <div style={{ minWidth: '200px' }}>
@@ -494,7 +486,7 @@ const Maps = () => {
                     {ticket.title}
                   </h3>
                   <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                    <strong>Ticket #:</strong> {ticket.ticketNumber}
+                    <strong>Ticket #:</strong> {ticket.ticketNumber || ticket.title || 'N/A'}
                   </p>
                   {ticket.description && (
                     <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
@@ -529,26 +521,6 @@ const Maps = () => {
           )}
         </MapContainer>
       </div>
-
-      {selectedTicket && (
-        <div className="card" style={{ marginTop: '20px', padding: '20px' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: 'var(--text-primary)' }}>Selected Ticket</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-            <div>
-              <strong>Title:</strong> {selectedTicket.title}
-            </div>
-            <div>
-              <strong>Ticket #:</strong> {selectedTicket.ticketNumber}
-            </div>
-            <div>
-              <strong>Address:</strong> {selectedTicket.address}
-            </div>
-            <div>
-              <strong>Start Date:</strong> {new Date(selectedTicket.startDate).toLocaleDateString()}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
