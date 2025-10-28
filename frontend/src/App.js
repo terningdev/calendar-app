@@ -21,9 +21,13 @@ import Maps from './pages/Maps';
 function MainContent() {
   const location = useLocation();
   const isCalendarPage = location.pathname === '/calendar';
+  const isMapsPage = location.pathname === '/maps';
+
+  // Use full width for Calendar and Maps pages
+  const contentClass = (isCalendarPage || isMapsPage) ? 'main-content calendar-wrapper' : 'main-content';
 
   return (
-    <main className={isCalendarPage ? 'main-content calendar-wrapper' : 'main-content'}>
+    <main className={contentClass}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/calendar" element={<Calendar />} />

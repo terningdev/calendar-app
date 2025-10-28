@@ -174,9 +174,10 @@ const Maps = () => {
     if (filters.department.length === 0) {
       return technicians;
     }
-    return technicians.filter(tech => 
-      filters.department.some(deptId => tech.departments?.includes(deptId))
-    );
+    return technicians.filter(tech => {
+      const techDeptId = typeof tech.department === 'object' ? tech.department._id : tech.department;
+      return filters.department.includes(techDeptId);
+    });
   };
 
   // Filter logic
