@@ -579,6 +579,9 @@ router.put('/users/:identifier', async (req, res) => {
     try {
         const { identifier } = req.params; // Can be email or username
         const { firstName, lastName, phone, newEmail, role, requirePasswordReset, temporaryPassword } = req.body;
+        
+        console.log('Update user request - identifier:', identifier);
+        console.log('Update user request - body:', { firstName, lastName, phone, newEmail, role, requirePasswordReset, temporaryPassword });
 
         // Check authentication
         if (!req.session.user) {
@@ -656,11 +659,16 @@ router.put('/users/:identifier', async (req, res) => {
             });
         }
 
-        if (role && !(await User.isValidRole(role))) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid role.' 
-            });
+        if (role) {
+            console.log('Role validation - received role:', role);
+            const isValid = await User.isValidRole(role);
+            console.log('Role validation - isValid result:', isValid);
+            if (!isValid) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Invalid role.' 
+                });
+            }
         }
 
         // Check if new email already exists
