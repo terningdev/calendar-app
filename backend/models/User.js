@@ -86,8 +86,13 @@ class User {
     static async isValidRole(role) {
         try {
             const PermissionsModel = require('./PermissionsModel');
+            console.log('Validating role:', role);
+            const allRoles = await PermissionsModel.find({}, 'role');
+            console.log('Available roles in database:', allRoles.map(r => r.role));
             const existingRole = await PermissionsModel.findOne({ role: role });
-            return existingRole !== null;
+            const isValid = existingRole !== null;
+            console.log('Role validation result:', isValid);
+            return isValid;
         } catch (error) {
             console.error('Error validating role:', error);
             // Fallback to sysadmin if there's an error
