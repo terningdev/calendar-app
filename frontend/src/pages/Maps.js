@@ -39,6 +39,8 @@ const Maps = () => {
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
+  const [geocodingProgress, setGeocodingProgress] = useState({ current: 0, total: 0 });
   const [geocodedTickets, setGeocodedTickets] = useState([]);
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [showFilterDepartmentSelector, setShowFilterDepartmentSelector] = useState(false);
@@ -115,7 +117,8 @@ const Maps = () => {
     }
   }, []);
 
-  const loadData = async () => {
+  // Load basic data first (for map to show immediately)
+  const loadBasicData = async () => {
     try {
       setLoading(true);
       const [ticketsData, techniciansData, departmentsData] = await Promise.allSettled([
@@ -134,32 +137,53 @@ const Maps = () => {
       // Filter tickets that have an address
       const ticketsWithAddress = fetchedTickets.filter(ticket => ticket.address && ticket.address.trim() !== '');
       setTickets(ticketsWithAddress);
-
-      // Geocode all addresses
-      const geocoded = [];
-      for (const ticket of ticketsWithAddress) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const coords = await geocodeAddress(ticket.address);
-        if (coords) {
-          geocoded.push({
-            ...ticket,
-            coordinates: coords,
-          });
-        }
-      }
       
-      setGeocodedTickets(geocoded);
+      // Map is ready to show (without markers yet)
+      setLoading(false);
+      setMapReady(true);
+      
+      // Start geocoding process in background
+      if (ticketsWithAddress.length > 0) {
+        geocodeTicketsProgressively(ticketsWithAddress);
+      }
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Error loading basic data:', error);
       toast.error('Error loading map data');
-    } finally {
       setLoading(false);
     }
   };
 
+  // Geocode tickets progressively in background
+  const geocodeTicketsProgressively = async (ticketsWithAddress) => {
+    const geocoded = [];
+    setGeocodingProgress({ current: 0, total: ticketsWithAddress.length });
+    
+    for (let i = 0; i < ticketsWithAddress.length; i++) {
+      const ticket = ticketsWithAddress[i];
+      
+      // Reduced delay from 1000ms to 250ms (4x faster)
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+      
+      const coords = await geocodeAddress(ticket.address);
+      if (coords) {
+        const geocodedTicket = {
+          ...ticket,
+          coordinates: coords,
+        };
+        geocoded.push(geocodedTicket);
+        // Update markers in real-time as they're geocoded
+        setGeocodedTickets([...geocoded]);
+      }
+      
+      // Update progress
+      setGeocodingProgress({ current: i + 1, total: ticketsWithAddress.length });
+    }
+  };
+
   useEffect(() => {
-    loadData();
+    loadBasicData();
   }, []);
 
   // Click outside handler for mobile search
@@ -259,7 +283,7 @@ const Maps = () => {
     return (
       <div className="loading-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <div className="spinner"></div>
-        <p>Loading map and geocoding addresses...</p>
+        <p>Loading map data...</p>
       </div>
     );
   }
@@ -497,9 +521,44 @@ const Maps = () => {
         document.body
       )}
 
+      {/* Geocoding Progress Indicator */}
+      {geocodingProgress.total > 0 && geocodingProgress.current < geocodingProgress.total && (
+        <div className="card" style={{ 
+          marginBottom: '12px', 
+          padding: '15px',
+          backgroundColor: 'var(--accent-bg)',
+          border: '1px solid var(--border-color)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div className="spinner" style={{ width: '20px', height: '20px' }}></div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                Loading ticket locations ({geocodingProgress.current} of {geocodingProgress.total})
+              </div>
+              <div style={{
+                width: '100%',
+                height: '6px',
+                backgroundColor: 'var(--border-color)',
+                borderRadius: '3px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${(geocodingProgress.current / geocodingProgress.total) * 100}%`,
+                  height: '100%',
+                  backgroundColor: 'var(--primary-color)',
+                  transition: 'width 0.3s ease'
+                }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'calc(100vh - 250px)', minHeight: '500px' }}>
         <MapContainer 
-          center={filteredTickets.length > 0 ? [filteredTickets[0].coordinates.lat, filteredTickets[0].coordinates.lng] : defaultCenter}
+          center={filteredTickets.length > 0 && filteredTickets[0].coordinates 
+            ? [filteredTickets[0].coordinates.lat, filteredTickets[0].coordinates.lng] 
+            : defaultCenter}
           zoom={12}
           style={{ width: '100%', height: '100%', minHeight: '500px' }}
         >
@@ -508,7 +567,7 @@ const Maps = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
-          {filteredTickets.map((ticket) => (
+          {filteredTickets.filter(ticket => ticket.coordinates).map((ticket) => (
             <Marker 
               key={ticket._id}
               position={[ticket.coordinates.lat, ticket.coordinates.lng]}
@@ -552,7 +611,7 @@ const Maps = () => {
           
           
           {filteredTickets.length > 0 && (
-            <FitBounds positions={filteredTickets.map(t => [t.coordinates.lat, t.coordinates.lng])} />
+            <FitBounds positions={filteredTickets.filter(t => t.coordinates).map(t => [t.coordinates.lat, t.coordinates.lng])} />
           )}
         </MapContainer>
       </div>
