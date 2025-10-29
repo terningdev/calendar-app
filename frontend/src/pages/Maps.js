@@ -153,32 +153,49 @@ const Maps = () => {
     }
   };
 
-  // Geocode tickets progressively in background
+  // Geocode tickets progressively in background with parallel processing
   const geocodeTicketsProgressively = async (ticketsWithAddress) => {
-    const geocoded = [];
     setGeocodingProgress({ current: 0, total: ticketsWithAddress.length });
     
-    for (let i = 0; i < ticketsWithAddress.length; i++) {
-      const ticket = ticketsWithAddress[i];
+    // Process in batches of 3 simultaneously to be faster but not overwhelm the API
+    const batchSize = 3;
+    let completed = 0;
+    
+    for (let i = 0; i < ticketsWithAddress.length; i += batchSize) {
+      const batch = ticketsWithAddress.slice(i, i + batchSize);
       
-      // Reduced delay from 1000ms to 250ms (4x faster)
-      if (i > 0) {
-        await new Promise(resolve => setTimeout(resolve, 250));
-      }
+      // Process batch in parallel
+      const batchPromises = batch.map(async (ticket, batchIndex) => {
+        // Add a small staggered delay within the batch
+        if (batchIndex > 0) {
+          await new Promise(resolve => setTimeout(resolve, batchIndex * 50));
+        }
+        
+        const coords = await geocodeAddress(ticket.address);
+        if (coords) {
+          const geocodedTicket = {
+            ...ticket,
+            coordinates: coords,
+          };
+          
+          // Update state immediately when this ticket is geocoded
+          setGeocodedTickets(prev => [...prev, geocodedTicket]);
+          return geocodedTicket;
+        }
+        return null;
+      });
       
-      const coords = await geocodeAddress(ticket.address);
-      if (coords) {
-        const geocodedTicket = {
-          ...ticket,
-          coordinates: coords,
-        };
-        geocoded.push(geocodedTicket);
-        // Update markers in real-time as they're geocoded
-        setGeocodedTickets([...geocoded]);
-      }
+      // Wait for current batch to complete
+      await Promise.all(batchPromises);
+      completed += batch.length;
       
       // Update progress
-      setGeocodingProgress({ current: i + 1, total: ticketsWithAddress.length });
+      setGeocodingProgress({ current: completed, total: ticketsWithAddress.length });
+      
+      // Small delay between batches to respect API limits
+      if (i + batchSize < ticketsWithAddress.length) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
     }
   };
 
