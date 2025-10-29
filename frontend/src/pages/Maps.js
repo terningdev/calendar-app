@@ -57,8 +57,33 @@ const Maps = () => {
     return user?.permissions?.[permissionName] === true;
   };
 
-  // Nominatim geocoding service (free OpenStreetMap geocoder)
+  // Get cached geocoding result
+  const getCachedGeocode = (address) => {
+    try {
+      const cached = localStorage.getItem(`geocode_${address}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  // Cache geocoding result
+  const setCachedGeocode = (address, coords) => {
+    try {
+      localStorage.setItem(`geocode_${address}`, JSON.stringify(coords));
+    } catch (error) {
+      // localStorage might be full, ignore error
+    }
+  };
+
+  // Nominatim geocoding service (free OpenStreetMap geocoder) with caching
   const geocodeAddress = async (address) => {
+    // Check cache first
+    const cached = getCachedGeocode(address);
+    if (cached) {
+      return cached;
+    }
+
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
@@ -66,10 +91,14 @@ const Maps = () => {
       const data = await response.json();
       
       if (data && data.length > 0) {
-        return {
+        const coords = {
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon),
         };
+        
+        // Cache the result
+        setCachedGeocode(address, coords);
+        return coords;
       }
       return null;
     } catch (error) {
@@ -153,24 +182,25 @@ const Maps = () => {
     }
   };
 
-  // Geocode tickets progressively in background with parallel processing
+  // Geocode tickets with caching optimization
   const geocodeTicketsProgressively = async (ticketsWithAddress) => {
     setGeocodingProgress({ current: 0, total: ticketsWithAddress.length });
     
-    // Process in batches of 3 simultaneously to be faster but not overwhelm the API
-    const batchSize = 3;
-    let completed = 0;
+    let apiRequestCount = 0;
     
-    for (let i = 0; i < ticketsWithAddress.length; i += batchSize) {
-      const batch = ticketsWithAddress.slice(i, i + batchSize);
+    for (let i = 0; i < ticketsWithAddress.length; i++) {
+      const ticket = ticketsWithAddress[i];
       
-      // Process batch in parallel
-      const batchPromises = batch.map(async (ticket, batchIndex) => {
-        // Add a small staggered delay within the batch
-        if (batchIndex > 0) {
-          await new Promise(resolve => setTimeout(resolve, batchIndex * 50));
-        }
-        
+      // Check if this address is cached
+      const cached = getCachedGeocode(ticket.address);
+      
+      if (!cached && apiRequestCount > 0) {
+        // Only delay for uncached addresses (API requests)
+        // Nominatim requires 1 second between requests
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      try {
         const coords = await geocodeAddress(ticket.address);
         if (coords) {
           const geocodedTicket = {
@@ -178,24 +208,20 @@ const Maps = () => {
             coordinates: coords,
           };
           
-          // Update state immediately when this ticket is geocoded
+          // Update markers immediately when this ticket is geocoded
           setGeocodedTickets(prev => [...prev, geocodedTicket]);
-          return geocodedTicket;
+          
+          // Increment API request count only for uncached requests
+          if (!cached) {
+            apiRequestCount++;
+          }
         }
-        return null;
-      });
-      
-      // Wait for current batch to complete
-      await Promise.all(batchPromises);
-      completed += batch.length;
-      
-      // Update progress
-      setGeocodingProgress({ current: completed, total: ticketsWithAddress.length });
-      
-      // Small delay between batches to respect API limits
-      if (i + batchSize < ticketsWithAddress.length) {
-        await new Promise(resolve => setTimeout(resolve, 150));
+      } catch (error) {
+        console.error('Error geocoding ticket:', ticket.address, error);
       }
+      
+      // Update progress immediately after each ticket
+      setGeocodingProgress({ current: i + 1, total: ticketsWithAddress.length });
     }
   };
 
