@@ -8,6 +8,7 @@ import { ticketService } from '../services/ticketService';
 import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
+import { useAuth } from '../contexts/AuthContext';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -33,6 +34,7 @@ const FitBounds = ({ positions }) => {
 
 const Maps = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -47,6 +49,11 @@ const Maps = () => {
     assignedTo: [],
     department: []
   });
+
+  // Check permission
+  const hasPermission = (permissionName) => {
+    return user?.permissions?.[permissionName] === true;
+  };
 
   // Nominatim geocoding service (free OpenStreetMap geocoder)
   const geocodeAddress = async (address) => {
@@ -253,6 +260,31 @@ const Maps = () => {
       <div className="loading-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <div className="spinner"></div>
         <p>Loading map and geocoding addresses...</p>
+      </div>
+    );
+  }
+
+  // Check permission to view maps
+  if (!user) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Maps</h1>
+        </div>
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!hasPermission('viewMaps')) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Maps</h1>
+        </div>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <p>You do not have permission to view the maps.</p>
+        </div>
       </div>
     );
   }

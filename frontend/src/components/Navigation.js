@@ -28,6 +28,7 @@ const Navigation = () => {
               viewAdministrator: true,
               viewAbsences: true,
               viewSkills: true,
+              viewMaps: true,
               createTickets: true,
               editOwnTickets: true,
               editAllTickets: true,
@@ -164,7 +165,7 @@ const Navigation = () => {
               </Link>
             </li>
           )}
-          {permissions?.viewTickets === true && (
+          {permissions?.viewMaps === true && (
             <li>
               <Link to="/maps" className={isActive('/maps')} onClick={closeMenu}>
                 Maps

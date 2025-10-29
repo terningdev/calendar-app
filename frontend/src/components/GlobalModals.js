@@ -1293,6 +1293,25 @@ const GlobalModals = () => {
                             />
                             <span style={{ fontSize: '0.95rem' }}>View Skills</span>
                           </label>
+
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            cursor: selectedRole === 'sysadmin' ? 'not-allowed' : 'pointer',
+                            padding: '10px',
+                            backgroundColor: 'var(--card-bg)',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedRole === 'sysadmin' ? true : (editedPermissions[selectedRole].viewMaps || false)}
+                              onChange={(e) => handlePermissionChange(selectedRole, 'viewMaps', e.target.checked)}
+                              disabled={selectedRole === 'sysadmin'}
+                              style={{ marginRight: '10px', transform: 'scale(1.2)' }}
+                            />
+                            <span style={{ fontSize: '0.95rem' }}>View Maps</span>
+                          </label>
                         </div>
                       </div>
 

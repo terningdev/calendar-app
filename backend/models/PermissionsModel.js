@@ -19,6 +19,7 @@ const permissionsSchema = new mongoose.Schema({
         viewAdministrator: { type: Boolean, default: false },
         viewAbsences: { type: Boolean, default: false },
         viewSkills: { type: Boolean, default: false },
+        viewMaps: { type: Boolean, default: false },
         
         // Ticket permissions
         createTickets: { type: Boolean, default: true },
