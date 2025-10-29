@@ -656,7 +656,7 @@ router.put('/users/:identifier', async (req, res) => {
             });
         }
 
-        if (role && !User.isValidRole(role)) {
+        if (role && !(await User.isValidRole(role))) {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Invalid role.' 

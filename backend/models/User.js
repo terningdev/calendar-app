@@ -82,10 +82,17 @@ class User {
         return this.approved;
     }
 
-    // Validate role
-    static isValidRole(role) {
-        const validRoles = ['user', 'technician', 'administrator', 'sysadmin'];
-        return validRoles.includes(role);
+    // Validate role against existing permissions in database
+    static async isValidRole(role) {
+        try {
+            const PermissionsModel = require('./PermissionsModel');
+            const existingRole = await PermissionsModel.findOne({ role: role });
+            return existingRole !== null;
+        } catch (error) {
+            console.error('Error validating role:', error);
+            // Fallback to sysadmin if there's an error
+            return role === 'sysadmin';
+        }
     }
 }
 

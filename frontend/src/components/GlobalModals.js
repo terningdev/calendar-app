@@ -86,6 +86,10 @@ const GlobalModals = () => {
     console.log('GlobalModals: Opening Manage Users Modal');
     setShowUsersModal(true);
     loadAllUsers();
+    // Load permissions if not already loaded
+    if (allPermissions.length === 0) {
+      loadAllPermissions();
+    }
   };
 
   const openSystemStatusModal = () => {
@@ -750,10 +754,11 @@ const GlobalModals = () => {
                     disabled={editingUser.role === 'sysadmin' && user?.role !== 'sysadmin'}
                     required
                   >
-                    <option value="user">User</option>
-                    <option value="technician">Technician</option>
-                    <option value="administrator">Administrator</option>
-                    <option value="sysadmin">Sysadmin</option>
+                    {allPermissions.map(roleData => (
+                      <option key={roleData.role} value={roleData.role}>
+                        {roleData.role.charAt(0).toUpperCase() + roleData.role.slice(1).replace(/_/g, ' ')}
+                      </option>
+                    ))}
                   </select>
                   {editingUser.role === 'sysadmin' && user?.role !== 'sysadmin' && (
                     <small className="form-text" style={{ color: 'orange' }}>
@@ -1632,10 +1637,13 @@ const GlobalModals = () => {
                     padding: '10px'
                   }}
                 >
-                  <option value="user">👤 User (Minimal permissions)</option>
-                  <option value="technician">🔧 Technician (Basic permissions)</option>
-                  <option value="administrator">👑 Administrator (Full permissions)</option>
-                  <option value="sysadmin">⚙️ Sysadmin (All permissions)</option>
+                  {allPermissions.map(roleData => (
+                    <option key={roleData.role} value={roleData.role}>
+                      {roleData.role === 'sysadmin' ? '⚙️' : 
+                       roleData.role.includes('admin') ? '👑' : 
+                       roleData.role.includes('tekniker') || roleData.role.includes('technician') ? '🔧' : '👤'} {roleData.role.charAt(0).toUpperCase() + roleData.role.slice(1).replace(/_/g, ' ')}
+                    </option>
+                  ))}
                 </select>
                 <small style={{ color: 'var(--text-secondary)', marginTop: '5px', display: 'block' }}>
                   The new role will start with these permissions, which you can then customize
