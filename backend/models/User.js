@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 class User {
     constructor({
         username, // for sysadmin only
@@ -85,11 +87,15 @@ class User {
     // Validate role against existing permissions in database
     static async isValidRole(role) {
         try {
-            const PermissionsModel = require('./PermissionsModel');
             console.log('Validating role:', role);
-            const allRoles = await PermissionsModel.find({}, 'role');
+            // Use mongoose connection to access the permissions collection directly
+            const db = mongoose.connection.db;
+            const permissionsCollection = db.collection('permissions');
+            
+            const allRoles = await permissionsCollection.find({}, { projection: { role: 1 } }).toArray();
             console.log('Available roles in database:', allRoles.map(r => r.role));
-            const existingRole = await PermissionsModel.findOne({ role: role });
+            
+            const existingRole = await permissionsCollection.findOne({ role: role });
             const isValid = existingRole !== null;
             console.log('Role validation result:', isValid);
             return isValid;
