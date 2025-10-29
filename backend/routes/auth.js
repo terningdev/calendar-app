@@ -706,9 +706,16 @@ router.put('/users/:identifier', async (req, res) => {
         await userToUpdate.save();
 
         // If the updated user is currently logged in, update their session
+        console.log('Session update check:');
+        console.log('- Current session user email:', req.session.user?.email);
+        console.log('- Updated user email:', userToUpdate.email);
+        console.log('- Current session user username:', req.session.user?.username);
+        console.log('- Updated user username:', userToUpdate.username);
+        
         if (req.session.user && 
             (req.session.user.email === userToUpdate.email || 
              req.session.user.username === userToUpdate.username)) {
+            console.log('⚠️  UPDATING SESSION - User is editing their own account');
             // Update the current session with new data
             req.session.user.firstName = userToUpdate.firstName;
             req.session.user.lastName = userToUpdate.lastName;
@@ -723,7 +730,16 @@ router.put('/users/:identifier', async (req, res) => {
                     else resolve();
                 });
             });
+            console.log('✅ Session updated for user editing their own account');
+        } else {
+            console.log('✅ Session NOT updated - Admin editing another user');
         }
+        
+        console.log('Final session user:', {
+            email: req.session.user?.email,
+            role: req.session.user?.role,
+            firstName: req.session.user?.firstName
+        });
 
         res.json({
             success: true,
