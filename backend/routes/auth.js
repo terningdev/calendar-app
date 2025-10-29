@@ -579,9 +579,6 @@ router.put('/users/:identifier', async (req, res) => {
     try {
         const { identifier } = req.params; // Can be email or username
         const { firstName, lastName, phone, newEmail, role, requirePasswordReset, temporaryPassword } = req.body;
-        
-        console.log('Update user request - identifier:', identifier);
-        console.log('Update user request - body:', { firstName, lastName, phone, newEmail, role, requirePasswordReset, temporaryPassword });
 
         // Check authentication
         if (!req.session.user) {
@@ -659,16 +656,11 @@ router.put('/users/:identifier', async (req, res) => {
             });
         }
 
-        if (role) {
-            console.log('Role validation - received role:', role);
-            const isValid = await User.isValidRole(role);
-            console.log('Role validation - isValid result:', isValid);
-            if (!isValid) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Invalid role.' 
-                });
-            }
+        if (role && !(await User.isValidRole(role))) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid role.' 
+            });
         }
 
         // Check if new email already exists
@@ -706,17 +698,19 @@ router.put('/users/:identifier', async (req, res) => {
         await userToUpdate.save();
 
         // If the updated user is currently logged in, update their session
-        console.log('Session update check:');
-        console.log('- Current session user email:', req.session.user?.email);
-        console.log('- Updated user email:', userToUpdate.email);
-        console.log('- Current session user username:', req.session.user?.username);
-        console.log('- Updated user username:', userToUpdate.username);
+        // Only update session if the current logged-in user is editing their own account
+        const currentUserEmail = req.session.user?.email?.toLowerCase();
+        const updatedUserEmail = userToUpdate.email?.toLowerCase();
+        const currentUserUsername = req.session.user?.username?.toLowerCase();
+        const updatedUserUsername = userToUpdate.username?.toLowerCase();
         
+        // IMPORTANT: Only update session if user is editing their own account
+        // This prevents admins from getting logged in as the user they're editing
         if (req.session.user && 
-            (req.session.user.email === userToUpdate.email || 
-             req.session.user.username === userToUpdate.username)) {
-            console.log('⚠️  UPDATING SESSION - User is editing their own account');
-            // Update the current session with new data
+            ((currentUserEmail && currentUserEmail === updatedUserEmail) || 
+             (currentUserUsername && currentUserUsername === updatedUserUsername))) {
+            
+            // Update the current session with new data (user editing their own account)
             req.session.user.firstName = userToUpdate.firstName;
             req.session.user.lastName = userToUpdate.lastName;
             req.session.user.phone = userToUpdate.phone;
@@ -730,16 +724,7 @@ router.put('/users/:identifier', async (req, res) => {
                     else resolve();
                 });
             });
-            console.log('✅ Session updated for user editing their own account');
-        } else {
-            console.log('✅ Session NOT updated - Admin editing another user');
         }
-        
-        console.log('Final session user:', {
-            email: req.session.user?.email,
-            role: req.session.user?.role,
-            firstName: req.session.user?.firstName
-        });
 
         res.json({
             success: true,

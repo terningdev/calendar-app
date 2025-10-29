@@ -87,18 +87,12 @@ class User {
     // Validate role against existing permissions in database
     static async isValidRole(role) {
         try {
-            console.log('Validating role:', role);
             // Use mongoose connection to access the permissions collection directly
             const db = mongoose.connection.db;
             const permissionsCollection = db.collection('permissions');
             
-            const allRoles = await permissionsCollection.find({}, { projection: { role: 1 } }).toArray();
-            console.log('Available roles in database:', allRoles.map(r => r.role));
-            
             const existingRole = await permissionsCollection.findOne({ role: role });
-            const isValid = existingRole !== null;
-            console.log('Role validation result:', isValid);
-            return isValid;
+            return existingRole !== null;
         } catch (error) {
             console.error('Error validating role:', error);
             // Fallback to sysadmin if there's an error
