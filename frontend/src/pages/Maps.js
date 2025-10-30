@@ -57,20 +57,65 @@ const Maps = () => {
     return user?.permissions?.[permissionName] === true;
   };
 
-  // Get cached geocoding result
+  // Clean up expired cache entries on component mount
+  const cleanupExpiredCache = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      const geocodeKeys = keys.filter(key => key.startsWith('geocode_'));
+      const now = Date.now();
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+      
+      geocodeKeys.forEach(key => {
+        try {
+          const cached = localStorage.getItem(key);
+          if (cached) {
+            const data = JSON.parse(cached);
+            // Remove if old format (no timestamp) or expired
+            if (!data.timestamp || (now - data.timestamp) > thirtyDays) {
+              localStorage.removeItem(key);
+            }
+          }
+        } catch (error) {
+          // Remove corrupted cache entries
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.warn('Error cleaning up geocoding cache:', error);
+    }
+  };
+
+  // Get cached geocoding result with expiration check
   const getCachedGeocode = (address) => {
     try {
       const cached = localStorage.getItem(`geocode_${address}`);
-      return cached ? JSON.parse(cached) : null;
+      if (!cached) return null;
+      
+      const data = JSON.parse(cached);
+      const now = Date.now();
+      const cacheAge = now - data.timestamp;
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+      
+      // If cache is older than 30 days, remove it and return null
+      if (cacheAge > thirtyDays) {
+        localStorage.removeItem(`geocode_${address}`);
+        return null;
+      }
+      
+      return data.coords;
     } catch (error) {
       return null;
     }
   };
 
-  // Cache geocoding result
+  // Cache geocoding result with timestamp
   const setCachedGeocode = (address, coords) => {
     try {
-      localStorage.setItem(`geocode_${address}`, JSON.stringify(coords));
+      const cacheData = {
+        coords: coords,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(`geocode_${address}`, JSON.stringify(cacheData));
     } catch (error) {
       // localStorage might be full, ignore error
     }
@@ -163,8 +208,21 @@ const Maps = () => {
       setTechnicians(fetchedTechnicians);
       setDepartments(fetchedDepartments);
       
-      // Filter tickets that have an address
-      const ticketsWithAddress = fetchedTickets.filter(ticket => ticket.address && ticket.address.trim() !== '');
+      // Filter tickets that have an address and are not old activities (today or future)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of today
+      
+      const ticketsWithAddress = fetchedTickets.filter(ticket => {
+        // Must have an address
+        if (!ticket.address || ticket.address.trim() === '') return false;
+        
+        // Must be today or in the future (exclude old activities)
+        const ticketDate = new Date(ticket.startDate);
+        ticketDate.setHours(0, 0, 0, 0); // Set to start of ticket date
+        
+        return ticketDate >= today;
+      });
+      
       setTickets(ticketsWithAddress);
       
       // Map is ready to show (without markers yet)
@@ -226,6 +284,7 @@ const Maps = () => {
   };
 
   useEffect(() => {
+    cleanupExpiredCache();
     loadBasicData();
   }, []);
 

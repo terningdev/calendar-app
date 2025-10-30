@@ -503,25 +503,28 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
     );
   }
 
-  // Desktop version - original dropdown menu
+  // Desktop version - updated to show first name
   return (
     <>
       <div className="nav-user-menu">
         <button
           ref={buttonRef}
-          className="user-profile-button"
+          className="user-profile-button-name"
           onClick={toggleMenu}
           title={user?.firstName || user?.fullName || user?.username || 'User'}
           style={{ position: 'relative' }}
         >
-          <div className="user-avatar">
+          <div className="user-avatar-small">
             {(user?.firstName?.[0] || user?.fullName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
           </div>
+          <span className="user-display-name">
+            {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
+          </span>
           {totalNotifications > 0 && (
             <span className="badge-notification" style={{ 
               position: 'absolute', 
-              top: '-5px', 
-              right: '-5px',
+              top: '-8px', 
+              right: '-8px',
               minWidth: '20px',
               height: '20px',
               borderRadius: '10px',
