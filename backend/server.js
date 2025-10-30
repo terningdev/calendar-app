@@ -398,6 +398,39 @@ const possibleBuildPaths = [
   '/opt/render/project/src/frontend/build'
 ];
 
+// Debug: Show what directories actually exist in the file system
+console.log(`🔍 Debugging directory structure:`);
+console.log(`📁 Current working directory: ${process.cwd()}`);
+console.log(`📁 __dirname: ${__dirname}`);
+
+// Check parent directories
+const parentDir = path.join(__dirname, '..');
+console.log(`📂 Parent directory (${parentDir}):`);
+if (fs.existsSync(parentDir)) {
+  try {
+    const parentContents = fs.readdirSync(parentDir);
+    console.log(`   Contents: ${parentContents.join(', ')}`);
+  } catch (e) {
+    console.log(`   Could not read parent directory: ${e.message}`);
+  }
+} else {
+  console.log(`   Parent directory does not exist`);
+}
+
+// Check if frontend directory exists
+const frontendDir = path.join(__dirname, '../frontend');
+console.log(`📂 Frontend directory (${frontendDir}):`);
+if (fs.existsSync(frontendDir)) {
+  try {
+    const frontendContents = fs.readdirSync(frontendDir);
+    console.log(`   Contents: ${frontendContents.join(', ')}`);
+  } catch (e) {
+    console.log(`   Could not read frontend directory: ${e.message}`);
+  }
+} else {
+  console.log(`   Frontend directory does not exist`);
+}
+
 let buildPath = null;
 for (const testPath of possibleBuildPaths) {
   if (fs.existsSync(testPath)) {
