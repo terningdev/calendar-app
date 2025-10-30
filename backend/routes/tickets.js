@@ -174,16 +174,9 @@ router.post('/', requireAuth, [
       req.session.user,
       'TICKET_CREATED',
       `Created ticket "${ticket.title}" (#${ticket.ticketNumber})`,
-      req,
+      ticket,
       null,
-      {
-        ticketId: ticket._id,
-        ticketNumber: ticket.ticketNumber,
-        title: ticket.title,
-        assignedTo: ticket.assignedTo,
-        startDate: ticket.startDate,
-        endDate: ticket.endDate
-      }
+      req
     );
 
     res.status(201).json(ticket);
@@ -360,14 +353,9 @@ router.put('/:id', requireAuth, [
       req.session.user,
       'TICKET_UPDATED',
       `Updated ticket "${ticket.title}" (#${ticket.ticketNumber})`,
-      req,
+      ticket,
       changes,
-      {
-        ticketId: ticket._id,
-        ticketNumber: ticket.ticketNumber,
-        title: ticket.title,
-        fieldsUpdated: Object.keys(updateData)
-      }
+      req
     );
     
     res.json(ticket);
@@ -413,15 +401,9 @@ router.post('/:id/notes', [
       req.session.user,
       'TICKET_NOTE_ADDED',
       `Added note to ticket "${ticket.title}" (#${ticket.ticketNumber})`,
-      req,
+      ticket,
       null,
-      {
-        ticketId: ticket._id,
-        ticketNumber: ticket.ticketNumber,
-        title: ticket.title,
-        noteContent: req.body.content,
-        noteAddedBy: req.body.addedBy
-      }
+      req
     );
 
     res.json(ticket);
@@ -454,19 +436,9 @@ router.delete('/:id', requireAuth, async (req, res) => {
       req.session.user,
       'TICKET_DELETED',
       `Deleted ticket "${ticketToDelete.title}" (#${ticketToDelete.ticketNumber})`,
-      req,
+      ticketToDelete,
       null,
-      {
-        ticketId: ticketToDelete._id,
-        ticketNumber: ticketToDelete.ticketNumber,
-        title: ticketToDelete.title,
-        originalData: {
-          createdBy: ticketToDelete.createdBy,
-          assignedTo: ticketToDelete.assignedTo,
-          startDate: ticketToDelete.startDate,
-          endDate: ticketToDelete.endDate
-        }
-      }
+      req
     );
 
     res.json({ message: 'Ticket deleted successfully' });

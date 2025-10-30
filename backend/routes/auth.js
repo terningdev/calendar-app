@@ -447,15 +447,9 @@ router.delete('/reject/:email', async (req, res) => {
             currentUser,
             'USER_REJECTED',
             `Rejected user registration for ${userToReject.email}`,
-            req,
+            userToReject,
             null,
-            {
-                rejectedUserId: userToReject._id,
-                rejectedUserEmail: userToReject.email,
-                rejectedUserName: `${userToReject.firstName} ${userToReject.lastName}`,
-                rejectedByUserId: currentUser._id,
-                rejectedByUserEmail: currentUser.email
-            }
+            req
         );
 
         res.json({
@@ -769,16 +763,9 @@ router.put('/users/:identifier', async (req, res) => {
                 currentUser,
                 'USER_UPDATED',
                 `Updated user ${userToUpdate.email || userToUpdate.username}`,
-                req,
+                userToUpdate,
                 changes,
-                {
-                    updatedUserId: userToUpdate._id,
-                    updatedUserEmail: userToUpdate.email,
-                    updatedUserName: userToUpdate.username || `${userToUpdate.firstName} ${userToUpdate.lastName}`,
-                    updatedByUserId: currentUser._id,
-                    updatedByUserEmail: currentUser.email,
-                    fieldsUpdated: Object.keys(changes)
-                }
+                req
             );
         }
 
@@ -895,22 +882,9 @@ router.delete('/users/:identifier', async (req, res) => {
             currentUser,
             'USER_DELETED',
             `Deleted user ${userToDelete.email || userToDelete.username}`,
-            req,
+            userToDelete,
             null,
-            {
-                deletedUserId: userToDelete._id,
-                deletedUserEmail: userToDelete.email,
-                deletedUserName: userToDelete.username || `${userToDelete.firstName} ${userToDelete.lastName}`,
-                deletedByUserId: currentUser._id,
-                deletedByUserEmail: currentUser.email,
-                originalData: {
-                    firstName: userToDelete.firstName,
-                    lastName: userToDelete.lastName,
-                    email: userToDelete.email,
-                    role: userToDelete.role,
-                    phone: userToDelete.phone
-                }
-            }
+            req
         );
 
         res.json({

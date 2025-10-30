@@ -66,16 +66,9 @@ router.post('/', [
       req.session?.user,
       'TECHNICIAN_CREATED',
       `Created technician "${technician.firstName} ${technician.lastName}"`,
-      req,
+      technician,
       null,
-      {
-        technicianId: technician._id,
-        firstName: technician.firstName,
-        lastName: technician.lastName,
-        email: technician.email,
-        department: technician.department,
-        skills: technician.skills
-      }
+      req
     );
 
     res.status(201).json(technician);
@@ -140,15 +133,9 @@ router.put('/:id', [
       req.session?.user,
       'TECHNICIAN_UPDATED',
       `Updated technician "${technician.firstName} ${technician.lastName}"`,
-      req,
+      technician,
       changes,
-      {
-        technicianId: technician._id,
-        firstName: technician.firstName,
-        lastName: technician.lastName,
-        email: technician.email,
-        fieldsUpdated: Object.keys(changes)
-      }
+      req
     );
     
     res.json(technician);
@@ -177,21 +164,9 @@ router.delete('/:id', async (req, res) => {
       req.session?.user,
       'TECHNICIAN_DELETED',
       `Deleted technician "${technicianToDelete.firstName} ${technicianToDelete.lastName}"`,
-      req,
+      technicianToDelete,
       null,
-      {
-        technicianId: technicianToDelete._id,
-        firstName: technicianToDelete.firstName,
-        lastName: technicianToDelete.lastName,
-        email: technicianToDelete.email,
-        originalData: {
-          firstName: technicianToDelete.firstName,
-          lastName: technicianToDelete.lastName,
-          email: technicianToDelete.email,
-          department: technicianToDelete.department,
-          skills: technicianToDelete.skills
-        }
-      }
+      req
     );
 
     res.json({ message: 'Technician deleted successfully' });

@@ -46,13 +46,9 @@ router.post('/', [
       req.session?.user,
       'DEPARTMENT_CREATED',
       `Created department "${department.name}"`,
-      req,
+      department,
       null,
-      {
-        departmentId: department._id,
-        departmentName: department.name,
-        description: department.description
-      }
+      req
     );
 
     res.status(201).json(department);
@@ -101,13 +97,9 @@ router.put('/:id', [
       req.session?.user,
       'DEPARTMENT_UPDATED',
       `Updated department "${department.name}"`,
-      req,
+      department,
       changes,
-      {
-        departmentId: department._id,
-        departmentName: department.name,
-        fieldsUpdated: Object.keys(changes)
-      }
+      req
     );
     
     res.json(department);
@@ -136,16 +128,9 @@ router.delete('/:id', async (req, res) => {
       req.session?.user,
       'DEPARTMENT_DELETED',
       `Deleted department "${departmentToDelete.name}"`,
-      req,
+      departmentToDelete,
       null,
-      {
-        departmentId: departmentToDelete._id,
-        departmentName: departmentToDelete.name,
-        originalData: {
-          name: departmentToDelete.name,
-          description: departmentToDelete.description
-        }
-      }
+      req
     );
 
     res.json({ message: 'Department deleted successfully' });

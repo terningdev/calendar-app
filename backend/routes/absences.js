@@ -124,17 +124,9 @@ router.post('/', [
       req.session?.user,
       'ABSENCE_CREATED',
       `Created absence "${absence.title}" for ${absence.technicianId.fullName}`,
-      req,
+      absence,
       null,
-      {
-        absenceId: absence._id,
-        title: absence.title,
-        technicianId: absence.technicianId._id,
-        technicianName: absence.technicianId.fullName,
-        startDate: absence.startDate,
-        endDate: absence.endDate,
-        createdBy: absence.createdBy
-      }
+      req
     );
 
     res.status(201).json(absence);
@@ -187,15 +179,9 @@ router.put('/:id', [
       req.session?.user,
       'ABSENCE_UPDATED',
       `Updated absence "${absence.title}" for ${absence.technicianId.fullName}`,
-      req,
+      absence,
       changes,
-      {
-        absenceId: absence._id,
-        title: absence.title,
-        technicianId: absence.technicianId._id,
-        technicianName: absence.technicianId.fullName,
-        fieldsUpdated: Object.keys(changes)
-      }
+      req
     );
 
     res.json(absence);
@@ -220,20 +206,9 @@ router.delete('/:id', async (req, res) => {
       req.session?.user,
       'ABSENCE_DELETED',
       `Deleted absence "${absenceToDelete.title}" for ${absenceToDelete.technicianId.fullName}`,
-      req,
+      absenceToDelete,
       null,
-      {
-        absenceId: absenceToDelete._id,
-        title: absenceToDelete.title,
-        technicianId: absenceToDelete.technicianId._id,
-        technicianName: absenceToDelete.technicianId.fullName,
-        originalData: {
-          title: absenceToDelete.title,
-          startDate: absenceToDelete.startDate,
-          endDate: absenceToDelete.endDate,
-          createdBy: absenceToDelete.createdBy
-        }
-      }
+      req
     );
 
     res.json({ message: 'Absence deleted successfully' });
