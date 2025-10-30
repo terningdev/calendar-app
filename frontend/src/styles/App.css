@@ -1204,10 +1204,11 @@ body {
   font-weight: 500;
 }
 
-/* User Menu Styles */
+/* User Menu Styles - UPDATED VERSION */
 .nav-user-menu {
   position: relative;
   display: inline-block;
+  /* TEST CHANGE */
 }
 
 .user-profile-button {
