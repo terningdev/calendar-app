@@ -4,8 +4,11 @@ services:
     runtime: node
     env: node
     plan: free
-    buildCommand: npm run build
-    startCommand: npm start
+    buildCommand: |
+      npm install
+      cd frontend && npm install && npm run build
+      cd ../backend && npm install
+    startCommand: cd backend && node server.js
     healthCheckPath: /
     autoDeploy: true  # Enable auto-deploy on git push
     envVars:

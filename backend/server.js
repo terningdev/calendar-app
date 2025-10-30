@@ -387,10 +387,13 @@ function getConnectionState(state) {
 const fs = require('fs');
 const possibleBuildPaths = [
   path.join(__dirname, '../frontend/build'),
-  path.join(__dirname, 'build'),
+  path.join(__dirname, 'build'), 
   path.join(__dirname, '../build'),
   path.join(process.cwd(), 'frontend/build'),
-  path.join(process.cwd(), 'build')
+  path.join(process.cwd(), 'build'),
+  // Additional paths for Render deployment structure
+  path.join(process.cwd(), '../frontend/build'),
+  '/opt/render/project/src/frontend/build'
 ];
 
 let buildPath = null;
@@ -438,7 +441,10 @@ app.get('*', (req, res, next) => {
     path.join(__dirname, 'build', 'index.html'),
     path.join(__dirname, '../build', 'index.html'),
     path.join(process.cwd(), 'frontend/build', 'index.html'),
-    path.join(process.cwd(), 'build', 'index.html')
+    path.join(process.cwd(), 'build', 'index.html'),
+    // Additional paths for Render deployment structure
+    path.join(process.cwd(), '../frontend/build', 'index.html'),
+    '/opt/render/project/src/frontend/build/index.html'
   ];
   
   console.log(`🔍 Serving index.html for route: ${req.path}`);
