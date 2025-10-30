@@ -80,6 +80,7 @@ async function initializeDefaultPermissions() {
                 viewAdministrator: true,
                 viewAbsences: true,
                 viewSkills: true,
+                viewMaps: true,
                 
                 createTickets: true,
                 editOwnTickets: true,
