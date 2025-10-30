@@ -384,14 +384,35 @@ function getConnectionState(state) {
 
 // Serve static files from the React app (AFTER API routes)
 // IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
-const buildPath = path.join(__dirname, '../frontend/build');
-console.log(`📁 Serving static files from: ${buildPath}`);
-console.log(`📄 Index.html path: ${path.join(buildPath, 'index.html')}`);
+const fs = require('fs');
+const possibleBuildPaths = [
+  path.join(__dirname, '../frontend/build'),
+  path.join(__dirname, 'build'),
+  path.join(__dirname, '../build'),
+  path.join(process.cwd(), 'frontend/build'),
+  path.join(process.cwd(), 'build')
+];
 
-app.use(express.static(buildPath, {
-  index: false, // Don't automatically serve index.html
-  fallthrough: true // Continue to next middleware if file not found
-}));
+let buildPath = null;
+for (const testPath of possibleBuildPaths) {
+  if (fs.existsSync(testPath)) {
+    buildPath = testPath;
+    break;
+  }
+}
+
+if (buildPath) {
+  console.log(`📁 Serving static files from: ${buildPath}`);
+  console.log(`📄 Index.html path: ${path.join(buildPath, 'index.html')}`);
+  
+  app.use(express.static(buildPath, {
+    index: false, // Don't automatically serve index.html
+    fallthrough: true // Continue to next middleware if file not found
+  }));
+} else {
+  console.log(`❌ No build directory found in any of the expected locations:`);
+  possibleBuildPaths.forEach(p => console.log(`  - ${p}`));
+}
 
 // 404 handler for API routes - MUST come after all API routes but after static files
 app.use('/api/*', (req, res) => {
@@ -410,18 +431,63 @@ app.get('*', (req, res, next) => {
     return next();
   }
   
-  const indexPath = path.join(__dirname, '../frontend/build', 'index.html');
-  console.log(`🔍 Serving index.html for route: ${req.path}`);
-  console.log(`📄 Index path: ${indexPath}`);
-  
-  // Check if file exists before trying to serve it
+  // Try multiple possible paths for index.html
   const fs = require('fs');
-  if (fs.existsSync(indexPath)) {
-    console.log(`✅ Index.html exists, serving it`);
+  const possiblePaths = [
+    path.join(__dirname, '../frontend/build', 'index.html'),
+    path.join(__dirname, 'build', 'index.html'),
+    path.join(__dirname, '../build', 'index.html'),
+    path.join(process.cwd(), 'frontend/build', 'index.html'),
+    path.join(process.cwd(), 'build', 'index.html')
+  ];
+  
+  console.log(`🔍 Serving index.html for route: ${req.path}`);
+  console.log(`� Current working directory: ${process.cwd()}`);
+  console.log(`📁 __dirname: ${__dirname}`);
+  
+  let indexPath = null;
+  for (const testPath of possiblePaths) {
+    console.log(`🔍 Testing path: ${testPath}`);
+    if (fs.existsSync(testPath)) {
+      indexPath = testPath;
+      console.log(`✅ Found index.html at: ${indexPath}`);
+      break;
+    }
+  }
+  
+  if (indexPath) {
     res.sendFile(indexPath);
   } else {
-    console.log(`❌ Index.html not found at: ${indexPath}`);
-    res.status(404).send('React app not found - index.html missing');
+    console.log(`❌ Index.html not found in any of the expected locations`);
+    console.log(`📁 Available files in build directory:`);
+    
+    // List contents of possible build directories for debugging
+    possiblePaths.forEach(testPath => {
+      const buildDir = path.dirname(testPath);
+      if (fs.existsSync(buildDir)) {
+        try {
+          const files = fs.readdirSync(buildDir);
+          console.log(`📂 ${buildDir}: ${files.join(', ')}`);
+        } catch (e) {
+          console.log(`❌ Could not read directory: ${buildDir}`);
+        }
+      }
+    });
+    
+    res.status(404).send(`
+      <h1>React App Not Found</h1>
+      <p>The React application build files could not be located.</p>
+      <p>This usually means the build process failed or the files are in an unexpected location.</p>
+      <details>
+        <summary>Debug Information</summary>
+        <pre>
+Working Directory: ${process.cwd()}
+__dirname: ${__dirname}
+Searched paths:
+${possiblePaths.map(p => `  - ${p}`).join('\n')}
+        </pre>
+      </details>
+    `);
   }
 });
 
