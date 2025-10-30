@@ -405,11 +405,11 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
       <>
         <div className="mobile-user-section">
           <button
-            className="mobile-user-button-name"
+            className="mobile-user-button"
             onClick={toggleMenu}
           >
             <div className="mobile-user-info">
-              <span className="mobile-user-name-only">
+              <span className="mobile-user-name">
                 {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
               </span>
               {totalNotifications > 0 && (
@@ -506,12 +506,23 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
       <div className="nav-user-menu">
         <button
           ref={buttonRef}
-          className="user-profile-button-text"
+          className="user-menu-button"
           onClick={toggleMenu}
           title={user?.firstName || user?.fullName || user?.username || 'User'}
-          style={{ position: 'relative' }}
+          style={{ 
+            position: 'relative',
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '20px',
+            padding: '10px 16px',
+            minWidth: '80px'
+          }}
         >
-          <span className="user-display-name-only">
+          <span style={{
+            color: 'white',
+            fontSize: '0.9rem',
+            fontWeight: '500'
+          }}>
             {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
           </span>
           {totalNotifications > 0 && (
