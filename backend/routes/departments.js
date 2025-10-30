@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Department = require('../models/Department');
+const ActivityLogger = require('../services/ActivityLogger');
 
 // Get all departments
 router.get('/', async (req, res) => {
@@ -39,6 +40,21 @@ router.post('/', [
 
     const department = new Department(req.body);
     await department.save();
+
+    // Log department creation
+    await ActivityLogger.logDepartment(
+      req.session?.user,
+      'DEPARTMENT_CREATED',
+      `Created department "${department.name}"`,
+      req,
+      null,
+      {
+        departmentId: department._id,
+        departmentName: department.name,
+        description: department.description
+      }
+    );
+
     res.status(201).json(department);
   } catch (error) {
     if (error.code === 11000) {
@@ -60,15 +76,39 @@ router.put('/:id', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Get existing department for logging changes
+    const existingDepartment = await Department.findById(req.params.id);
+    if (!existingDepartment) {
+      return res.status(404).json({ message: 'Department not found' });
+    }
+
     const department = await Department.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-    
-    if (!department) {
-      return res.status(404).json({ message: 'Department not found' });
+
+    // Log department update
+    const changes = {};
+    if (existingDepartment.name !== req.body.name) {
+      changes.name = { from: existingDepartment.name, to: req.body.name };
     }
+    if (existingDepartment.description !== req.body.description) {
+      changes.description = { from: existingDepartment.description, to: req.body.description };
+    }
+
+    await ActivityLogger.logDepartment(
+      req.session?.user,
+      'DEPARTMENT_UPDATED',
+      `Updated department "${department.name}"`,
+      req,
+      changes,
+      {
+        departmentId: department._id,
+        departmentName: department.name,
+        fieldsUpdated: Object.keys(changes)
+      }
+    );
     
     res.json(department);
   } catch (error) {
@@ -83,10 +123,31 @@ router.put('/:id', [
 // Delete department
 router.delete('/:id', async (req, res) => {
   try {
-    const department = await Department.findByIdAndDelete(req.params.id);
-    if (!department) {
+    // Get department details before deletion for logging
+    const departmentToDelete = await Department.findById(req.params.id);
+    if (!departmentToDelete) {
       return res.status(404).json({ message: 'Department not found' });
     }
+
+    const department = await Department.findByIdAndDelete(req.params.id);
+
+    // Log department deletion
+    await ActivityLogger.logDepartment(
+      req.session?.user,
+      'DEPARTMENT_DELETED',
+      `Deleted department "${departmentToDelete.name}"`,
+      req,
+      null,
+      {
+        departmentId: departmentToDelete._id,
+        departmentName: departmentToDelete.name,
+        originalData: {
+          name: departmentToDelete.name,
+          description: departmentToDelete.description
+        }
+      }
+    );
+
     res.json({ message: 'Department deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting department', error: error.message });

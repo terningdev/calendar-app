@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const UserModel = require('../models/UserModel'); // MongoDB model
 const { PermissionsModel } = require('../models/PermissionsModel'); // For fetching permissions
+const ActivityLogger = require('../services/ActivityLogger');
 
 // In-memory storage for users (similar to other models) - DEPRECATED, using MongoDB now
 let users = [];
@@ -55,7 +56,8 @@ const getUserPermissions = async (role) => {
                 manageDepartments: true,
                 manageTechnicians: true,
                 viewSystemStatus: true,
-                managePermissions: true
+                managePermissions: true,
+                viewLogs: true
             };
         }
         
@@ -114,6 +116,9 @@ router.post('/register', async (req, res) => {
             approved: false
         });
         await newUser.save();
+
+        // Log user registration
+        await ActivityLogger.logUser(newUser, 'USER_REGISTERED', `New user registered: ${firstName} ${lastName} (${email})`, newUser, null, req);
 
         res.json({
             success: true,
@@ -192,7 +197,7 @@ router.post('/login', async (req, res) => {
             };
 
             // Save session explicitly
-            req.session.save((err) => {
+            req.session.save(async (err) => {
                 if (err) {
                     console.error('❌ Session save error:', err);
                     return res.status(500).json({ success: false, message: 'Failed to save session.' });
@@ -201,6 +206,10 @@ router.post('/login', async (req, res) => {
                 console.log('📋 Session ID:', req.sessionID);
                 console.log('🍪 Cookie will be set:', req.session.cookie);
                 console.log('🔑 Permissions loaded:', Object.keys(permissions).length);
+                
+                // Log successful login
+                await ActivityLogger.logAuth(user, 'USER_LOGIN', `User logged in successfully`, req);
+                
                 res.json({ 
                     success: true, 
                     message: 'Login successful.', 
@@ -381,6 +390,10 @@ router.post('/approve/:email', async (req, res) => {
         }
         userToApprove.approved = true;
         await userToApprove.save();
+        
+        // Log user approval
+        await ActivityLogger.logUser(currentUser, 'USER_APPROVED', `Approved user: ${userToApprove.firstName} ${userToApprove.lastName} (${userToApprove.email})`, userToApprove, { approved: true }, req);
+        
         res.json({ success: true, message: `User ${userToApprove.email} approved successfully.` });
 
     } catch (error) {
@@ -417,14 +430,33 @@ router.delete('/reject/:email', async (req, res) => {
             });
         }
 
-        // Find and remove user from MongoDB
-        const result = await UserModel.deleteOne({ email: req.params.email.toLowerCase() });
-        if (result.deletedCount === 0) {
+        // Get user details before deletion for logging
+        const userToReject = await UserModel.findOne({ email: req.params.email.toLowerCase() });
+        if (!userToReject) {
             return res.status(404).json({ 
                 success: false, 
                 message: 'User not found.' 
             });
         }
+
+        // Find and remove user from MongoDB
+        const result = await UserModel.deleteOne({ email: req.params.email.toLowerCase() });
+
+        // Log user rejection
+        await ActivityLogger.logUser(
+            currentUser,
+            'USER_REJECTED',
+            `Rejected user registration for ${userToReject.email}`,
+            req,
+            null,
+            {
+                rejectedUserId: userToReject._id,
+                rejectedUserEmail: userToReject.email,
+                rejectedUserName: `${userToReject.firstName} ${userToReject.lastName}`,
+                rejectedByUserId: currentUser._id,
+                rejectedByUserEmail: currentUser.email
+            }
+        );
 
         res.json({
             success: true,
@@ -675,13 +707,44 @@ router.put('/users/:identifier', async (req, res) => {
             }
         }
 
+        // Capture original values for logging
+        const originalData = {
+            firstName: userToUpdate.firstName,
+            lastName: userToUpdate.lastName,
+            phone: userToUpdate.phone,
+            email: userToUpdate.email,
+            role: userToUpdate.role,
+            requirePasswordReset: userToUpdate.requirePasswordReset
+        };
+
+        // Track changes
+        const changes = {};
+
         // Update user fields
-        if (firstName) userToUpdate.firstName = firstName;
-        if (lastName) userToUpdate.lastName = lastName;
-        if (phone) userToUpdate.phone = phone;
-        if (newEmail) userToUpdate.email = newEmail.toLowerCase();
-        if (role) userToUpdate.role = role;
-        if (requirePasswordReset !== undefined) userToUpdate.requirePasswordReset = requirePasswordReset;
+        if (firstName && firstName !== userToUpdate.firstName) {
+            changes.firstName = { from: userToUpdate.firstName, to: firstName };
+            userToUpdate.firstName = firstName;
+        }
+        if (lastName && lastName !== userToUpdate.lastName) {
+            changes.lastName = { from: userToUpdate.lastName, to: lastName };
+            userToUpdate.lastName = lastName;
+        }
+        if (phone && phone !== userToUpdate.phone) {
+            changes.phone = { from: userToUpdate.phone, to: phone };
+            userToUpdate.phone = phone;
+        }
+        if (newEmail && newEmail.toLowerCase() !== userToUpdate.email) {
+            changes.email = { from: userToUpdate.email, to: newEmail.toLowerCase() };
+            userToUpdate.email = newEmail.toLowerCase();
+        }
+        if (role && role !== userToUpdate.role) {
+            changes.role = { from: userToUpdate.role, to: role };
+            userToUpdate.role = role;
+        }
+        if (requirePasswordReset !== undefined && requirePasswordReset !== userToUpdate.requirePasswordReset) {
+            changes.requirePasswordReset = { from: userToUpdate.requirePasswordReset, to: requirePasswordReset };
+            userToUpdate.requirePasswordReset = requirePasswordReset;
+        }
         
         // If temporaryPassword is provided, set it and require password reset
         if (temporaryPassword) {
@@ -691,12 +754,33 @@ router.put('/users/:identifier', async (req, res) => {
                     message: 'Temporary password must be at least 6 characters.' 
                 });
             }
+            changes.password = { from: '[HIDDEN]', to: '[TEMPORARY_PASSWORD_SET]' };
+            changes.requirePasswordReset = { from: userToUpdate.requirePasswordReset, to: true };
             userToUpdate.password = temporaryPassword;
             userToUpdate.requirePasswordReset = true;
             console.log(`🔑 Temporary password set for user: ${userToUpdate.email || userToUpdate.username}`);
         }
         
         await userToUpdate.save();
+
+        // Log user update if there were changes
+        if (Object.keys(changes).length > 0) {
+            await ActivityLogger.logUser(
+                currentUser,
+                'USER_UPDATED',
+                `Updated user ${userToUpdate.email || userToUpdate.username}`,
+                req,
+                changes,
+                {
+                    updatedUserId: userToUpdate._id,
+                    updatedUserEmail: userToUpdate.email,
+                    updatedUserName: userToUpdate.username || `${userToUpdate.firstName} ${userToUpdate.lastName}`,
+                    updatedByUserId: currentUser._id,
+                    updatedByUserEmail: currentUser.email,
+                    fieldsUpdated: Object.keys(changes)
+                }
+            );
+        }
 
         // If the updated user is currently logged in, update their session
         // Only update session if the current logged-in user is editing their own account
@@ -805,6 +889,29 @@ router.delete('/users/:identifier', async (req, res) => {
 
         // Delete user from MongoDB
         await UserModel.deleteOne({ _id: userToDelete._id });
+
+        // Log user deletion
+        await ActivityLogger.logUser(
+            currentUser,
+            'USER_DELETED',
+            `Deleted user ${userToDelete.email || userToDelete.username}`,
+            req,
+            null,
+            {
+                deletedUserId: userToDelete._id,
+                deletedUserEmail: userToDelete.email,
+                deletedUserName: userToDelete.username || `${userToDelete.firstName} ${userToDelete.lastName}`,
+                deletedByUserId: currentUser._id,
+                deletedByUserEmail: currentUser.email,
+                originalData: {
+                    firstName: userToDelete.firstName,
+                    lastName: userToDelete.lastName,
+                    email: userToDelete.email,
+                    role: userToDelete.role,
+                    phone: userToDelete.phone
+                }
+            }
+        );
 
         res.json({
             success: true,

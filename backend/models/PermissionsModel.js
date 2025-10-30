@@ -41,7 +41,8 @@ const permissionsSchema = new mongoose.Schema({
         manageDepartments: { type: Boolean, default: false },
         manageTechnicians: { type: Boolean, default: false },
         viewSystemStatus: { type: Boolean, default: false },
-        managePermissions: { type: Boolean, default: false }
+        managePermissions: { type: Boolean, default: false },
+        viewLogs: { type: Boolean, default: false }
     },
     updatedAt: { 
         type: Date, 
@@ -98,7 +99,8 @@ async function initializeDefaultPermissions() {
                 manageDepartments: true,
                 manageTechnicians: true,
                 viewSystemStatus: true,
-                managePermissions: true
+                managePermissions: true,
+                viewLogs: true
             }
         };
         

@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const Ticket = require('../models/Ticket');
 const { requireAuth, checkTicketOwnership, hasPermission } = require('../middleware/auth');
+const ActivityLogger = require('../services/ActivityLogger');
 
 // Get all tickets with filtering options
 router.get('/', async (req, res) => {
@@ -167,6 +168,24 @@ router.post('/', requireAuth, [
         select: 'name _id'
       }
     });
+
+    // Log ticket creation
+    await ActivityLogger.logTicket(
+      req.session.user,
+      'TICKET_CREATED',
+      `Created ticket "${ticket.title}" (#${ticket.ticketNumber})`,
+      req,
+      null,
+      {
+        ticketId: ticket._id,
+        ticketNumber: ticket.ticketNumber,
+        title: ticket.title,
+        assignedTo: ticket.assignedTo,
+        startDate: ticket.startDate,
+        endDate: ticket.endDate
+      }
+    );
+
     res.status(201).json(ticket);
   } catch (error) {
     res.status(500).json({ message: 'Error creating ticket', error: error.message });
@@ -327,6 +346,29 @@ router.put('/:id', requireAuth, [
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
+
+    // Log ticket update
+    const changes = Object.keys(updateData).reduce((acc, key) => {
+      acc[key] = {
+        from: existingTicket[key],
+        to: updateData[key]
+      };
+      return acc;
+    }, {});
+
+    await ActivityLogger.logTicket(
+      req.session.user,
+      'TICKET_UPDATED',
+      `Updated ticket "${ticket.title}" (#${ticket.ticketNumber})`,
+      req,
+      changes,
+      {
+        ticketId: ticket._id,
+        ticketNumber: ticket.ticketNumber,
+        title: ticket.title,
+        fieldsUpdated: Object.keys(updateData)
+      }
+    );
     
     res.json(ticket);
   } catch (error) {
@@ -365,6 +407,23 @@ router.post('/:id/notes', [
         select: 'name _id'
       }
     });
+
+    // Log note addition
+    await ActivityLogger.logTicket(
+      req.session.user,
+      'TICKET_NOTE_ADDED',
+      `Added note to ticket "${ticket.title}" (#${ticket.ticketNumber})`,
+      req,
+      null,
+      {
+        ticketId: ticket._id,
+        ticketNumber: ticket.ticketNumber,
+        title: ticket.title,
+        noteContent: req.body.content,
+        noteAddedBy: req.body.addedBy
+      }
+    );
+
     res.json(ticket);
   } catch (error) {
     res.status(500).json({ message: 'Error adding note', error: error.message });
@@ -382,10 +441,34 @@ router.delete('/:id', requireAuth, async (req, res) => {
       });
     }
 
-    const ticket = await Ticket.findByIdAndDelete(req.params.id);
-    if (!ticket) {
+    // Get ticket details before deletion for logging
+    const ticketToDelete = await Ticket.findById(req.params.id);
+    if (!ticketToDelete) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
+
+    const ticket = await Ticket.findByIdAndDelete(req.params.id);
+
+    // Log ticket deletion
+    await ActivityLogger.logTicket(
+      req.session.user,
+      'TICKET_DELETED',
+      `Deleted ticket "${ticketToDelete.title}" (#${ticketToDelete.ticketNumber})`,
+      req,
+      null,
+      {
+        ticketId: ticketToDelete._id,
+        ticketNumber: ticketToDelete.ticketNumber,
+        title: ticketToDelete.title,
+        originalData: {
+          createdBy: ticketToDelete.createdBy,
+          assignedTo: ticketToDelete.assignedTo,
+          startDate: ticketToDelete.startDate,
+          endDate: ticketToDelete.endDate
+        }
+      }
+    );
+
     res.json({ message: 'Ticket deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting ticket', error: error.message });

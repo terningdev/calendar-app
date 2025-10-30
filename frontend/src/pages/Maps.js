@@ -52,9 +52,17 @@ const Maps = () => {
     department: []
   });
 
-  // Check permission
+  // Check permission - use user permissions from session
   const hasPermission = (permissionName) => {
-    return user?.permissions?.[permissionName] === true;
+    // First check session permissions (most reliable)
+    if (user?.permissions?.[permissionName] !== undefined) {
+      return user.permissions[permissionName] === true;
+    }
+    // Fallback for sysadmin users
+    if (user?.role === 'sysadmin') {
+      return true;
+    }
+    return false;
   };
 
   // Clean up expired cache entries on component mount

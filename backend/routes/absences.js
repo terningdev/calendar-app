@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Absence = require('../models/Absence');
+const ActivityLogger = require('../services/ActivityLogger');
 
 // Get all absences
 router.get('/', async (req, res) => {
@@ -117,6 +118,25 @@ router.post('/', [
     const absence = new Absence(req.body);
     await absence.save();
     await absence.populate('technicianId', 'firstName lastName email fullName');
+
+    // Log absence creation
+    await ActivityLogger.logAbsence(
+      req.session?.user,
+      'ABSENCE_CREATED',
+      `Created absence "${absence.title}" for ${absence.technicianId.fullName}`,
+      req,
+      null,
+      {
+        absenceId: absence._id,
+        title: absence.title,
+        technicianId: absence.technicianId._id,
+        technicianName: absence.technicianId.fullName,
+        startDate: absence.startDate,
+        endDate: absence.endDate,
+        createdBy: absence.createdBy
+      }
+    );
+
     res.status(201).json(absence);
   } catch (error) {
     res.status(500).json({ message: 'Error creating absence', error: error.message });
@@ -136,15 +156,47 @@ router.put('/:id', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Get existing absence for logging changes
+    const existingAbsence = await Absence.findById(req.params.id).populate('technicianId', 'firstName lastName email fullName');
+    if (!existingAbsence) {
+      return res.status(404).json({ message: 'Absence not found' });
+    }
+
     const absence = await Absence.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     ).populate('technicianId', 'firstName lastName email fullName');
 
-    if (!absence) {
-      return res.status(404).json({ message: 'Absence not found' });
+    // Log absence update
+    const changes = {};
+    if (req.body.technicianId && existingAbsence.technicianId._id.toString() !== req.body.technicianId) {
+      changes.technicianId = { from: existingAbsence.technicianId._id, to: req.body.technicianId };
     }
+    if (req.body.title && existingAbsence.title !== req.body.title) {
+      changes.title = { from: existingAbsence.title, to: req.body.title };
+    }
+    if (req.body.startDate && existingAbsence.startDate.toISOString() !== new Date(req.body.startDate).toISOString()) {
+      changes.startDate = { from: existingAbsence.startDate, to: req.body.startDate };
+    }
+    if (req.body.endDate && existingAbsence.endDate.toISOString() !== new Date(req.body.endDate).toISOString()) {
+      changes.endDate = { from: existingAbsence.endDate, to: req.body.endDate };
+    }
+
+    await ActivityLogger.logAbsence(
+      req.session?.user,
+      'ABSENCE_UPDATED',
+      `Updated absence "${absence.title}" for ${absence.technicianId.fullName}`,
+      req,
+      changes,
+      {
+        absenceId: absence._id,
+        title: absence.title,
+        technicianId: absence.technicianId._id,
+        technicianName: absence.technicianId.fullName,
+        fieldsUpdated: Object.keys(changes)
+      }
+    );
 
     res.json(absence);
   } catch (error) {
@@ -155,10 +207,35 @@ router.put('/:id', [
 // Delete absence
 router.delete('/:id', async (req, res) => {
   try {
-    const absence = await Absence.findByIdAndDelete(req.params.id);
-    if (!absence) {
+    // Get absence details before deletion for logging
+    const absenceToDelete = await Absence.findById(req.params.id).populate('technicianId', 'firstName lastName email fullName');
+    if (!absenceToDelete) {
       return res.status(404).json({ message: 'Absence not found' });
     }
+
+    const absence = await Absence.findByIdAndDelete(req.params.id);
+
+    // Log absence deletion
+    await ActivityLogger.logAbsence(
+      req.session?.user,
+      'ABSENCE_DELETED',
+      `Deleted absence "${absenceToDelete.title}" for ${absenceToDelete.technicianId.fullName}`,
+      req,
+      null,
+      {
+        absenceId: absenceToDelete._id,
+        title: absenceToDelete.title,
+        technicianId: absenceToDelete.technicianId._id,
+        technicianName: absenceToDelete.technicianId.fullName,
+        originalData: {
+          title: absenceToDelete.title,
+          startDate: absenceToDelete.startDate,
+          endDate: absenceToDelete.endDate,
+          createdBy: absenceToDelete.createdBy
+        }
+      }
+    );
+
     res.json({ message: 'Absence deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting absence', error: error.message });

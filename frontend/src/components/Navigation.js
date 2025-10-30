@@ -42,7 +42,8 @@ const Navigation = () => {
               manageDepartments: true,
               manageTechnicians: true,
               viewSystemStatus: true,
-              managePermissions: true
+              managePermissions: true,
+              viewLogs: true
             });
           } else {
             const rolePermissions = await permissionsService.getRolePermissions(user.role);
@@ -185,6 +186,15 @@ const Navigation = () => {
             <li>
               <Link to="/skills" className={isActive('/skills')} onClick={closeMenu}>
                 {t('skills')}
+              </Link>
+            </li>
+          )}
+          
+          {/* Logs link */}
+          {permissions?.viewLogs === true && (
+            <li>
+              <Link to="/logs" className={isActive('/logs')} onClick={closeMenu}>
+                📋 Logs
               </Link>
             </li>
           )}

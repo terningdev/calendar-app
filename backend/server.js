@@ -283,6 +283,13 @@ try {
   console.error('  ❌ Failed to load /api/bugreports:', error.message);
 }
 
+try {
+  app.use('/api/logs', require('./routes/logs'));
+  console.log('  ✅ /api/logs');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/logs:', error.message);
+}
+
 // Permissions routes - load with error handling
 try {
   const permissionsRoutes = require('./routes/permissions');
