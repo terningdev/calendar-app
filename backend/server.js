@@ -384,7 +384,11 @@ function getConnectionState(state) {
 
 // Serve static files from the React app (AFTER API routes)
 // IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
-app.use(express.static(path.join(__dirname, '../frontend/build'), {
+const buildPath = path.join(__dirname, '../frontend/build');
+console.log(`📁 Serving static files from: ${buildPath}`);
+console.log(`📄 Index.html path: ${path.join(buildPath, 'index.html')}`);
+
+app.use(express.static(buildPath, {
   index: false, // Don't automatically serve index.html
   fallthrough: true // Continue to next middleware if file not found
 }));
@@ -405,7 +409,20 @@ app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
   }
-  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+  
+  const indexPath = path.join(__dirname, '../frontend/build', 'index.html');
+  console.log(`🔍 Serving index.html for route: ${req.path}`);
+  console.log(`📄 Index path: ${indexPath}`);
+  
+  // Check if file exists before trying to serve it
+  const fs = require('fs');
+  if (fs.existsSync(indexPath)) {
+    console.log(`✅ Index.html exists, serving it`);
+    res.sendFile(indexPath);
+  } else {
+    console.log(`❌ Index.html not found at: ${indexPath}`);
+    res.status(404).send('React app not found - index.html missing');
+  }
 });
 
 app.listen(PORT, () => {
