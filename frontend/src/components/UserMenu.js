@@ -523,7 +523,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
             fontSize: '0.9rem',
             fontWeight: '500'
           }}>
-            {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
+            👤 {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
           </span>
           {totalNotifications > 0 && (
             <span className="badge-notification" style={{ 
