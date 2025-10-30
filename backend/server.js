@@ -386,8 +386,10 @@ function getConnectionState(state) {
 // IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
 const fs = require('fs');
 const possibleBuildPaths = [
+  // Try build directory in backend first (copied during build)
+  path.join(__dirname, 'build'),
+  // Then try original frontend build location
   path.join(__dirname, '../frontend/build'),
-  path.join(__dirname, 'build'), 
   path.join(__dirname, '../build'),
   path.join(process.cwd(), 'frontend/build'),
   path.join(process.cwd(), 'build'),
@@ -437,8 +439,10 @@ app.get('*', (req, res, next) => {
   // Try multiple possible paths for index.html
   const fs = require('fs');
   const possiblePaths = [
-    path.join(__dirname, '../frontend/build', 'index.html'),
+    // Try build directory in backend first (copied during build)
     path.join(__dirname, 'build', 'index.html'),
+    // Then try original frontend build location
+    path.join(__dirname, '../frontend/build', 'index.html'),
     path.join(__dirname, '../build', 'index.html'),
     path.join(process.cwd(), 'frontend/build', 'index.html'),
     path.join(process.cwd(), 'build', 'index.html'),

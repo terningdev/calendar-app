@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "cd ../frontend && npm install && npm run build",
+    "build": "echo 'Building frontend...' && cd ../frontend && echo 'Installing frontend dependencies...' && npm install && echo 'Running React build...' && npm run build && echo 'Build completed successfully!' && ls -la build/ && echo 'Copying build files...' && cp -r build ../backend/ && echo 'Files copied to backend/build/'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
