@@ -340,12 +340,27 @@ router.put('/:id', requireAuth, [
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    // Log ticket update
+    // Log ticket update - only include fields that actually changed
     const changes = Object.keys(updateData).reduce((acc, key) => {
-      acc[key] = {
-        from: existingTicket[key],
-        to: updateData[key]
-      };
+      const oldValue = existingTicket[key];
+      const newValue = updateData[key];
+      
+      // Compare values, handling arrays and different types
+      let hasChanged = false;
+      if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+        hasChanged = JSON.stringify(oldValue.sort()) !== JSON.stringify(newValue.sort());
+      } else if (oldValue instanceof Date && typeof newValue === 'string') {
+        hasChanged = oldValue.toISOString() !== new Date(newValue).toISOString();
+      } else {
+        hasChanged = oldValue !== newValue;
+      }
+      
+      if (hasChanged) {
+        acc[key] = {
+          from: oldValue,
+          to: newValue
+        };
+      }
       return acc;
     }, {});
 
