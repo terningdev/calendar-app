@@ -384,7 +384,7 @@ function getConnectionState(state) {
 
 // Serve static files from the React app (AFTER API routes)
 // IMPORTANT: Set fallthrough to true so failed static file lookups continue to next handler
-app.use(express.static(path.join(__dirname, 'public'), {
+app.use(express.static(path.join(__dirname, '../frontend/build'), {
   index: false, // Don't automatically serve index.html
   fallthrough: true // Continue to next middleware if file not found
 }));
@@ -405,7 +405,7 @@ app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
   }
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
 app.listen(PORT, () => {
