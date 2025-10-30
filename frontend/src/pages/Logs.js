@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../utils/translations';
 import { toast } from 'react-toastify';
 
 const Logs = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
   
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     category: '',
     action: '',
@@ -122,21 +121,7 @@ const Logs = () => {
     return new Date(timestamp).toLocaleString();
   };
 
-  // Format category display
-  const formatCategory = (category) => {
-    const categoryIcons = {
-      'AUTH': '🔐',
-      'USER': '👤',
-      'TICKET': '🎫',
-      'DEPARTMENT': '🏢',
-      'TECHNICIAN': '🔧',
-      'ABSENCE': '📅',
-      'SKILL': '⭐',
-      'BUG_REPORT': '🐛',
-      'SYSTEM': '⚙️'
-    };
-    return `${categoryIcons[category] || '📋'} ${category}`;
-  };
+
 
   // Get action color class
   const getActionColorClass = (action) => {
@@ -162,141 +147,194 @@ const Logs = () => {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ padding: window.innerWidth <= 768 ? '10px' : undefined }}>
       <div className="page-header">
-        <h1 className="page-title">📋 System Activity Logs</h1>
+        <h1 className="page-title">System Activity Logs</h1>
         <p className="page-description">Monitor all system activities and user actions</p>
       </div>
 
-      {/* Statistics Cards */}
+      {/* Compact Statistics */}
       {stats && (
-        <div className="card" style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', padding: '20px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <h3 style={{ margin: '0 0 10px 0', color: 'var(--primary-color)' }}>{stats.totalLogs.toLocaleString()}</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Total Log Entries</p>
+        <div className="card" style={{ marginBottom: '15px', padding: '12px' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+            gap: '12px',
+            textAlign: 'center'
+          }}>
+            <div>
+              <h4 style={{ margin: '0 0 4px 0', color: 'var(--primary-color)', fontSize: '1.2rem' }}>
+                {stats.totalLogs.toLocaleString()}
+              </h4>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Total Logs</p>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <h3 style={{ margin: '0 0 10px 0', color: 'var(--success-color)' }}>{stats.todayLogs.toLocaleString()}</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Today's Activity</p>
+            <div>
+              <h4 style={{ margin: '0 0 4px 0', color: 'var(--success-color)', fontSize: '1.2rem' }}>
+                {stats.todayLogs.toLocaleString()}
+              </h4>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Today</p>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <h3 style={{ margin: '0 0 10px 0', color: 'var(--info-color)' }}>{stats.byCategory.length}</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Active Categories</p>
+            <div>
+              <h4 style={{ margin: '0 0 4px 0', color: 'var(--info-color)', fontSize: '1.2rem' }}>
+                {stats.byCategory.length}
+              </h4>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Categories</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="card" style={{ marginBottom: '20px' }}>
-        <div style={{ padding: '20px' }}>
-          <h3 style={{ marginTop: 0 }}>🔍 Filters</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '20px' }}>
-            
-            {/* Search */}
-            <div className="form-group">
-              <label className="form-label">Search</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search descriptions, users..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-              />
+      {/* Collapsible Filters */}
+      {showFilters && (
+        <div className="card" style={{ marginBottom: '15px' }}>
+          <div style={{ padding: '15px' }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+              gap: '10px', 
+              marginBottom: '15px' 
+            }}>
+              
+              {/* Search */}
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Search</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+                  placeholder="Search descriptions, users..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                />
+              </div>
+
+              {/* Category */}
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Category</label>
+                <select
+                  className="form-control"
+                  style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Action */}
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Action</label>
+                <select
+                  className="form-control"
+                  style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+                  value={filters.action}
+                  onChange={(e) => handleFilterChange('action', e.target.value)}
+                >
+                  <option value="">All Actions</option>
+                  {actions.map(action => (
+                    <option key={action} value={action}>{action}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* User */}
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>User</label>
+                <select
+                  className="form-control"
+                  style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+                  value={filters.userId}
+                  onChange={(e) => handleFilterChange('userId', e.target.value)}
+                >
+                  <option value="">All Users</option>
+                  {users.map(user => (
+                    <option key={user._id} value={user._id}>
+                      {user.userName} ({user.userEmail})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Start Date */}
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>From</label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+                  value={filters.startDate}
+                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>To</label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+                  value={filters.endDate}
+                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                />
+              </div>
             </div>
 
-            {/* Category */}
-            <div className="form-group">
-              <label className="form-label">Category</label>
-              <select
-                className="form-control"
-                value={filters.category}
-                onChange={(e) => handleFilterChange('category', e.target.value)}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button 
+                className="btn btn-primary" 
+                onClick={applyFilters}
+                style={{ fontSize: '0.9rem', padding: '6px 12px' }}
               >
-                <option value="">All Categories</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {formatCategory(category)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Action */}
-            <div className="form-group">
-              <label className="form-label">Action</label>
-              <select
-                className="form-control"
-                value={filters.action}
-                onChange={(e) => handleFilterChange('action', e.target.value)}
+                Apply
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={clearFilters}
+                style={{ fontSize: '0.9rem', padding: '6px 12px' }}
               >
-                <option value="">All Actions</option>
-                {actions.map(action => (
-                  <option key={action} value={action}>{action}</option>
-                ))}
-              </select>
+                Clear
+              </button>
             </div>
-
-            {/* User */}
-            <div className="form-group">
-              <label className="form-label">User</label>
-              <select
-                className="form-control"
-                value={filters.userId}
-                onChange={(e) => handleFilterChange('userId', e.target.value)}
-              >
-                <option value="">All Users</option>
-                {users.map(user => (
-                  <option key={user._id} value={user._id}>
-                    {user.userName} ({user.userEmail})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Start Date */}
-            <div className="form-group">
-              <label className="form-label">From Date</label>
-              <input
-                type="datetime-local"
-                className="form-control"
-                value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              />
-            </div>
-
-            {/* End Date */}
-            <div className="form-group">
-              <label className="form-label">To Date</label>
-              <input
-                type="datetime-local"
-                className="form-control"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="btn btn-primary" onClick={applyFilters}>
-              🔍 Apply Filters
-            </button>
-            <button className="btn btn-secondary" onClick={clearFilters}>
-              🗑️ Clear Filters
-            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Results */}
       <div className="card">
-        <div style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ margin: 0 }}>
-              📊 Activity Log ({pagination.totalCount.toLocaleString()} entries)
-            </h3>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+        <div style={{ padding: '15px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: '15px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
+                Activity Log ({pagination.totalCount.toLocaleString()} entries)
+              </h3>
+              <button 
+                className="btn btn-outline-secondary" 
+                onClick={() => setShowFilters(!showFilters)}
+                style={{ 
+                  fontSize: '0.85rem', 
+                  padding: '4px 8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: showFilters ? 'var(--primary-color)' : 'transparent',
+                  color: showFilters ? 'white' : 'var(--text-primary)'
+                }}
+              >
+                Filter {showFilters ? '▲' : '▼'}
+              </button>
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
               Page {pagination.currentPage} of {pagination.totalPages}
             </div>
           </div>
@@ -313,53 +351,86 @@ const Logs = () => {
           ) : (
             <>
               {/* Log Entries */}
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: '15px' }}>
                 {logs.map((log, index) => (
                   <div
                     key={log._id}
                     style={{
                       border: '1px solid var(--border-color)',
-                      borderRadius: '8px',
-                      padding: '15px',
-                      marginBottom: '10px',
-                      backgroundColor: index % 2 === 0 ? 'var(--card-bg)' : 'var(--accent-bg)'
+                      borderRadius: '6px',
+                      padding: '10px',
+                      marginBottom: '6px',
+                      backgroundColor: index % 2 === 0 ? 'var(--card-bg)' : 'var(--accent-bg)',
+                      fontSize: '0.9rem'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span className={`badge badge-${getActionColorClass(log.action)}`}>
+                    {/* Mobile-first responsive layout */}
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'flex-start', 
+                      marginBottom: '8px',
+                      flexWrap: 'wrap',
+                      gap: '6px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span 
+                          className={`badge badge-${getActionColorClass(log.action)}`}
+                          style={{ fontSize: '0.7rem', padding: '2px 6px' }}
+                        >
                           {log.action}
                         </span>
-                        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                          {formatCategory(log.category)}
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          {log.category}
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
                         {formatTimestamp(log.timestamp)}
                       </div>
                     </div>
                     
-                    <div style={{ marginBottom: '10px' }}>
+                    <div style={{ marginBottom: '8px', fontSize: '0.85rem', lineHeight: '1.3' }}>
                       <strong>{log.description}</strong>
                     </div>
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      <span>
-                        👤 {log.userName} ({log.userEmail})
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      fontSize: '0.75rem', 
+                      color: 'var(--text-secondary)',
+                      flexWrap: 'wrap',
+                      gap: '6px'
+                    }}>
+                      <span style={{ minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {log.userName} ({log.userEmail})
                       </span>
                       {log.ipAddress && (
-                        <span>
-                          🌐 {log.ipAddress}
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.7rem' }}>
+                          {log.ipAddress}
                         </span>
                       )}
                     </div>
                     
                     {log.changes && (
-                      <details style={{ marginTop: '10px', fontSize: '0.8rem' }}>
-                        <summary style={{ cursor: 'pointer', color: 'var(--primary-color)' }}>
+                      <details style={{ marginTop: '8px', fontSize: '0.75rem' }}>
+                        <summary style={{ 
+                          cursor: 'pointer', 
+                          color: 'var(--primary-color)', 
+                          padding: '2px 0',
+                          fontSize: '0.75rem'
+                        }}>
                           View Changes
                         </summary>
-                        <pre style={{ marginTop: '10px', backgroundColor: 'var(--accent-bg)', padding: '10px', borderRadius: '4px', overflow: 'auto' }}>
+                        <pre style={{ 
+                          marginTop: '6px', 
+                          backgroundColor: 'var(--accent-bg)', 
+                          padding: '8px', 
+                          borderRadius: '4px', 
+                          overflow: 'auto',
+                          fontSize: '0.7rem',
+                          maxHeight: '200px'
+                        }}>
                           {JSON.stringify(log.changes, null, 2)}
                         </pre>
                       </details>
@@ -370,23 +441,36 @@ const Logs = () => {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  flexWrap: 'wrap'
+                }}>
                   <button
                     className="btn btn-secondary"
                     disabled={!pagination.hasPrev}
                     onClick={() => fetchLogs(pagination.currentPage - 1)}
+                    style={{ fontSize: '0.85rem', padding: '6px 12px' }}
                   >
-                    ← Previous
+                    ← Prev
                   </button>
                   
-                  <span style={{ padding: '0 20px', color: 'var(--text-secondary)' }}>
-                    Page {pagination.currentPage} of {pagination.totalPages}
+                  <span style={{ 
+                    padding: '0 12px', 
+                    color: 'var(--text-secondary)', 
+                    fontSize: '0.85rem',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {pagination.currentPage} / {pagination.totalPages}
                   </span>
                   
                   <button
                     className="btn btn-secondary"
                     disabled={!pagination.hasNext}
                     onClick={() => fetchLogs(pagination.currentPage + 1)}
+                    style={{ fontSize: '0.85rem', padding: '6px 12px' }}
                   >
                     Next →
                   </button>

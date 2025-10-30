@@ -194,7 +194,7 @@ const Navigation = () => {
           {permissions?.viewLogs === true && (
             <li>
               <Link to="/logs" className={isActive('/logs')} onClick={closeMenu}>
-                📋 Logs
+                Logs
               </Link>
             </li>
           )}
