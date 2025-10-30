@@ -163,11 +163,7 @@ const connectDB = async () => {
     console.log('✅ Connected to MongoDB successfully');
     console.log('Database name:', mongoose.connection.name);
     
-    // Initialize default sysadmin user after DB connection
-    const authRoutes = require('./routes/auth');
-    if (authRoutes.initializeDefaultUser) {
-      await authRoutes.initializeDefaultUser();
-    }
+    // Sysadmin user initialization removed - use regular user with sysadmin role
     
     // Initialize default role permissions after DB connection (only creates sysadmin)
     const { initializeDefaultPermissions } = require('./models/PermissionsModel');
@@ -207,11 +203,7 @@ const connectDB = async () => {
         console.log('✅ Successfully connected to fallback in-memory database');
         console.log('📝 Note: Data will persist in ./data/db folder');
         
-        // Initialize default sysadmin user after DB connection
-        const authRoutes = require('./routes/auth');
-        if (authRoutes.initializeDefaultUser) {
-          await authRoutes.initializeDefaultUser();
-        }
+        // Sysadmin user initialization removed - use regular user with sysadmin role
         
         // Initialize default role permissions after DB connection (only creates sysadmin)
         const { initializeDefaultPermissions } = require('./models/PermissionsModel');
