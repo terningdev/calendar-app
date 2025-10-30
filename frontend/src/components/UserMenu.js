@@ -405,15 +405,12 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
       <>
         <div className="mobile-user-section">
           <button
-            className="mobile-user-button"
+            className="mobile-user-button-name"
             onClick={toggleMenu}
           >
             <div className="mobile-user-info">
-              <div className="user-avatar">
-                {(user?.firstName?.[0] || user?.fullName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
-              </div>
-              <span className="mobile-user-name">
-                {user?.firstName || user?.fullName || user?.username || 'User'}
+              <span className="mobile-user-name-only">
+                {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
               </span>
               {totalNotifications > 0 && (
                 <span className="badge-notification-mobile">
@@ -509,15 +506,12 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
       <div className="nav-user-menu">
         <button
           ref={buttonRef}
-          className="user-profile-button-name"
+          className="user-profile-button-text"
           onClick={toggleMenu}
           title={user?.firstName || user?.fullName || user?.username || 'User'}
           style={{ position: 'relative' }}
         >
-          <div className="user-avatar-small">
-            {(user?.firstName?.[0] || user?.fullName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
-          </div>
-          <span className="user-display-name">
+          <span className="user-display-name-only">
             {user?.firstName || user?.fullName?.split(' ')[0] || user?.username || 'User'}
           </span>
           {totalNotifications > 0 && (
