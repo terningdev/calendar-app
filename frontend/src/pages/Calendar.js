@@ -307,6 +307,16 @@ const Calendar = () => {
     );
   };
 
+  // Get filtered technicians based on selected departments in filter
+  const getFilteredTechnicians = () => {
+    if (filters.department.length === 0) {
+      return technicians.filter(tech => tech.isActive);
+    }
+    return technicians.filter(tech => 
+      tech.isActive && tech.department && filters.department.includes(tech.department._id)
+    );
+  };
+
   // Close modals
   const closeActionModal = () => {
     setShowActionModal(false);
@@ -425,34 +435,82 @@ const Calendar = () => {
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">{t('department')}</label>
-              <select
-                className="form-control"
-                value={filters.department.length > 0 ? filters.department[0] : ''}
-                onChange={(e) => setFilters({ ...filters, department: e.target.value ? [e.target.value] : [] })}
-              >
-                <option value="">{t('allDepartments')}</option>
-                {departments.map(dept => (
-                  <option key={dept._id} value={dept._id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <select
+                  className="form-control"
+                  multiple
+                  size="4"
+                  value={filters.department}
+                  onChange={(e) => {
+                    const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                    setFilters({ 
+                      ...filters, 
+                      department: selectedValues,
+                      // Clear technician filter when department changes
+                      assignedTo: []
+                    });
+                  }}
+                  style={{ 
+                    minHeight: '100px',
+                    resize: 'vertical'
+                  }}
+                >
+                  {departments.map(dept => (
+                    <option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                <small className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginTop: '2px' }}>
+                  Hold Ctrl/Cmd to select multiple
+                </small>
+              </div>
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">{t('assignedTo')}</label>
-              <select
-                className="form-control"
-                value={filters.assignedTo.length > 0 ? filters.assignedTo[0] : ''}
-                onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value ? [e.target.value] : [] })}
-              >
-                <option value="">{t('allTechnicians')}</option>
-                <option value="unassigned">{t('unassigned')}</option>
-                {technicians.filter(t => t.isActive).map(tech => (
-                  <option key={tech._id} value={tech._id}>
-                    {tech.fullName}
-                  </option>
-                ))}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <select
+                  className="form-control"
+                  multiple
+                  size="4"
+                  value={filters.assignedTo}
+                  onChange={(e) => {
+                    const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                    setFilters({ ...filters, assignedTo: selectedValues });
+                  }}
+                  style={{ 
+                    minHeight: '100px',
+                    resize: 'vertical'
+                  }}
+                >
+                  <option value="unassigned">{t('unassigned')}</option>
+                  {getFilteredTechnicians().map(tech => (
+                    <option key={tech._id} value={tech._id}>
+                      {tech.fullName}
+                    </option>
+                  ))}
+                </select>
+                <small className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginTop: '2px' }}>
+                  Hold Ctrl/Cmd to select multiple
+                </small>
+              </div>
+              
+              {/* Clear Filters Button */}
+              <div className="col-md-12 mt-2">
+                <button 
+                  type="button" 
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => setFilters({
+                    status: [],
+                    department: [],
+                    assignedTo: [],
+                    priority: []
+                  })}
+                  title="Clear all filters"
+                >
+                  Clear Filters
+                </button>
+              </div>
             </div>
           </div>
         </div>

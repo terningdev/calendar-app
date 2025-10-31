@@ -13,6 +13,9 @@ backend/.env
 backend/data/
 backend/logs/
 
+# Local database files
+data/
+
 # Frontend specific
 frontend/build/
 frontend/.env
