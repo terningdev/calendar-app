@@ -363,10 +363,6 @@ const Maps = () => {
   };
 
   // Handle filter changes
-  const handleDepartmentChange = (value) => {
-    setFilters({ ...filters, department: value ? [value] : [] });
-  };
-
   const handleFilterDepartmentChange = (deptId) => {
     setFilters(prev => ({
       ...prev,
@@ -444,25 +440,42 @@ const Maps = () => {
             <label className="form-label">{t('department')}</label>
             <select
               className="form-control"
+              multiple
+              size="4"
               value={filters.department}
-              onChange={(e) => handleDepartmentChange(e.target.value)}
+              onChange={(e) => {
+                const selectedDepartments = Array.from(e.target.selectedOptions, option => option.value);
+                setFilters(prev => ({
+                  ...prev,
+                  department: selectedDepartments,
+                  assignedTo: selectedDepartments.length !== prev.department.length ? [] : prev.assignedTo
+                }));
+              }}
+              style={{ minHeight: '100px' }}
             >
-              <option value="">{t('allDepartments')}</option>
               {departments.map(dept => (
                 <option key={dept._id} value={dept._id}>
                   {dept.name}
                 </option>
               ))}
             </select>
+            <small className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginTop: '2px' }}>
+              Hold Ctrl/Cmd to select multiple
+            </small>
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">{t('assignedTo')}</label>
             <select
               className="form-control"
-              value={filters.assignedTo.length > 0 ? filters.assignedTo[0] : ''}
-              onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value ? [e.target.value] : [] })}
+              multiple
+              size="4"
+              value={filters.assignedTo}
+              onChange={(e) => {
+                const selectedTechnicians = Array.from(e.target.selectedOptions, option => option.value);
+                setFilters(prev => ({ ...prev, assignedTo: selectedTechnicians }));
+              }}
+              style={{ minHeight: '100px' }}
             >
-              <option value="">{t('allTechnicians')}</option>
               <option value="unassigned">{t('unassigned')}</option>
               {getFilteredTechnicians().map(tech => (
                 <option key={tech._id} value={tech._id}>
@@ -470,6 +483,27 @@ const Maps = () => {
                 </option>
               ))}
             </select>
+            <small className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginTop: '2px' }}>
+              Hold Ctrl/Cmd to select multiple
+            </small>
+          </div>
+          
+          {/* Clear Filters Button */}
+          <div className="form-group" style={{ marginBottom: 0, display: 'flex', alignItems: 'end' }}>
+            <button 
+              type="button" 
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => setFilters({
+                status: [],
+                department: [],
+                assignedTo: [],
+                priority: []
+              })}
+              title="Clear all filters"
+              style={{ height: 'fit-content' }}
+            >
+              Clear Filters
+            </button>
           </div>
         </div>
       </div>
