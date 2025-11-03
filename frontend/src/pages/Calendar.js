@@ -668,6 +668,7 @@ const Calendar = () => {
           selectable={false}
           selectMirror={true}
           dayMaxEvents={false}
+          eventOrder="start,-duration,title"
           eventTimeFormat={{
             hour: '2-digit',
             minute: '2-digit',

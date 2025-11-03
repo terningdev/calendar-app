@@ -2055,6 +2055,7 @@ body {
   border-radius: 4px;
   padding: 2px 4px;
   font-size: 0.85rem;
+  margin-bottom: 2px !important;  /* Add spacing between overlapping events */
 }
 
 .fc-event-title {
@@ -2142,6 +2143,24 @@ body {
 
 .fc-theme-standard .fc-scrollgrid {
   border-color: var(--card-border, #ddd);
+}
+
+/* FullCalendar event spacing - ensures proper gaps between overlapping events */
+.fc-daygrid-event-harness {
+  margin-bottom: 2px !important;
+}
+
+.fc-daygrid-block-event .fc-event-main {
+  padding: 1px 2px;
+}
+
+.fc-daygrid-day-events {
+  margin-bottom: 2px;
+}
+
+/* Ensure events don't touch each other when stacked */
+.fc-daygrid-event {
+  margin-bottom: 2px !important;
 }
 
 /* Mobile Responsive Styles */
