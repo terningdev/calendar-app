@@ -30,6 +30,8 @@ const Calendar = () => {
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAgenda, setShowAgenda] = useState(false);
+  const [agendaDate, setAgendaDate] = useState(null);
   const [filters, setFilters] = useState({
     department: [],
     assignedTo: []
@@ -207,6 +209,23 @@ const Calendar = () => {
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff'
       };
+    });
+  };
+
+  // Get events for a specific date (for agenda view)
+  const getEventsForDate = (date) => {
+    if (!date) return [];
+    
+    const dateStr = date.toISOString().split('T')[0];
+    const allEvents = getEvents();
+    
+    return allEvents.filter(event => {
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      const targetDate = new Date(dateStr);
+      
+      // Check if the target date falls within the event's date range
+      return targetDate >= eventStart && targetDate < eventEnd;
     });
   };
 
@@ -609,9 +628,11 @@ const Calendar = () => {
         </div>
       )}
 
-      {/* Calendar */}
-      <div className="calendar-wrapper">
-        <FullCalendar
+      {/* Calendar Container */}
+      <div className="calendar-container" style={{ display: 'flex', gap: '15px' }}>
+        {/* Calendar */}
+        <div className={`calendar-wrapper ${showAgenda ? 'with-agenda' : ''}`}>
+          <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
           initialView={isMobile ? 'dayGridMonth' : 'dayGridMonth'}
@@ -667,7 +688,12 @@ const Calendar = () => {
           editable={false}
           selectable={false}
           selectMirror={true}
-          dayMaxEvents={false}
+          dayMaxEvents={4}
+          moreLinkClick={(info) => {
+            setAgendaDate(info.date);
+            setShowAgenda(true);
+            return 'popover'; // This prevents the default behavior
+          }}
           eventOrder="start,-duration,title"
           eventTimeFormat={{
             hour: '2-digit',
@@ -692,6 +718,42 @@ const Calendar = () => {
             list: 'List'
           }}
         />
+        </div>
+
+        {/* Agenda View */}
+        {showAgenda && (
+          <div className="agenda-panel">
+            <div className="agenda-header">
+              <h5>Agenda for {agendaDate?.toLocaleDateString()}</h5>
+              <button 
+                className="btn btn-sm btn-outline-secondary"
+                onClick={() => setShowAgenda(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="agenda-content">
+              {getEventsForDate(agendaDate).map((event, index) => (
+                <div key={index} className="agenda-item" onClick={() => handleEventClick({ event: { extendedProps: event.extendedProps } })}>
+                  <div className="agenda-item-time">
+                    {event.allDay ? 'All Day' : event.start}
+                  </div>
+                  <div className="agenda-item-content">
+                    <div className="agenda-item-title">{event.title}</div>
+                    <div className="agenda-item-tech">{event.extendedProps.technicians}</div>
+                  </div>
+                  <div 
+                    className="agenda-item-color" 
+                    style={{ backgroundColor: event.backgroundColor }}
+                  ></div>
+                </div>
+              ))}
+              {getEventsForDate(agendaDate).length === 0 && (
+                <div className="agenda-empty">No events for this date</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action Selection Modal */}

@@ -2002,14 +2002,130 @@ body {
   font-size: 0.85rem;
 }
 
-/* FullCalendar Styles */
+/* Calendar Container and Agenda Panel */
+.calendar-container {
+  display: flex;
+  gap: 15px;
+  align-items: stretch;
+}
+
 .calendar-wrapper {
+  flex: 1;
   padding: 20px;
   background: var(--card-bg, white);
   border-radius: 8px;
   box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
   transition: background-color 0.3s ease;
 }
+
+.calendar-wrapper.with-agenda {
+  flex: 0 0 70%;
+}
+
+.agenda-panel {
+  flex: 0 0 350px;
+  background: var(--card-bg, white);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.agenda-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color, #dee2e6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 8px 8px 0 0;
+}
+
+.agenda-header h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary, #333);
+}
+
+.agenda-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.agenda-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: var(--bg-secondary, #f8f9fa);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.agenda-item:hover {
+  background: var(--hover-bg, #e9ecef);
+}
+
+.agenda-item-time {
+  flex: 0 0 80px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #6c757d);
+  font-weight: 500;
+}
+
+.agenda-item-content {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.agenda-item-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+  margin-bottom: 2px;
+}
+
+.agenda-item-tech {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #6c757d);
+  font-style: italic;
+}
+
+.agenda-item-color {
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  margin-left: 12px;
+}
+
+.agenda-empty {
+  text-align: center;
+  color: var(--text-secondary, #6c757d);
+  font-style: italic;
+  padding: 40px 20px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .calendar-container {
+    flex-direction: column;
+  }
+  
+  .calendar-wrapper.with-agenda {
+    flex: 1;
+  }
+  
+  .agenda-panel {
+    flex: 0 0 300px;
+    order: -1;
+  }
+}
+
+/* FullCalendar Styles */
 
 .fc {
   font-family: inherit;
