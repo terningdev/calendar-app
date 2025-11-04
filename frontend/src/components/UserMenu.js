@@ -547,8 +547,16 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
           )}
         </button>
 
-        {isMenuOpen && (
-          <div ref={menuRef} className="user-menu-dropdown">
+        {isMenuOpen && ReactDOM.createPortal(
+          <div 
+            ref={menuRef} 
+            className="user-menu-dropdown"
+            style={{
+              position: 'fixed',
+              top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : '60px',
+              right: buttonRef.current ? window.innerWidth - buttonRef.current.getBoundingClientRect().right : '20px'
+            }}
+          >
             {onOpenPendingUsers && hasPermission('approveUsers') && (
               <div className="user-menu-item" onClick={() => { 
                 setIsMenuOpen(false); 
@@ -626,7 +634,8 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
             <div className="user-menu-item danger" onClick={handleLogout}>
               🚪 Logout
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
