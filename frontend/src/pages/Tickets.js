@@ -26,6 +26,7 @@ const Tickets = () => {
   const [showFilterTechnicianSelector, setShowFilterTechnicianSelector] = useState(false);
   const [selectedOldTickets, setSelectedOldTickets] = useState([]);
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const mobileSearchRef = useRef(null);
   const [filters, setFilters] = useState({
     status: '',
