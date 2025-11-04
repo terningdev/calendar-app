@@ -434,7 +434,7 @@ const Maps = () => {
         technicians={technicians}
       />
       
-            <div className={`maps-container ${showFilters ? 'filter-sidebar-active' : ''}`}>
+      <div className={`maps-container ${showFilters ? 'filter-sidebar-active' : ''}`}>
         <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'calc(100vh - 150px)', minHeight: '500px', position: 'relative' }}>
           {/* Filter Button */}
           <button
@@ -461,258 +461,66 @@ const Maps = () => {
             🔍 Filter
           </button>
 
-      {/* Mobile Filters - Compact Single Line */}
-      <div className="mobile-only" style={{ marginBottom: '12px', position: 'relative' }}>
-        <div className="mobile-tickets-toolbar">
-          {/* Circular Search Button */}
-          <button 
-            className="mobile-search-circular-btn"
-            onClick={() => setMobileSearchExpanded(!mobileSearchExpanded)}
-            title="Search"
+          <MapContainer 
+            center={filteredTickets.length > 0 && filteredTickets[0].coordinates 
+              ? [filteredTickets[0].coordinates.lat, filteredTickets[0].coordinates.lng] 
+              : defaultCenter}
+            zoom={12}
+            style={{ width: '100%', height: '100%', minHeight: '500px' }}
           >
-            🔍
-          </button>
-          
-          {/* Expanded Search Overlay */}
-          {mobileSearchExpanded && (
-            <div className="mobile-search-expanded" ref={mobileSearchRef}>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search tickets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                autoFocus
-                style={{ paddingRight: '40px' }}
-              />
-              <button
-                className="mobile-search-close"
-                onClick={() => setMobileSearchExpanded(false)}
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            
+            {filteredTickets.filter(ticket => ticket.coordinates).map((ticket) => (
+              <Marker 
+                key={ticket._id}
+                position={[ticket.coordinates.lat, ticket.coordinates.lng]}
               >
-                ✕
-              </button>
-            </div>
-          )}
-          
-          {/* Filter buttons - hidden when search is expanded */}
-          {!mobileSearchExpanded && (
-            <>
-              <button
-                className="mobile-filter-selector"
-                onClick={() => setShowFilterDepartmentSelector(true)}
-              >
-                <span className="mobile-selector-text">
-                  {filters.department.length === 0 
-                    ? "📋 None selected" 
-                    : filters.department.length === 1 
-                      ? `📋 ${departments.find(d => d._id === filters.department[0])?.name || '1 dept'}` 
-                      : `📋 ${filters.department.length} depts`}
-                </span>
-              </button>
-              
-              <button
-                className="mobile-filter-selector"
-                onClick={() => setShowFilterTechnicianSelector(true)}
-              >
-                <span className="mobile-selector-text">
-                  {filters.assignedTo.length === 0 
-                    ? "👤 None selected" 
-                    : filters.assignedTo.length === 1 
-                      ? filters.assignedTo[0] === 'unassigned'
-                        ? "👤 Unassigned"
-                        : `👤 ${technicians.find(t => t._id === filters.assignedTo[0])?.fullName || '1 tech'}`
-                      : `👤 ${filters.assignedTo.length} techs`}
-                </span>
-              </button>
-            </>
-          )}
+                <Popup>
+                  <div style={{ minWidth: '200px' }}>
+                    <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem', fontWeight: 'bold' }}>
+                      {ticket.title}
+                    </h3>
+                    {ticket.activityNumbers && ticket.activityNumbers.length > 0 && (
+                      <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                        <strong>Activity:</strong> {ticket.activityNumbers.join(', ')}
+                      </p>
+                    )}
+                    {ticket.description && (
+                      <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                        <strong>Description:</strong> {ticket.description}
+                      </p>
+                    )}
+                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                      <strong>Address:</strong> {ticket.address}
+                    </p>
+                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                      <strong>Assigned to:</strong>{' '}
+                      {Array.isArray(ticket.assignedTo) && ticket.assignedTo.length > 0
+                        ? ticket.assignedTo.map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`).join(', ')
+                        : 'Not assigned'}
+                    </p>
+                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                      <strong>Start Date:</strong> {new Date(ticket.startDate).toLocaleDateString()}
+                    </p>
+                    {ticket.endDate && (
+                      <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
+                        <strong>End Date:</strong> {new Date(ticket.endDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            
+            {filteredTickets.length > 0 && (
+              <FitBounds positions={filteredTickets.filter(t => t.coordinates).map(t => [t.coordinates.lat, t.coordinates.lng])} />
+            )}
+          </MapContainer>
         </div>
       </div>
-
-      {/* Filter Department Selector */}
-      {showFilterDepartmentSelector && ReactDOM.createPortal(
-        <div className="mobile-selector-overlay" onClick={() => setShowFilterDepartmentSelector(false)}>
-          <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="mobile-selector-header">
-              <h3>📋 Select Departments</h3>
-              <button 
-                className="mobile-selector-close"
-                onClick={() => setShowFilterDepartmentSelector(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="mobile-selector-content">
-              {departments.map(dept => (
-                <div 
-                  key={dept._id} 
-                  className={`mobile-selector-item ${filters.department.includes(dept._id) ? 'selected' : ''}`}
-                  onClick={() => handleFilterDepartmentChange(dept._id)}
-                >
-                  <span className="mobile-selector-check">
-                    {filters.department.includes(dept._id) ? '✓' : '○'}
-                  </span>
-                  <span className="mobile-selector-name">{dept.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mobile-selector-footer">
-              <button 
-                className="mobile-selector-done"
-                onClick={() => setShowFilterDepartmentSelector(false)}
-              >
-                Done ({filters.department.length} selected)
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Filter Technician Selector */}
-      {showFilterTechnicianSelector && ReactDOM.createPortal(
-        <div className="mobile-selector-overlay" onClick={() => setShowFilterTechnicianSelector(false)}>
-          <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="mobile-selector-header">
-              <h3>👥 Select Technicians</h3>
-              <button 
-                className="mobile-selector-close"
-                onClick={() => setShowFilterTechnicianSelector(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="mobile-selector-content">
-              <div 
-                className={`mobile-selector-item ${filters.assignedTo.includes('unassigned') ? 'selected' : ''}`}
-                onClick={() => handleFilterTechnicianChange('unassigned')}
-              >
-                <span className="mobile-selector-check">
-                  {filters.assignedTo.includes('unassigned') ? '✓' : '○'}
-                </span>
-                <span className="mobile-selector-name">Unassigned</span>
-              </div>
-              {getFilteredTechnicians().map(tech => (
-                <div 
-                  key={tech._id} 
-                  className={`mobile-selector-item ${filters.assignedTo.includes(tech._id) ? 'selected' : ''}`}
-                  onClick={() => handleFilterTechnicianChange(tech._id)}
-                >
-                  <span className="mobile-selector-check">
-                    {filters.assignedTo.includes(tech._id) ? '✓' : '○'}
-                  </span>
-                  <span className="mobile-selector-name">{tech.fullName}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mobile-selector-footer">
-              <button 
-                className="mobile-selector-done"
-                onClick={() => setShowFilterTechnicianSelector(false)}
-              >
-                Done ({filters.assignedTo.length} selected)
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Geocoding Progress Indicator */}
-      {geocodingProgress.total > 0 && geocodingProgress.current < geocodingProgress.total && (
-        <div className="card" style={{ 
-          marginBottom: '12px', 
-          padding: '15px',
-          backgroundColor: 'var(--accent-bg)',
-          border: '1px solid var(--border-color)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div className="spinner" style={{ width: '20px', height: '20px' }}></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                Loading ticket locations ({geocodingProgress.current} of {geocodingProgress.total})
-              </div>
-              <div style={{
-                width: '100%',
-                height: '6px',
-                backgroundColor: 'var(--border-color)',
-                borderRadius: '3px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: `${(geocodingProgress.current / geocodingProgress.total) * 100}%`,
-                  height: '100%',
-                  backgroundColor: 'var(--primary-color)',
-                  transition: 'width 0.3s ease'
-                }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'calc(100vh - 250px)', minHeight: '500px' }}>
-        <MapContainer 
-          center={filteredTickets.length > 0 && filteredTickets[0].coordinates 
-            ? [filteredTickets[0].coordinates.lat, filteredTickets[0].coordinates.lng] 
-            : defaultCenter}
-          zoom={12}
-          style={{ width: '100%', height: '100%', minHeight: '500px' }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          
-          {filteredTickets.filter(ticket => ticket.coordinates).map((ticket) => (
-            <Marker 
-              key={ticket._id}
-              position={[ticket.coordinates.lat, ticket.coordinates.lng]}
-            >
-              <Popup>
-                <div style={{ minWidth: '200px' }}>
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem', fontWeight: 'bold' }}>
-                    {ticket.title}
-                  </h3>
-                  {ticket.activityNumbers && ticket.activityNumbers.length > 0 && (
-                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                      <strong>Activity:</strong> {ticket.activityNumbers.join(', ')}
-                    </p>
-                  )}
-                  {ticket.description && (
-                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                      <strong>Description:</strong> {ticket.description}
-                    </p>
-                  )}
-                  <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                    <strong>Address:</strong> {ticket.address}
-                  </p>
-                  <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                    <strong>Assigned to:</strong>{' '}
-                    {Array.isArray(ticket.assignedTo) && ticket.assignedTo.length > 0
-                      ? ticket.assignedTo.map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`).join(', ')
-                      : 'Not assigned'}
-                  </p>
-                  <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                    <strong>Start Date:</strong> {new Date(ticket.startDate).toLocaleDateString()}
-                  </p>
-                  {ticket.endDate && (
-                    <p style={{ margin: '5px 0', fontSize: '0.9rem' }}>
-                      <strong>End Date:</strong> {new Date(ticket.endDate).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-          
-          
-          {filteredTickets.length > 0 && (
-            <FitBounds positions={filteredTickets.filter(t => t.coordinates).map(t => [t.coordinates.lat, t.coordinates.lng])} />
-          )}
-        </MapContainer>
-      </div>
-    </div>
     </>
   );
 };
