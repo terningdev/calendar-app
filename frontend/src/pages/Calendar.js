@@ -454,81 +454,70 @@ const Calendar = () => {
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">{t('department')}</label>
-              <div style={{ position: 'relative' }}>
-                <select
-                  className="form-control"
-                  multiple
-                  size="4"
-                  value={filters.department}
-                  onChange={(e) => {
-                    const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
-                    setFilters({ 
-                      ...filters, 
-                      department: selectedValues,
-                      // Clear technician filter when department changes
-                      assignedTo: []
-                    });
-                  }}
-                  style={{ 
-                    minHeight: '100px',
-                    resize: 'vertical'
-                  }}
-                >
-                  {departments.map(dept => (
-                    <option key={dept._id} value={dept._id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-                <small className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginTop: '2px' }}>
-                  Hold Ctrl/Cmd to select multiple
-                </small>
+              <div className="checkbox-filter-container">
+                {departments.map(dept => (
+                  <label key={dept._id} className="checkbox-filter-item">
+                    <input
+                      type="checkbox"
+                      checked={filters.department.includes(dept._id)}
+                      onChange={(e) => {
+                        const newDepartments = e.target.checked
+                          ? [...filters.department, dept._id]
+                          : filters.department.filter(id => id !== dept._id);
+                        setFilters({ 
+                          ...filters, 
+                          department: newDepartments,
+                          // Clear technician filter when department changes
+                          assignedTo: newDepartments.length !== filters.department.length ? [] : filters.assignedTo
+                        });
+                      }}
+                    />
+                    <span className="checkbox-filter-label">{dept.name}</span>
+                  </label>
+                ))}
+                {departments.length === 0 && (
+                  <div className="text-muted" style={{ fontSize: '0.9rem', padding: '8px' }}>
+                    No departments available
+                  </div>
+                )}
               </div>
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">{t('assignedTo')}</label>
-              <div style={{ position: 'relative' }}>
-                <select
-                  className="form-control"
-                  multiple
-                  size="4"
-                  value={filters.assignedTo}
-                  onChange={(e) => {
-                    const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
-                    setFilters({ ...filters, assignedTo: selectedValues });
-                  }}
-                  style={{ 
-                    minHeight: '100px',
-                    resize: 'vertical'
-                  }}
-                >
-                  <option value="unassigned">{t('unassigned')}</option>
-                  {getFilteredTechnicians().map(tech => (
-                    <option key={tech._id} value={tech._id}>
-                      {tech.fullName}
-                    </option>
-                  ))}
-                </select>
-                <small className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginTop: '2px' }}>
-                  Hold Ctrl/Cmd to select multiple
-                </small>
-              </div>
-              
-              {/* Clear Filters Button */}
-              <div className="col-md-12 mt-2">
-                <button 
-                  type="button" 
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setFilters({
-                    status: [],
-                    department: [],
-                    assignedTo: [],
-                    priority: []
-                  })}
-                  title="Clear all filters"
-                >
-                  Clear Filters
-                </button>
+              <div className="checkbox-filter-container">
+                <label className="checkbox-filter-item">
+                  <input
+                    type="checkbox"
+                    checked={filters.assignedTo.includes('unassigned')}
+                    onChange={(e) => {
+                      const newAssignedTo = e.target.checked
+                        ? [...filters.assignedTo, 'unassigned']
+                        : filters.assignedTo.filter(id => id !== 'unassigned');
+                      setFilters({ ...filters, assignedTo: newAssignedTo });
+                    }}
+                  />
+                  <span className="checkbox-filter-label">{t('unassigned')}</span>
+                </label>
+                {getFilteredTechnicians().map(tech => (
+                  <label key={tech._id} className="checkbox-filter-item">
+                    <input
+                      type="checkbox"
+                      checked={filters.assignedTo.includes(tech._id)}
+                      onChange={(e) => {
+                        const newAssignedTo = e.target.checked
+                          ? [...filters.assignedTo, tech._id]
+                          : filters.assignedTo.filter(id => id !== tech._id);
+                        setFilters({ ...filters, assignedTo: newAssignedTo });
+                      }}
+                    />
+                    <span className="checkbox-filter-label">{tech.fullName}</span>
+                  </label>
+                ))}
+                {getFilteredTechnicians().length === 0 && filters.department.length > 0 && (
+                  <div className="text-muted" style={{ fontSize: '0.9rem', padding: '8px' }}>
+                    No technicians available for selected departments
+                  </div>
+                )}
               </div>
             </div>
           </div>
