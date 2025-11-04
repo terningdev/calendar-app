@@ -1342,7 +1342,7 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 2px solid var(--border-color, #dee2e6);
   min-width: 220px;
-  z-index: 10001 !important;
+  z-index: 99999 !important;
   animation: dropdownSlideIn 0.2s ease-out;
   overflow: hidden;
 }
@@ -2353,21 +2353,36 @@ body {
 /* Ensure navigation elements are above map controls and calendar components */
 
 /* Leaflet map controls - ensure they don't overlap navigation */
-.leaflet-control-container {
+.leaflet-control-container,
+.leaflet-control-zoom, 
+.leaflet-control-layers, 
+.leaflet-control-attribution,
+.leaflet-popup,
+.leaflet-tooltip {
   z-index: 100 !important;
 }
 
-.leaflet-control-zoom, 
-.leaflet-control-layers, 
-.leaflet-control-attribution {
-  z-index: 100 !important;
+/* Force all leaflet elements to stay below navigation */
+.leaflet-container * {
+  z-index: auto !important;
 }
 
 /* FullCalendar popover/tooltip overrides */
-.fc .fc-popover {
+.fc .fc-popover,
+.fc .fc-more-popover,
+.fc .fc-daygrid-event-harness,
+.fc .fc-event,
+.fc-event-main {
   z-index: 999 !important;
 }
 
+/* Force all FullCalendar elements to stay below navigation */
+.fc * {
+  z-index: auto !important;
+}
+
+/* But allow specific interactive elements */
+.fc .fc-popover,
 .fc .fc-more-popover {
   z-index: 999 !important;
 }
@@ -2377,7 +2392,19 @@ body {
 .calendar-container,
 .maps-container {
   position: relative;
-  z-index: 1;
+  z-index: auto !important;
+}
+
+/* Specifically target FullCalendar and Leaflet containers to prevent stacking context issues */
+.fc,
+.leaflet-container {
+  z-index: auto !important;
+}
+
+/* Ensure page content containers stay below navigation */
+.page-container {
+  position: relative;
+  z-index: auto !important;
 }
 
 /* Navigation hierarchy (highest to lowest) */
