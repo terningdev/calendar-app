@@ -110,6 +110,8 @@ body {
   box-shadow: 0 2px 4px var(--shadow, rgba(0, 0, 0, 0.1));
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease;
+  overflow: visible !important;
+  position: relative;
 }
 
 .nav-container {
@@ -120,6 +122,8 @@ body {
   justify-content: center;
   align-items: center;
   height: 60px;
+  overflow: visible !important;
+  position: relative;
 }
 
 .nav-links {
@@ -130,6 +134,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0;
+  overflow: visible !important;
 }
 
 .nav-links li {
@@ -1208,7 +1213,7 @@ body {
 .nav-user-menu {
   position: relative;
   display: inline-block;
-  /* TEST CHANGE */
+  overflow: visible !important;
 }
 
 .user-profile-button {
