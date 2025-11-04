@@ -914,7 +914,7 @@ const Tickets = () => {
   const filteredTickets = getFilteredTickets();
 
   return (
-    <>
+    <div className="tickets-page">
       {/* Filter Sidebar */}
       <FilterSidebar
         isOpen={showFilters}
@@ -1056,10 +1056,10 @@ const Tickets = () => {
                           <span>-</span>
                           <span>{formatDateShort(ticket.startDate)}</span>
                           {ticket.endDate && (
-                            <>
+                            <span>
                               <span>-</span>
                               <span>{formatDateShort(ticket.endDate)}</span>
-                            </>
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1146,10 +1146,10 @@ const Tickets = () => {
                       <div className="mobile-agenda-field" style={{ marginTop: '6px' }}>
                         {formatDateShort(ticket.startDate)}
                         {ticket.endDate && (
-                          <>
+                          <span>
                             {' - '}
                             {formatDateShort(ticket.endDate)}
-                          </>
+                          </span>
                         )}
                       </div>
                       
@@ -1197,7 +1197,7 @@ const Tickets = () => {
       )}
 
       {/* Modal */}
-      {false && showModal && (
+      {showModal && (
         <div className="modal">
           <div className="modal-content ticket-modal" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
@@ -1659,7 +1659,7 @@ const Tickets = () => {
       </div>
 
       {/* Old Activities Window Modal */}
-      {false && showOldActivitiesModal && ReactDOM.createPortal(
+      {showOldActivitiesModal && ReactDOM.createPortal(
         <>
           <div 
             className="window-modal-backdrop" 
@@ -1769,7 +1769,7 @@ const Tickets = () => {
       )}
 
       {/* Mobile Department Selector Modal */}
-      {false && showDepartmentSelector && ReactDOM.createPortal(
+      {showDepartmentSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowDepartmentSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1809,7 +1809,7 @@ const Tickets = () => {
       )}
 
       {/* Mobile Technician Selector Modal */}
-      {false && showTechnicianSelector && ReactDOM.createPortal(
+      {showTechnicianSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowTechnicianSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1873,7 +1873,7 @@ const Tickets = () => {
       )}
 
       {/* Mobile Search Popup */}
-      {false && showSearchPopup && ReactDOM.createPortal(
+      {showSearchPopup && ReactDOM.createPortal(
         <div className="mobile-search-overlay" onClick={() => setShowSearchPopup(false)}>
           <div className="mobile-search-container" onClick={(e) => e.stopPropagation()}>
             <input
@@ -1892,7 +1892,7 @@ const Tickets = () => {
 
 
       {/* View Ticket Modal */}
-      {false && viewingTicket && ReactDOM.createPortal(
+      {viewingTicket && ReactDOM.createPortal(
         <>
           <div className="modal-backdrop" onClick={closeViewModal}></div>
           <div className="modal" style={{ display: 'flex' }}>
@@ -1995,7 +1995,6 @@ const Tickets = () => {
         document.body
       )}
     </div>
-    </>
   );
 };
 
