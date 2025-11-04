@@ -661,7 +661,7 @@ body {
     align-items: flex-start;
     justify-content: flex-start;
     gap: 0;
-    z-index: 998;
+    z-index: 1001 !important;
   }
 
   .nav-links-open {
@@ -1337,7 +1337,7 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid #e9ecef;
   min-width: 200px;
-  z-index: 10000;
+  z-index: 10001 !important;
   animation: dropdownSlideIn 0.2s ease-out;
 }
 
@@ -1440,7 +1440,7 @@ body {
     display: flex;
     position: absolute;
     left: 20px;
-    z-index: 999;
+    z-index: 1002 !important;
   }
   
   /* Position UserMenu in top-right on mobile */
@@ -2335,4 +2335,43 @@ body {
   color: #495057;
   font-size: 0.95rem;
 }
+
+/* Z-Index Overrides for Third-Party Components */
+/* Ensure navigation elements are above map controls and calendar components */
+
+/* Leaflet map controls - ensure they don't overlap navigation */
+.leaflet-control-container {
+  z-index: 100 !important;
+}
+
+.leaflet-control-zoom, 
+.leaflet-control-layers, 
+.leaflet-control-attribution {
+  z-index: 100 !important;
+}
+
+/* FullCalendar popover/tooltip overrides */
+.fc .fc-popover {
+  z-index: 999 !important;
+}
+
+.fc .fc-more-popover {
+  z-index: 999 !important;
+}
+
+/* Ensure calendar and maps containers don't interfere with navigation */
+.calendar-wrapper, 
+.calendar-container,
+.maps-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Navigation hierarchy (highest to lowest) */
+/* User menu dropdown: 10001 */
+/* Mobile hamburger button: 1002 */
+/* Mobile hamburger menu: 1001 */
+/* Modals and overlays: 9999-10000 */
+/* Map controls: 100 */
+/* Content containers: 1 */
 
