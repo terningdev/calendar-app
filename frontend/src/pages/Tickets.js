@@ -975,9 +975,6 @@ const Tickets = () => {
         </button>
       </div>
 
-
-
-
       {filteredTickets.length === 0 ? (
         <div className="card">
           <div className="empty-state">
@@ -1200,7 +1197,7 @@ const Tickets = () => {
       )}
 
       {/* Modal */}
-      {showModal && (
+      {false && showModal && (
         <div className="modal">
           <div className="modal-content ticket-modal" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
@@ -1662,7 +1659,7 @@ const Tickets = () => {
       </div>
 
       {/* Old Activities Window Modal */}
-      {showOldActivitiesModal && ReactDOM.createPortal(
+      {false && showOldActivitiesModal && ReactDOM.createPortal(
         <>
           <div 
             className="window-modal-backdrop" 
@@ -1772,7 +1769,7 @@ const Tickets = () => {
       )}
 
       {/* Mobile Department Selector Modal */}
-      {showDepartmentSelector && ReactDOM.createPortal(
+      {false && showDepartmentSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowDepartmentSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1812,7 +1809,7 @@ const Tickets = () => {
       )}
 
       {/* Mobile Technician Selector Modal */}
-      {showTechnicianSelector && ReactDOM.createPortal(
+      {false && showTechnicianSelector && ReactDOM.createPortal(
         <div className="mobile-selector-overlay" onClick={() => setShowTechnicianSelector(false)}>
           <div className="mobile-selector-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-selector-header">
@@ -1876,7 +1873,7 @@ const Tickets = () => {
       )}
 
       {/* Mobile Search Popup */}
-      {showSearchPopup && ReactDOM.createPortal(
+      {false && showSearchPopup && ReactDOM.createPortal(
         <div className="mobile-search-overlay" onClick={() => setShowSearchPopup(false)}>
           <div className="mobile-search-container" onClick={(e) => e.stopPropagation()}>
             <input
@@ -1895,7 +1892,7 @@ const Tickets = () => {
 
 
       {/* View Ticket Modal */}
-      {viewingTicket && ReactDOM.createPortal(
+      {false && viewingTicket && ReactDOM.createPortal(
         <>
           <div className="modal-backdrop" onClick={closeViewModal}></div>
           <div className="modal" style={{ display: 'flex' }}>
