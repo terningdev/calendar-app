@@ -46,6 +46,7 @@ const Maps = () => {
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [showFilterDepartmentSelector, setShowFilterDepartmentSelector] = useState(false);
   const [showFilterTechnicianSelector, setShowFilterTechnicianSelector] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const mobileSearchRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
