@@ -11,6 +11,7 @@ import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import FilterSidebar from '../components/FilterSidebar';
 
 const Calendar = () => {
   const { t } = useTranslation();
@@ -435,9 +436,22 @@ const Calendar = () => {
   }
 
   return (
-    <div className="page-container">
-      {/* Desktop Filters */}
-      {showFilters && (
+    <>
+      {/* Filter Sidebar */}
+      <FilterSidebar
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        departments={departments}
+        technicians={technicians}
+      />
+      
+      <div className={`page-container ${showFilters ? 'filter-sidebar-active' : ''}`}>
+        {/* Old Desktop Filters - Remove this section */}
+        {false && (
         <div className="card desktop-only" style={{ marginBottom: '12px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
@@ -523,100 +537,6 @@ const Calendar = () => {
           </div>
         </div>
       )}
-      
-      {/* Mobile Filters - Compact Single Line */}
-      {showFilters && (
-        <div className="mobile-only" style={{ marginBottom: '12px', position: 'relative' }}>
-          <div className="mobile-tickets-toolbar">
-            {/* Circular Search Button */}
-            <button 
-              className="mobile-search-circular-btn"
-              onClick={() => setMobileSearchExpanded(!mobileSearchExpanded)}
-              title="Search"
-            >
-              🔍
-            </button>
-            
-            {/* Expanded Search Overlay */}
-            {mobileSearchExpanded && (
-              <div className="mobile-search-expanded" ref={mobileSearchRef}>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={t('search') + '...'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoFocus
-                  style={{ paddingRight: '40px' }}
-                />
-                <button
-                  className="mobile-search-close"
-                  onClick={() => setMobileSearchExpanded(false)}
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-            
-            {/* Filter buttons - hidden when search is expanded */}
-            {!mobileSearchExpanded && (
-              <>
-                <button
-                  className="mobile-filter-selector"
-                  onClick={() => {
-                    // Toggle department filter - cycle through values
-                    const currentValue = filters.department.length > 0 ? filters.department[0] : '';
-                    const currentIndex = departments.findIndex(d => d._id === currentValue);
-                    const nextIndex = currentIndex + 1;
-                    
-                    if (nextIndex < departments.length) {
-                      setFilters({ ...filters, department: [departments[nextIndex]._id] });
-                    } else {
-                      setFilters({ ...filters, department: [] });
-                    }
-                  }}
-                >
-                  <span className="mobile-selector-text">
-                    {filters.department.length === 0 
-                      ? "📋 None selected" 
-                      : `📋 ${departments.find(d => d._id === filters.department[0])?.name || 'Department'}`
-                    }
-                  </span>
-                  <span className="mobile-selector-arrow">▶</span>
-                </button>
-                
-                <button
-                  className="mobile-filter-selector"
-                  onClick={() => {
-                    // Toggle technician filter - cycle through values
-                    const currentValue = filters.assignedTo.length > 0 ? filters.assignedTo[0] : '';
-                    const allTechs = [{ _id: 'unassigned', fullName: 'Unassigned' }, ...technicians.filter(t => t.isActive)];
-                    const currentIndex = allTechs.findIndex(t => t._id === currentValue);
-                    const nextIndex = currentIndex + 1;
-                    
-                    if (nextIndex < allTechs.length) {
-                      setFilters({ ...filters, assignedTo: [allTechs[nextIndex]._id] });
-                    } else {
-                      setFilters({ ...filters, assignedTo: [] });
-                    }
-                  }}
-                >
-                  <span className="mobile-selector-text">
-                    {filters.assignedTo.length === 0 
-                      ? "👥 None selected"
-                      : filters.assignedTo[0] === 'unassigned'
-                        ? "👥 Unassigned"
-                        : `👥 ${technicians.find(t => t._id === filters.assignedTo[0])?.fullName || 'Technician'}`
-                    }
-                  </span>
-                  <span className="mobile-selector-arrow">▶</span>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Calendar Container */}
       <div className="calendar-container" style={{ display: 'flex', gap: '15px' }}>
         {/* Calendar */}
@@ -1137,6 +1057,7 @@ const Calendar = () => {
         document.body
       )}
     </div>
+    </>
   );
 };
 

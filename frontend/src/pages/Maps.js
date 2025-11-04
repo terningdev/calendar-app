@@ -9,6 +9,7 @@ import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import FilterSidebar from '../components/FilterSidebar';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -420,91 +421,45 @@ const Maps = () => {
   }
 
   return (
-    <div className="maps-container">
-      {/* Desktop Filters */}
-      <div className="card desktop-only" style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">{t('search')}</label>
-            <div className="search-input">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search tickets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">{t('department')}</label>
-            <div className="checkbox-filter-container">
-              {departments.map(dept => (
-                <label key={dept._id} className="checkbox-filter-item">
-                  <input
-                    type="checkbox"
-                    checked={filters.department.includes(dept._id)}
-                    onChange={(e) => {
-                      const newDepartments = e.target.checked
-                        ? [...filters.department, dept._id]
-                        : filters.department.filter(id => id !== dept._id);
-                      setFilters(prev => ({
-                        ...prev,
-                        department: newDepartments,
-                        assignedTo: newDepartments.length !== prev.department.length ? [] : prev.assignedTo
-                      }));
-                    }}
-                  />
-                  <span className="checkbox-filter-label">{dept.name}</span>
-                </label>
-              ))}
-              {departments.length === 0 && (
-                <div className="text-muted" style={{ fontSize: '0.9rem', padding: '8px' }}>
-                  No departments available
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">{t('assignedTo')}</label>
-            <div className="checkbox-filter-container">
-              <label className="checkbox-filter-item">
-                <input
-                  type="checkbox"
-                  checked={filters.assignedTo.includes('unassigned')}
-                  onChange={(e) => {
-                    const newAssignedTo = e.target.checked
-                      ? [...filters.assignedTo, 'unassigned']
-                      : filters.assignedTo.filter(id => id !== 'unassigned');
-                    setFilters(prev => ({ ...prev, assignedTo: newAssignedTo }));
-                  }}
-                />
-                <span className="checkbox-filter-label">{t('unassigned')}</span>
-              </label>
-              {getFilteredTechnicians().map(tech => (
-                <label key={tech._id} className="checkbox-filter-item">
-                  <input
-                    type="checkbox"
-                    checked={filters.assignedTo.includes(tech._id)}
-                    onChange={(e) => {
-                      const newAssignedTo = e.target.checked
-                        ? [...filters.assignedTo, tech._id]
-                        : filters.assignedTo.filter(id => id !== tech._id);
-                      setFilters(prev => ({ ...prev, assignedTo: newAssignedTo }));
-                    }}
-                  />
-                  <span className="checkbox-filter-label">{tech.fullName}</span>
-                </label>
-              ))}
-              {getFilteredTechnicians().length === 0 && filters.department.length > 0 && (
-                <div className="text-muted" style={{ fontSize: '0.9rem', padding: '8px' }}>
-                  No technicians available for selected departments
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+    <>
+      {/* Filter Sidebar */}
+      <FilterSidebar
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        departments={departments}
+        technicians={technicians}
+      />
+      
+            <div className={`maps-container ${showFilters ? 'filter-sidebar-active' : ''}`}>
+        <div className="card" style={{ padding: '0', overflow: 'hidden', height: 'calc(100vh - 150px)', minHeight: '500px', position: 'relative' }}>
+          {/* Filter Button */}
+          <button
+            className="filter-toggle-button"
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              zIndex: 1000,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              padding: '8px 12px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'}
+          >
+            🔍 Filter
+          </button>
 
       {/* Mobile Filters - Compact Single Line */}
       <div className="mobile-only" style={{ marginBottom: '12px', position: 'relative' }}>
@@ -758,6 +713,7 @@ const Maps = () => {
         </MapContainer>
       </div>
     </div>
+    </>
   );
 };
 

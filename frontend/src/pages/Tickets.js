@@ -6,6 +6,7 @@ import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import FilterSidebar from '../components/FilterSidebar';
 
 const Tickets = () => {
   const { t } = useTranslation();
@@ -912,7 +913,20 @@ const Tickets = () => {
   const filteredTickets = getFilteredTickets();
 
   return (
-    <div>
+    <>
+      {/* Filter Sidebar */}
+      <FilterSidebar
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        departments={departments}
+        technicians={technicians}
+      />
+      
+      <div className={`${showFilters ? 'filter-sidebar-active' : ''}`}>
       {/* Desktop Header */}
       <div className="page-header desktop-only">
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -931,21 +945,51 @@ const Tickets = () => {
         </div>
       </div>
 
-      {/* Desktop Filters */}
-      <div className="card desktop-only" style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">{t('search')}</label>
-            <div className="search-input">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search tickets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      {/* Filter Button - Desktop */}
+      <div className="desktop-only" style={{ marginBottom: '12px', position: 'relative' }}>
+        <button
+          className="filter-toggle-button"
+          onClick={() => setShowFilters(!showFilters)}
+          style={{
+            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            border: '1px solid #3498db',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#3498db',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#3498db';
+            e.target.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+            e.target.style.color = '#3498db';
+          }}
+        >
+          🔍 Filter
+        </button>
+      </div>
+      
+      {/* Old Desktop Filters - Remove this entire section */}
+      {false && (
+        <div className="card desktop-only" style={{ marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">{t('search')}</label>
+              <div className="search-input">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search tickets..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">{t('department')}</label>
             <div className="checkbox-filter-container">
@@ -1014,7 +1058,7 @@ const Tickets = () => {
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Filters - Compact Single Line */}
       <div className="mobile-only" style={{ marginBottom: '12px', position: 'relative' }}>
@@ -2204,6 +2248,7 @@ const Tickets = () => {
         document.body
       )}
     </div>
+    </>
   );
 };
 

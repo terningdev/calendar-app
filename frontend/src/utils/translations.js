@@ -111,6 +111,7 @@ export const translations = {
     // Departments
     addDepartment: 'Add Department',
     departments: 'Departments',
+    departmentsAndTechnicians: 'Departments & Technicians',
     
     // Technicians
     addTechnician: 'Add Technician',
@@ -257,6 +258,7 @@ export const translations = {
     // Departments
     addDepartment: 'Legg til Avdeling',
     departments: 'Avdelinger',
+    departmentsAndTechnicians: 'Avdelinger og Teknikere',
     
     // Technicians
     addTechnician: 'Legg til Tekniker',

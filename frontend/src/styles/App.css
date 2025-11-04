@@ -334,6 +334,223 @@ body {
   cursor: pointer;
 }
 
+/* Filter Sidebar */
+.filter-sidebar {
+  position: fixed;
+  top: 60px; /* Below the topbar */
+  left: -350px; /* Hidden by default */
+  width: 350px;
+  height: calc(100vh - 60px);
+  background: var(--card-bg, #ffffff);
+  border-right: 1px solid var(--card-border, #e2e8f0);
+  box-shadow: 2px 0 10px var(--shadow, rgba(0, 0, 0, 0.1));
+  transition: left 0.3s ease-in-out;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.filter-sidebar-open {
+  left: 0;
+}
+
+.filter-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  display: none; /* Only show on mobile when sidebar is open */
+}
+
+@media (max-width: 768px) {
+  .filter-sidebar {
+    width: 300px;
+    left: -300px;
+  }
+  
+  .filter-sidebar-overlay {
+    display: block;
+  }
+}
+
+/* Filter Sidebar Header */
+.filter-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--card-border, #e2e8f0);
+  background: var(--bg-secondary, #f8f9fa);
+}
+
+.filter-sidebar-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.filter-sidebar-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px;
+  color: var(--text-secondary, #666);
+  transition: color 0.2s;
+}
+
+.filter-sidebar-close:hover {
+  color: var(--text-primary, #333);
+}
+
+/* Filter Sidebar Content */
+.filter-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.filter-sidebar-section {
+  margin-bottom: 25px;
+}
+
+.filter-sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.filter-sidebar-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+  font-size: 0.95rem;
+}
+
+/* Filter Sidebar Search */
+.filter-sidebar-search {
+  position: relative;
+}
+
+.filter-sidebar-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--input-border, #ddd);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: var(--input-bg, #fff);
+  color: var(--text-primary, #333);
+  transition: border-color 0.2s;
+}
+
+.filter-sidebar-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3498db);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Filter Tree */
+.filter-tree-node {
+  margin-bottom: 4px;
+}
+
+.filter-tree-branch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-tree-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  font-size: 0.8rem;
+  min-width: 16px;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.filter-tree-toggle:hover:not(:disabled) {
+  color: var(--text-primary, #333);
+}
+
+.filter-tree-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.filter-tree-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  user-select: none;
+  flex: 1;
+  gap: 8px;
+}
+
+.filter-tree-item:hover {
+  background-color: var(--hover-bg, rgba(59, 130, 246, 0.08));
+}
+
+.filter-tree-item input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary-color, #3498db);
+}
+
+.filter-tree-label {
+  color: var(--text-primary, #333);
+  font-size: 0.9rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.filter-tree-count {
+  color: var(--text-secondary, #666);
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.filter-tree-children {
+  margin-left: 20px;
+  margin-top: 4px;
+  border-left: 2px solid var(--card-border, #e2e8f0);
+  padding-left: 12px;
+}
+
+.filter-tree-child {
+  font-size: 0.85rem;
+}
+
+.filter-tree-leaf .filter-tree-item {
+  padding-left: 20px; /* Align with toggle button space */
+}
+
+.filter-sidebar-empty {
+  color: var(--text-secondary, #666);
+  font-size: 0.9rem;
+  padding: 12px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Content shift when sidebar is open - desktop only */
+@media (min-width: 769px) {
+  .page-container.filter-sidebar-active {
+    margin-left: 350px;
+    transition: margin-left 0.3s ease-in-out;
+  }
+}
+
 /* Cards */
 .card {
   background: var(--card-bg, white);
