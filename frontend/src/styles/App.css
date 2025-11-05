@@ -2285,17 +2285,21 @@ body {
 }
 
 .calendar-wrapper.with-agenda {
-  flex: 0 0 70%;
+  margin-right: 370px; /* Make space for the agenda panel */
 }
 
 .agenda-panel {
-  flex: 0 0 350px;
+  position: fixed;
+  right: 20px;
+  top: 120px; /* Account for navbar */
+  width: 350px;
+  height: calc(100vh - 140px); /* Full height minus navbar and margins */
   background: var(--card-bg, white);
   border-radius: 8px;
-  box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
+  box-shadow: 0 4px 12px var(--shadow, rgba(0,0,0,0.15));
   display: flex;
   flex-direction: column;
-  max-height: 85vh;
+  z-index: 1000;
 }
 
 .agenda-header {
@@ -2382,12 +2386,19 @@ body {
   }
   
   .calendar-wrapper.with-agenda {
-    flex: 1;
+    margin-right: 0;
+    margin-bottom: 320px; /* Make space for agenda panel at bottom */
   }
   
   .agenda-panel {
-    flex: 0 0 300px;
-    order: -1;
+    position: fixed;
+    right: 10px;
+    left: 10px;
+    top: auto;
+    bottom: 20px;
+    width: auto;
+    height: 300px;
+    z-index: 1000;
   }
 }
 

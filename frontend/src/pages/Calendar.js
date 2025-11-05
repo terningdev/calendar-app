@@ -601,7 +601,7 @@ const Calendar = () => {
           moreLinkClick={(info) => {
             setAgendaDate(info.date);
             setShowAgenda(true);
-            return 'popover'; // This prevents the default behavior
+            return false; // Prevent the default popover behavior
           }}
           eventOrder="start,-duration,title"
           eventTimeFormat={{
