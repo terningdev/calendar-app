@@ -2640,9 +2640,7 @@ body {
   z-index: auto !important;
 }
 
-/* FullCalendar popover/tooltip overrides */
-.fc .fc-popover,
-.fc .fc-more-popover,
+/* FullCalendar event z-index overrides */
 .fc .fc-daygrid-event-harness,
 .fc .fc-event,
 .fc-event-main {
@@ -2654,10 +2652,10 @@ body {
   z-index: auto !important;
 }
 
-/* But allow specific interactive elements */
+/* Hide FullCalendar popovers since we use custom agenda panel */
 .fc .fc-popover,
 .fc .fc-more-popover {
-  z-index: 999 !important;
+  display: none !important;
 }
 
 /* Ensure calendar and maps containers don't interfere with navigation */
