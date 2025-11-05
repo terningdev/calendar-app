@@ -601,7 +601,18 @@ const Calendar = () => {
           moreLinkClick={(info) => {
             setAgendaDate(info.date);
             setShowAgenda(true);
-            return false; // Prevent the default popover behavior
+            // Let FullCalendar create the popover first, then hide it
+            setTimeout(() => {
+              const popovers = document.querySelectorAll('.fc-popover, .fc-more-popover');
+              popovers.forEach(popover => {
+                if (popover) {
+                  popover.style.visibility = 'hidden';
+                  popover.style.opacity = '0';
+                  popover.style.pointerEvents = 'none';
+                }
+              });
+            }, 10);
+            return 'popover';
           }}
           eventOrder="start,-duration,title"
           eventTimeFormat={{

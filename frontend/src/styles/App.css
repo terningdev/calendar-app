@@ -2652,10 +2652,13 @@ body {
   z-index: auto !important;
 }
 
-/* Hide FullCalendar popovers since we use custom agenda panel */
+/* Hide FullCalendar popovers visually but keep DOM structure */
 .fc .fc-popover,
 .fc .fc-more-popover {
-  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
 }
 
 /* Ensure calendar and maps containers don't interfere with navigation */
