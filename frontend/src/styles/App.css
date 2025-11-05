@@ -2290,11 +2290,19 @@ body {
   background: var(--card-bg, white);
   border-radius: 8px;
   box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, margin-right 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 .calendar-wrapper.with-agenda {
   margin-right: 370px; /* Make space for the agenda panel */
+}
+
+/* Calendar wrapper animation when filter sidebar is active */
+@media (min-width: 769px) {
+  .page-container.filter-sidebar-active .calendar-wrapper {
+    margin-left: 350px;
+    transition: margin-left 0.3s ease-in-out, margin-right 0.3s ease-in-out;
+  }
 }
 
 .agenda-panel {
@@ -2309,6 +2317,31 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 1000;
+  
+  /* Slide-in animation from the right */
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  animation: slideInRight 0.3s ease-in-out;
+}
+
+/* Slide-in animation keyframes */
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Slide-out animation when closing (will be handled by React transition) */
+.agenda-panel-exit {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
 .agenda-header {
@@ -2397,6 +2430,7 @@ body {
   .calendar-wrapper.with-agenda {
     margin-right: 0;
     margin-bottom: 320px; /* Make space for agenda panel at bottom */
+    transition: margin-bottom 0.3s ease-in-out;
   }
   
   .agenda-panel {
@@ -2408,6 +2442,20 @@ body {
     width: auto;
     height: 300px;
     z-index: 1000;
+    /* Mobile slide-up animation from bottom */
+    animation: slideInUp 0.3s ease-in-out;
+  }
+}
+
+/* Mobile slide-up animation keyframes */
+@keyframes slideInUp {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
