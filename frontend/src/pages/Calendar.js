@@ -33,6 +33,7 @@ const Calendar = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAgenda, setShowAgenda] = useState(false);
   const [agendaDate, setAgendaDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [filters, setFilters] = useState({
     department: [],
     assignedTo: []
@@ -104,6 +105,22 @@ const Calendar = () => {
       setLoading(false);
     }
   }, [user]);
+
+  // Handle selected date styling
+  useEffect(() => {
+    // Remove previous selected date styling
+    const prevSelected = document.querySelectorAll('.fc-day-selected');
+    prevSelected.forEach(el => el.classList.remove('fc-day-selected'));
+    
+    // Add selected date styling
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dayElement = document.querySelector(`[data-date="${dateStr}"]`);
+      if (dayElement) {
+        dayElement.classList.add('fc-day-selected');
+      }
+    }
+  }, [selectedDate]);
 
   // Convert tickets to FullCalendar events
   const getEvents = () => {
@@ -311,10 +328,11 @@ const Calendar = () => {
     setShowEditModal(true);
   };
 
-  // Handle date click (for creating new tickets - future enhancement)
+  // Handle date click (open agenda for any day)
   const handleDateClick = (dateClickInfo) => {
-    // Could open a modal to create a new ticket
-    console.log('Date clicked:', dateClickInfo.dateStr);
+    setAgendaDate(dateClickInfo.date);
+    setSelectedDate(dateClickInfo.date);
+    setShowAgenda(true);
   };
 
   // Get filtered technicians based on selected departments in form
@@ -600,6 +618,7 @@ const Calendar = () => {
           dayMaxEvents={4}
           moreLinkClick={(info) => {
             setAgendaDate(info.date);
+            setSelectedDate(info.date);
             setShowAgenda(true);
             // Let FullCalendar create the popover first, then hide it
             setTimeout(() => {
