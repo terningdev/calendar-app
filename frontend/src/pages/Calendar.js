@@ -114,7 +114,12 @@ const Calendar = () => {
     
     // Add selected date styling
     if (selectedDate) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Format date consistently for DOM query (local date string)
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
       const dayElement = document.querySelector(`[data-date="${dateStr}"]`);
       if (dayElement) {
         dayElement.classList.add('fc-day-selected');
@@ -330,8 +335,10 @@ const Calendar = () => {
 
   // Handle date click (open agenda for any day)
   const handleDateClick = (dateClickInfo) => {
-    setAgendaDate(dateClickInfo.date);
-    setSelectedDate(dateClickInfo.date);
+    // Create a local date to avoid timezone issues
+    const localDate = new Date(dateClickInfo.dateStr + 'T00:00:00');
+    setAgendaDate(localDate);
+    setSelectedDate(localDate);
     setShowAgenda(true);
   };
 
@@ -617,8 +624,10 @@ const Calendar = () => {
           selectMirror={true}
           dayMaxEvents={4}
           moreLinkClick={(info) => {
-            setAgendaDate(info.date);
-            setSelectedDate(info.date);
+            // Create a local date to avoid timezone issues
+            const localDate = new Date(info.dateStr + 'T00:00:00');
+            setAgendaDate(localDate);
+            setSelectedDate(localDate);
             setShowAgenda(true);
             // Let FullCalendar create the popover first, then hide it
             setTimeout(() => {
