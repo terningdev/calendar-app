@@ -444,8 +444,8 @@ const Maps = () => {
             style={{
               position: 'absolute',
               top: '10px',
-              left: '10px',
-              zIndex: 1000,
+              right: '10px',
+              zIndex: showFilters ? 500 : 1000, // Lower z-index when sidebar is open
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
               border: '1px solid #ccc',
               borderRadius: '4px',
@@ -454,12 +454,12 @@ const Maps = () => {
               fontSize: '14px',
               fontWeight: '500',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'background-color 0.2s'
+              transition: 'all 0.3s ease'
             }}
             onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'}
           >
-            🔍 Filter
+            🔍 {showFilters ? 'Hide' : 'Show'} Filter
           </button>
 
           <MapContainer 
