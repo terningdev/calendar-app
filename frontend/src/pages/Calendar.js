@@ -239,16 +239,24 @@ const Calendar = () => {
   const getEventsForDate = (date) => {
     if (!date) return [];
     
-    const dateStr = date.toISOString().split('T')[0];
+    // Format date as local date string to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
     const allEvents = getEvents();
     
     return allEvents.filter(event => {
-      const eventStart = new Date(event.start);
-      const eventEnd = new Date(event.end);
-      const targetDate = new Date(dateStr);
+      // Get the event's start date as local date string
+      const eventStartDate = new Date(event.start);
+      const eventYear = eventStartDate.getFullYear();
+      const eventMonth = String(eventStartDate.getMonth() + 1).padStart(2, '0');
+      const eventDay = String(eventStartDate.getDate()).padStart(2, '0');
+      const eventDateStr = `${eventYear}-${eventMonth}-${eventDay}`;
       
-      // Check if the target date falls within the event's date range
-      return targetDate >= eventStart && targetDate < eventEnd;
+      // For agenda view, we want events that start on the selected date
+      return eventDateStr === dateStr;
     });
   };
 
