@@ -239,24 +239,23 @@ const Calendar = () => {
   const getEventsForDate = (date) => {
     if (!date) return [];
     
-    // Format date as local date string to avoid timezone issues
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    // Create a date object for the selected date at start of day
+    const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
     const allEvents = getEvents();
     
     return allEvents.filter(event => {
-      // Get the event's start date as local date string
-      const eventStartDate = new Date(event.start);
-      const eventYear = eventStartDate.getFullYear();
-      const eventMonth = String(eventStartDate.getMonth() + 1).padStart(2, '0');
-      const eventDay = String(eventStartDate.getDate()).padStart(2, '0');
-      const eventDateStr = `${eventYear}-${eventMonth}-${eventDay}`;
+      // Get event start and end dates
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end || event.start);
       
-      // For agenda view, we want events that start on the selected date
-      return eventDateStr === dateStr;
+      // Create date objects at start of day for comparison
+      const eventStartDay = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+      const eventEndDay = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+      
+      // Check if selected date falls within the event's date range (inclusive)
+      // For multi-day events, this will show the event on all days it spans
+      return selectedDate >= eventStartDay && selectedDate <= eventEndDay;
     });
   };
 
