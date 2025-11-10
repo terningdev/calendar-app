@@ -11,7 +11,8 @@ const RegionSelector = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+          buttonRef.current && !buttonRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -36,22 +37,32 @@ const RegionSelector = () => {
   }
 
   return (
-    <div className="region-selector" ref={dropdownRef}>
+    <div className="region-selector">
       <button 
+        ref={buttonRef}
         className="region-selector-button"
         onClick={toggleDropdown}
         aria-label="Select region"
       >
         <span className="region-selector-text">
-          📍 {selectedRegion?.name || 'Select Region'}
+          Region: {selectedRegion?.name || 'Select Region'}
         </span>
         <span className={`region-selector-arrow ${isOpen ? 'open' : ''}`}>
           ▼
         </span>
       </button>
       
-      {isOpen && (
-        <div className="region-selector-dropdown">
+      {isOpen && ReactDOM.createPortal(
+        <div 
+          ref={dropdownRef}
+          className="region-selector-dropdown"
+          style={{
+            position: 'fixed',
+            top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : '60px',
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : '20px',
+            zIndex: 99999
+          }}
+        >
           {regions.map((region) => (
             <div
               key={region._id}
@@ -67,7 +78,8 @@ const RegionSelector = () => {
               )}
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
