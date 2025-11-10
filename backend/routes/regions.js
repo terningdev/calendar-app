@@ -59,8 +59,8 @@ router.post('/', requireAuth, async (req, res) => {
     const region = new Region({
       name: name.trim(),
       description: description ? description.trim() : '',
-      createdBy: req.user.id,
-      updatedBy: req.user.id
+      createdBy: req.session.user._id,
+      updatedBy: req.session.user._id
     });
 
     await region.save();
@@ -97,7 +97,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         name: name.trim(),
         description: description ? description.trim() : '',
         isActive: isActive !== undefined ? isActive : true,
-        updatedBy: req.user.id,
+        updatedBy: req.session.user._id,
         updatedAt: Date.now()
       },
       { new: true, runValidators: true }
