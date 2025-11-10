@@ -1701,6 +1701,16 @@ body {
   gap: 15px;
 }
 
+/* Navigation Region Selector Positioning */
+.nav-region-selector {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
 .nav-container {
   position: relative;
 }
@@ -1719,6 +1729,11 @@ body {
     position: absolute;
     left: 20px;
     z-index: 1002 !important;
+  }
+  
+  /* Hide region selector on mobile */
+  .nav-region-selector {
+    display: none;
   }
   
   /* Position UserMenu in top-right on mobile */

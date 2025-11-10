@@ -126,6 +126,11 @@ const Navigation = () => {
           <span className="hamburger-line"></span>
         </button>
         
+        {/* Region selector - desktop only on left side */}
+        <div className="nav-region-selector desktop-only">
+          <RegionSelector />
+        </div>
+        
         {/* Current page title - mobile only */}
         <div className="nav-title mobile-only">
           {getCurrentPageTitle()}
@@ -133,7 +138,6 @@ const Navigation = () => {
 
         {/* User menu - desktop only in top bar */}
         <div className="nav-user-info desktop-only">
-          <RegionSelector />
           <UserMenu 
             pendingUserCount={pendingUserCount}
             bugReportCount={bugReportCount}
