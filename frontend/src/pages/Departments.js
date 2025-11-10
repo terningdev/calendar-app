@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
+import { useRegion } from '../contexts/RegionContext';
 
 const Departments = () => {
   const { t } = useTranslation();
+  const { refreshTrigger } = useRegion();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -17,7 +19,7 @@ const Departments = () => {
 
   useEffect(() => {
     loadDepartments();
-  }, []);
+  }, [refreshTrigger]); // Listen to region changes
 
   const loadDepartments = async () => {
     try {

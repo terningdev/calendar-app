@@ -3,9 +3,11 @@ import { toast } from 'react-toastify';
 import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
+import { useRegion } from '../contexts/RegionContext';
 
 const Technicians = () => {
   const { t } = useTranslation();
+  const { refreshTrigger } = useRegion();
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ const Technicians = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshTrigger]); // Listen to region changes
 
   const loadData = async () => {
     try {
