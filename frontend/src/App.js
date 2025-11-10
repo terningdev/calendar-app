@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { LanguageProvider } from './utils/translations';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminProvider } from './contexts/AdminContext';
+import { RegionProvider } from './contexts/RegionContext';
 import AuthWrapper from './components/AuthWrapper';
 import Navigation from './components/Navigation';
 import GlobalModals from './components/GlobalModals';
@@ -48,26 +49,28 @@ function App() {
     <LanguageProvider>
       <AuthProvider>
         <AdminProvider>
-          <Router>
-            <div className="App">
-              <AuthWrapper>
-                <Navigation />
-                <GlobalModals />
-                <MainContent />
-              </AuthWrapper>
-              <ToastContainer 
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-            />
-          </div>
-        </Router>
+          <RegionProvider>
+            <Router>
+              <div className="App">
+                <AuthWrapper>
+                  <Navigation />
+                  <GlobalModals />
+                  <MainContent />
+                </AuthWrapper>
+                <ToastContainer 
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+              />
+            </div>
+          </Router>
+          </RegionProvider>
         </AdminProvider>
       </AuthProvider>
     </LanguageProvider>

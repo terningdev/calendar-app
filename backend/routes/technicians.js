@@ -7,9 +7,30 @@ const ActivityLogger = require('../services/ActivityLogger');
 // Get all technicians
 router.get('/', async (req, res) => {
   try {
-    const technicians = await Technician.find()
-      .populate('department', 'name')
-      .sort({ lastName: 1, firstName: 1 });
+    const { regionId } = req.query;
+    
+    let query = Technician.find()
+      .populate({
+        path: 'department',
+        select: 'name _id regionId',
+        populate: {
+          path: 'regionId',
+          select: 'name _id'
+        }
+      });
+
+    let technicians = await query.sort({ lastName: 1, firstName: 1 });
+    
+    // Filter by region if specified
+    if (regionId) {
+      technicians = technicians.filter(technician => {
+        if (!technician.department || !technician.department.regionId) {
+          return false;
+        }
+        return technician.department.regionId._id.toString() === regionId;
+      });
+    }
+    
     res.json(technicians);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching technicians', error: error.message });

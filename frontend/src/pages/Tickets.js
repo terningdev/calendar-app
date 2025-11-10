@@ -6,11 +6,13 @@ import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import { useRegion } from '../contexts/RegionContext';
 import FilterSidebar from '../components/FilterSidebar';
 
 const Tickets = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { refreshTrigger } = useRegion();
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -108,7 +110,7 @@ const Tickets = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger dependency
 
   useEffect(() => {
     loadTickets();

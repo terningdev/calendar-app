@@ -3,9 +3,11 @@ import { toast } from 'react-toastify';
 import { absenceService } from '../services/absenceService';
 import { technicianService } from '../services/technicianService';
 import { useTranslation } from '../utils/translations';
+import { useRegion } from '../contexts/RegionContext';
 
 const Absences = () => {
   const { t } = useTranslation();
+  const { refreshTrigger } = useRegion();
   const [absences, setAbsences] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,7 @@ const Absences = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger dependency
 
   useEffect(() => {
     loadAbsences();

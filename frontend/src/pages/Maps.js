@@ -9,6 +9,7 @@ import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import { useRegion } from '../contexts/RegionContext';
 import FilterSidebar from '../components/FilterSidebar';
 
 // Fix for default marker icons in React-Leaflet
@@ -36,6 +37,7 @@ const FitBounds = ({ positions }) => {
 const Maps = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { refreshTrigger } = useRegion();
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -296,7 +298,7 @@ const Maps = () => {
   useEffect(() => {
     cleanupExpiredCache();
     loadBasicData();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger dependency
 
   // Click outside handler for mobile search
   useEffect(() => {

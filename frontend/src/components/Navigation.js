@@ -4,6 +4,7 @@ import { useTranslation } from '../utils/translations';
 import { useAdmin } from '../contexts/AdminContext';
 import { useAuth } from '../contexts/AuthContext';
 import UserMenu from './UserMenu';
+import RegionSelector from './RegionSelector';
 import permissionsService from '../services/permissionsService';
 
 const Navigation = () => {
@@ -132,6 +133,7 @@ const Navigation = () => {
 
         {/* User menu - desktop only in top bar */}
         <div className="nav-user-info desktop-only">
+          <RegionSelector />
           <UserMenu 
             pendingUserCount={pendingUserCount}
             bugReportCount={bugReportCount}
@@ -211,6 +213,7 @@ const Navigation = () => {
 
           {/* User menu in mobile - at bottom */}
           <li className="mobile-user-menu-container mobile-only">
+            <RegionSelector />
             <UserMenu 
               pendingUserCount={pendingUserCount}
               bugReportCount={bugReportCount}

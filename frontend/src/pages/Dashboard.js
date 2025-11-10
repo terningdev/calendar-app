@@ -3,9 +3,11 @@ import { ticketService } from '../services/ticketService';
 import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
+import { useRegion } from '../contexts/RegionContext';
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const { refreshTrigger } = useRegion();
   const [stats, setStats] = useState({
     totalTickets: 0,
     assignedTickets: 0,
@@ -20,7 +22,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger dependency
 
   const loadDashboardData = async () => {
     try {

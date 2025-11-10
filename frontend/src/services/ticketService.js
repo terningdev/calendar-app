@@ -1,9 +1,21 @@
 import api from './api';
 
+// Helper function to get current region from localStorage
+const getCurrentRegionId = () => {
+  return localStorage.getItem('selectedRegionId');
+};
+
 export const ticketService = {
   // Get all tickets with optional filters
   getAll: async (filters = {}) => {
     const params = new URLSearchParams();
+    
+    // Add region filter if available and not already specified
+    const regionId = getCurrentRegionId();
+    if (regionId && !filters.regionId) {
+      filters.regionId = regionId;
+    }
+    
     Object.keys(filters).forEach(key => {
       const value = filters[key];
       if (value) {
@@ -22,7 +34,17 @@ export const ticketService = {
 
   // Get tickets for calendar view
   getForCalendar: async (startDate, endDate) => {
-    const response = await api.get(`/tickets/calendar?start=${startDate}&end=${endDate}`);
+    const params = new URLSearchParams();
+    params.append('start', startDate);
+    params.append('end', endDate);
+    
+    // Add region filter if available
+    const regionId = getCurrentRegionId();
+    if (regionId) {
+      params.append('regionId', regionId);
+    }
+    
+    const response = await api.get(`/tickets/calendar?${params.toString()}`);
     return response.data;
   },
 

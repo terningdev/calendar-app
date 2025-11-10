@@ -1,8 +1,33 @@
 import api from './api';
 
+// Helper function to get current region from localStorage
+const getCurrentRegionId = () => {
+  return localStorage.getItem('selectedRegionId');
+};
+
 export const technicianService = {
-  // Get all technicians
-  getAll: async () => {
+  // Get all technicians with optional region filter
+  getAll: async (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    // Add region filter if available and not already specified
+    const regionId = getCurrentRegionId();
+    if (regionId && !filters.regionId) {
+      filters.regionId = regionId;
+    }
+    
+    Object.keys(filters).forEach(key => {
+      if (filters[key]) {
+        params.append(key, filters[key]);
+      }
+    });
+    
+    const response = await api.get(`/technicians?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get all technicians (without region filter) - for admin use
+  getAllUnfiltered: async () => {
     const response = await api.get('/technicians');
     return response.data;
   },

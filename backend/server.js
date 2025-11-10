@@ -249,6 +249,13 @@ try {
 }
 
 try {
+  app.use('/api/regions', require('./routes/regions'));
+  console.log('  ✅ /api/regions');
+} catch (error) {
+  console.error('  ❌ Failed to load /api/regions:', error.message);
+}
+
+try {
   app.use('/api/technicians', require('./routes/technicians'));
   console.log('  ✅ /api/technicians');
 } catch (error) {

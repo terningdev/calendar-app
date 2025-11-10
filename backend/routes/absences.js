@@ -7,7 +7,7 @@ const ActivityLogger = require('../services/ActivityLogger');
 // Get all absences
 router.get('/', async (req, res) => {
   try {
-    const { technicianId, startDate, endDate } = req.query;
+    const { technicianId, startDate, endDate, regionId } = req.query;
     
     // Build filter object
     const filter = {};
@@ -37,9 +37,32 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const absences = await Absence.find(filter)
-      .populate('technicianId', 'firstName lastName email fullName')
-      .sort({ startDate: 1 });
+    let query = Absence.find(filter)
+      .populate({
+        path: 'technicianId',
+        select: 'firstName lastName email fullName department',
+        populate: {
+          path: 'department',
+          select: 'name _id regionId',
+          populate: {
+            path: 'regionId',
+            select: 'name _id'
+          }
+        }
+      });
+
+    let absences = await query.sort({ startDate: 1 });
+    
+    // Filter by region if specified
+    if (regionId) {
+      absences = absences.filter(absence => {
+        const technician = absence.technicianId;
+        if (!technician || !technician.department || !technician.department.regionId) {
+          return false;
+        }
+        return technician.department.regionId._id.toString() === regionId;
+      });
+    }
     
     res.json(absences);
   } catch (error) {
@@ -50,13 +73,13 @@ router.get('/', async (req, res) => {
 // Get absences for calendar view (by date range)
 router.get('/calendar', async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, regionId } = req.query;
     
     if (!start || !end) {
       return res.status(400).json({ message: 'Start and end dates are required' });
     }
 
-    const absences = await Absence.find({
+    let query = Absence.find({
       $or: [
         {
           startDate: {
@@ -78,8 +101,31 @@ router.get('/calendar', async (req, res) => {
         }
       ]
     })
-    .populate('technicianId', 'firstName lastName fullName')
-    .sort({ startDate: 1 });
+    .populate({
+      path: 'technicianId',
+      select: 'firstName lastName fullName department',
+      populate: {
+        path: 'department',
+        select: 'name _id regionId',
+        populate: {
+          path: 'regionId',
+          select: 'name _id'
+        }
+      }
+    });
+
+    let absences = await query.sort({ startDate: 1 });
+
+    // Filter by region if specified
+    if (regionId) {
+      absences = absences.filter(absence => {
+        const technician = absence.technicianId;
+        if (!technician || !technician.department || !technician.department.regionId) {
+          return false;
+        }
+        return technician.department.regionId._id.toString() === regionId;
+      });
+    }
 
     res.json(absences);
   } catch (error) {

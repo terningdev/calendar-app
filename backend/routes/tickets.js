@@ -15,7 +15,8 @@ router.get('/', async (req, res) => {
       startDate, 
       endDate, 
       priority,
-      category 
+      category,
+      regionId
     } = req.query;
 
     // Build filter object
@@ -37,16 +38,34 @@ router.get('/', async (req, res) => {
       if (endDate) filter.startDate.$lte = new Date(endDate);
     }
 
-    const tickets = await Ticket.find(filter)
+    // Build the query
+    let query = Ticket.find(filter)
       .populate({
         path: 'assignedTo',
         select: 'firstName lastName email department',
         populate: {
           path: 'department',
-          select: 'name _id'
+          select: 'name _id regionId',
+          populate: {
+            path: 'regionId',
+            select: 'name _id'
+          }
         }
-      })
-      .sort({ startDate: 1 });
+      });
+
+    // If regionId filter is provided, filter by region after population
+    let tickets = await query.sort({ startDate: 1 });
+    
+    // Filter by region if specified
+    if (regionId) {
+      tickets = tickets.filter(ticket => {
+        const assignedTechnician = ticket.assignedTo;
+        if (!assignedTechnician || !assignedTechnician.department || !assignedTechnician.department.regionId) {
+          return false;
+        }
+        return assignedTechnician.department.regionId._id.toString() === regionId;
+      });
+    }
     
     res.json(tickets);
   } catch (error) {
@@ -57,13 +76,14 @@ router.get('/', async (req, res) => {
 // Get tickets for calendar view (by date range)
 router.get('/calendar', async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, regionId } = req.query;
     
     if (!start || !end) {
       return res.status(400).json({ message: 'Start and end dates are required' });
     }
 
-    const tickets = await Ticket.find({
+    // Build the query
+    let query = Ticket.find({
       startDate: {
         $gte: new Date(start),
         $lte: new Date(end)
@@ -74,10 +94,26 @@ router.get('/calendar', async (req, res) => {
       select: 'firstName lastName email department',
       populate: {
         path: 'department',
-        select: 'name _id'
+        select: 'name _id regionId',
+        populate: {
+          path: 'regionId',
+          select: 'name _id'
+        }
       }
-    })
-    .sort({ startDate: 1 });
+    });
+
+    let tickets = await query.sort({ startDate: 1 });
+
+    // Filter by region if specified
+    if (regionId) {
+      tickets = tickets.filter(ticket => {
+        const assignedTechnician = ticket.assignedTo;
+        if (!assignedTechnician || !assignedTechnician.department || !assignedTechnician.department.regionId) {
+          return false;
+        }
+        return assignedTechnician.department.regionId._id.toString() === regionId;
+      });
+    }
 
     res.json(tickets);
   } catch (error) {

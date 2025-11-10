@@ -1,10 +1,22 @@
 import api from './api';
 
+// Helper function to get current region from localStorage
+const getCurrentRegionId = () => {
+  return localStorage.getItem('selectedRegionId');
+};
+
 export const absenceService = {
   // Get all absences with optional filters
   getAll: async (filters = {}) => {
     try {
       const params = new URLSearchParams();
+      
+      // Add region filter if available and not already specified
+      const regionId = getCurrentRegionId();
+      if (regionId && !filters.regionId) {
+        filters.regionId = regionId;
+      }
+      
       Object.keys(filters).forEach(key => {
         if (filters[key]) {
           params.append(key, filters[key]);
@@ -22,7 +34,17 @@ export const absenceService = {
   // Get absences for calendar view
   getForCalendar: async (startDate, endDate) => {
     try {
-      const response = await api.get(`/absences/calendar?start=${startDate}&end=${endDate}`);
+      const params = new URLSearchParams();
+      params.append('start', startDate);
+      params.append('end', endDate);
+      
+      // Add region filter if available
+      const regionId = getCurrentRegionId();
+      if (regionId) {
+        params.append('regionId', regionId);
+      }
+      
+      const response = await api.get(`/absences/calendar?${params.toString()}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching calendar absences:', error);

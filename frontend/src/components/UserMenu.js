@@ -466,7 +466,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
                   onOpenManagePermissions();
                   if (onCloseMenu) onCloseMenu();
                 }}>
-                  🔐 Manage RBAC
+                  🔐 Manage Admin
                 </div>
               )}
               {onOpenSystemStatus && (
@@ -612,7 +612,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
                 setIsMenuOpen(false); 
                 onOpenManagePermissions();
               }}>
-                🔐 Manage RBAC
+                🔐 Manage Admin
               </div>
             )}
             {onOpenSystemStatus && (

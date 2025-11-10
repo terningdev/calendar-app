@@ -9,7 +9,7 @@ export const translations = {
     calendar: 'Calendar',
     tickets: 'Tickets',
     absenceVakt: 'Absence & On call',
-    administrator: 'Departments & Technicians',
+    administrator: 'Admin',
     skills: 'Skills',
     
     // Common words

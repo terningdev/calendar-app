@@ -11,11 +11,13 @@ import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
+import { useRegion } from '../contexts/RegionContext';
 import FilterSidebar from '../components/FilterSidebar';
 
 const Calendar = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { refreshTrigger } = useRegion();
   const calendarRef = useRef(null);
   const mobileSearchRef = useRef(null);
   
@@ -104,7 +106,7 @@ const Calendar = () => {
     } else if (user) {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, refreshTrigger]); // Add refreshTrigger dependency
 
   // Handle selected date styling
   useEffect(() => {

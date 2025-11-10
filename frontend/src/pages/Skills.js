@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import skillsService from '../services/skillsService';
 import { departmentService } from '../services/departmentService';
+import { useRegion } from '../contexts/RegionContext';
 
 const Skills = () => {
+  const { refreshTrigger } = useRegion();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -30,7 +32,7 @@ const Skills = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger dependency
 
   useEffect(() => {
     if (selectedCategoryId && selectedDepartmentId) {

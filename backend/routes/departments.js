@@ -4,10 +4,21 @@ const { body, validationResult } = require('express-validator');
 const Department = require('../models/Department');
 const ActivityLogger = require('../services/ActivityLogger');
 
-// Get all departments
+// Get all departments (with optional region filtering)
 router.get('/', async (req, res) => {
   try {
-    const departments = await Department.find().sort({ name: 1 });
+    let filter = {};
+    
+    // Filter by region if regionId is provided
+    if (req.query.regionId) {
+      filter.regionId = req.query.regionId;
+    }
+    
+    const departments = await Department.find(filter)
+      .populate('regionId', 'name')
+      .populate('createdBy', 'firstName lastName')
+      .populate('updatedBy', 'firstName lastName')
+      .sort({ name: 1 });
     res.json(departments);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching departments', error: error.message });
@@ -17,7 +28,10 @@ router.get('/', async (req, res) => {
 // Get department by ID
 router.get('/:id', async (req, res) => {
   try {
-    const department = await Department.findById(req.params.id);
+    const department = await Department.findById(req.params.id)
+      .populate('regionId', 'name')
+      .populate('createdBy', 'firstName lastName')
+      .populate('updatedBy', 'firstName lastName');
     if (!department) {
       return res.status(404).json({ message: 'Department not found' });
     }
@@ -30,7 +44,8 @@ router.get('/:id', async (req, res) => {
 // Create new department
 router.post('/', [
   body('name').trim().notEmpty().withMessage('Department name is required'),
-  body('description').optional().trim()
+  body('description').optional().trim(),
+  body('regionId').optional().isMongoId().withMessage('Invalid region ID')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

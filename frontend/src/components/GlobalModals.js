@@ -99,7 +99,7 @@ const GlobalModals = () => {
   };
 
   const openPermissionsModal = () => {
-    console.log('GlobalModals: Opening Manage RBAC Modal');
+    console.log('GlobalModals: Opening Manage Admin Modal');
     setShowPermissionsModal(true);
     loadAllPermissions();
   };
@@ -964,7 +964,7 @@ const GlobalModals = () => {
         document.body
       )}
 
-      {/* Manage RBAC Modal */}
+      {/* Manage Admin Modal */}
       {showPermissionsModal && ReactDOM.createPortal(
         <div 
           className="modal" 
@@ -988,7 +988,7 @@ const GlobalModals = () => {
             overflowY: 'auto'
           }}>
             <div className="modal-header">
-              <h2 className="modal-title">🔐 Manage RBAC (Role-Based Access Control)</h2>
+              <h2 className="modal-title">🔐 Manage Admin (Role-Based Access Control)</h2>
               <button className="modal-close" onClick={() => setShowPermissionsModal(false)}>×</button>
             </div>
 
@@ -1398,7 +1398,7 @@ const GlobalModals = () => {
                               disabled={selectedRole === 'sysadmin'}
                               style={{ marginRight: '10px', transform: 'scale(1.2)' }}
                             />
-                            <span style={{ fontSize: '0.95rem' }}>View "Manage RBAC"</span>
+                            <span style={{ fontSize: '0.95rem' }}>View "Manage Admin"</span>
                           </label>
                           <label style={{ 
                             display: 'flex', 
