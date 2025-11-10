@@ -185,6 +185,7 @@ router.post('/login', async (req, res) => {
             }
             
             req.session.user = {
+                _id: user._id,
                 username: user.username,
                 firstName: user.firstName,
                 lastName: user.lastName,
@@ -255,6 +256,7 @@ router.get('/me', async (req, res) => {
 
             // Update session with fresh data (catches role changes, etc.)
             const updatedSessionUser = {
+                _id: currentUser._id,
                 username: currentUser.username,
                 firstName: currentUser.firstName,
                 lastName: currentUser.lastName,
