@@ -45,7 +45,7 @@ const RegionSelector = () => {
         aria-label="Select region"
       >
         <span className="region-selector-text">
-          Region: {selectedRegion?.name || 'Select Region'}
+          {selectedRegion?.name || 'Select Region'}
         </span>
         <span className={`region-selector-arrow ${isOpen ? 'open' : ''}`}>
           ▼
@@ -60,7 +60,10 @@ const RegionSelector = () => {
             position: 'fixed',
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : '60px',
             left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : '20px',
-            zIndex: 99999
+            zIndex: 99999,
+            minWidth: buttonRef.current ? buttonRef.current.offsetWidth : '220px',
+            maxWidth: '300px',
+            width: 'auto'
           }}
         >
           {regions.map((region) => (
