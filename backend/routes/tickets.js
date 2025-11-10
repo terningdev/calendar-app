@@ -59,11 +59,17 @@ router.get('/', async (req, res) => {
     // Filter by region if specified
     if (regionId) {
       tickets = tickets.filter(ticket => {
-        const assignedTechnician = ticket.assignedTo;
-        if (!assignedTechnician || !assignedTechnician.department || !assignedTechnician.department.regionId) {
+        // Since assignedTo is an array, check if any assigned technician belongs to the region
+        if (!ticket.assignedTo || ticket.assignedTo.length === 0) {
           return false;
         }
-        return assignedTechnician.department.regionId._id.toString() === regionId;
+        
+        return ticket.assignedTo.some(technician => {
+          if (!technician || !technician.department || !technician.department.regionId) {
+            return false;
+          }
+          return technician.department.regionId._id.toString() === regionId;
+        });
       });
     }
     
@@ -107,11 +113,17 @@ router.get('/calendar', async (req, res) => {
     // Filter by region if specified
     if (regionId) {
       tickets = tickets.filter(ticket => {
-        const assignedTechnician = ticket.assignedTo;
-        if (!assignedTechnician || !assignedTechnician.department || !assignedTechnician.department.regionId) {
+        // Since assignedTo is an array, check if any assigned technician belongs to the region
+        if (!ticket.assignedTo || ticket.assignedTo.length === 0) {
           return false;
         }
-        return assignedTechnician.department.regionId._id.toString() === regionId;
+        
+        return ticket.assignedTo.some(technician => {
+          if (!technician || !technician.department || !technician.department.regionId) {
+            return false;
+          }
+          return technician.department.regionId._id.toString() === regionId;
+        });
       });
     }
 

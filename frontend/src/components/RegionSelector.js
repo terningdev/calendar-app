@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useRegion } from '../contexts/RegionContext';
 
 const RegionSelector = () => {
   const { selectedRegion, regions, loading, selectRegion } = useRegion();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
