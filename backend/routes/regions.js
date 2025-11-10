@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Region = require('../models/Region');
 const Department = require('../models/Department');
-const auth = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 
 // GET /api/regions - Get all regions
-router.get('/', auth, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const regions = await Region.find()
       .populate('createdBy', 'firstName lastName')
@@ -20,7 +20,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // GET /api/regions/:id - Get single region with departments
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', requireAuth, async (req, res) => {
   try {
     const region = await Region.findById(req.params.id)
       .populate('createdBy', 'firstName lastName')
@@ -46,7 +46,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // POST /api/regions - Create new region
-router.post('/', auth, async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
     const { name, description } = req.body;
 
@@ -78,7 +78,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // PUT /api/regions/:id - Update region
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
   try {
     const { name, description, isActive } = req.body;
 
@@ -116,7 +116,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // DELETE /api/regions/:id - Delete region
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
     // Check if region has any departments
     const departmentCount = await Department.countDocuments({ regionId: req.params.id });
@@ -140,7 +140,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // GET /api/regions/:id/departments - Get departments in a region
-router.get('/:id/departments', auth, async (req, res) => {
+router.get('/:id/departments', requireAuth, async (req, res) => {
   try {
     const departments = await Department.find({ regionId: req.params.id })
       .populate('createdBy', 'firstName lastName')
