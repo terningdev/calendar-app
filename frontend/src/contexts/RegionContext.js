@@ -45,13 +45,9 @@ export const RegionProvider = ({ children }) => {
   const loadRegions = async () => {
     try {
       setLoading(true);
-      const response = await regionService.getAllRegions();
-      if (response.success) {
-        setRegions(response.regions);
-        setError(null);
-      } else {
-        setError('Failed to load regions');
-      }
+      const regions = await regionService.getAll();
+      setRegions(regions);
+      setError(null);
     } catch (err) {
       console.error('Error loading regions:', err);
       setError('Failed to load regions');

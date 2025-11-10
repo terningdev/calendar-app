@@ -4,7 +4,7 @@ const regionService = {
   // Get all regions
   getAll: async () => {
     try {
-      const response = await api.get('/api/regions');
+      const response = await api.get('/regions');
       return response.data;
     } catch (error) {
       console.error('Error fetching regions:', error);
@@ -15,7 +15,7 @@ const regionService = {
   // Get single region with departments
   getById: async (id) => {
     try {
-      const response = await api.get(`/api/regions/${id}`);
+      const response = await api.get(`/regions/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching region:', error);
@@ -26,7 +26,7 @@ const regionService = {
   // Create new region
   create: async (regionData) => {
     try {
-      const response = await api.post('/api/regions', regionData);
+      const response = await api.post('/regions', regionData);
       return response.data;
     } catch (error) {
       console.error('Error creating region:', error);
@@ -37,7 +37,7 @@ const regionService = {
   // Update region
   update: async (id, regionData) => {
     try {
-      const response = await api.put(`/api/regions/${id}`, regionData);
+      const response = await api.put(`/regions/${id}`, regionData);
       return response.data;
     } catch (error) {
       console.error('Error updating region:', error);
@@ -48,7 +48,7 @@ const regionService = {
   // Delete region
   delete: async (id) => {
     try {
-      const response = await api.delete(`/api/regions/${id}`);
+      const response = await api.delete(`/regions/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting region:', error);
@@ -59,7 +59,7 @@ const regionService = {
   // Get departments in a region
   getDepartments: async (regionId) => {
     try {
-      const response = await api.get(`/api/regions/${regionId}/departments`);
+      const response = await api.get(`/regions/${regionId}/departments`);
       return response.data;
     } catch (error) {
       console.error('Error fetching region departments:', error);

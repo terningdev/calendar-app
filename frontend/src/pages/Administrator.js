@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { toast } from 'react-toastify';
-import { regionService } from '../services/regionService';
+import regionService from '../services/regionService';
 import { departmentService } from '../services/departmentService';
 import { technicianService } from '../services/technicianService';
 import { useTranslation } from '../utils/translations';
@@ -128,7 +128,7 @@ const Administrator = () => {
   // Department functions
   const loadDepartments = async () => {
     try {
-      const data = await departmentService.getAll();
+      const data = await departmentService.getAllUnfiltered();
       setDepartments(data);
     } catch (error) {
       console.error('Error loading departments:', error);
@@ -186,7 +186,7 @@ const Administrator = () => {
   // Technician functions
   const loadTechnicians = async () => {
     try {
-      const data = await technicianService.getAll();
+      const data = await technicianService.getAllUnfiltered();
       setTechnicians(data);
     } catch (error) {
       console.error('Error loading technicians:', error);
@@ -285,19 +285,19 @@ const Administrator = () => {
       {/* Tab Navigation */}
       <div className="admin-tabs">
         <button 
-          className={`tab-button ${activeTab === 'regions' ? 'active' : ''}`}
+          className={`admin-tab ${activeTab === 'regions' ? 'active' : ''}`}
           onClick={() => setActiveTab('regions')}
         >
           🌍 Regions
         </button>
         <button 
-          className={`tab-button ${activeTab === 'departments' ? 'active' : ''}`}
+          className={`admin-tab ${activeTab === 'departments' ? 'active' : ''}`}
           onClick={() => setActiveTab('departments')}
         >
           🏢 Departments
         </button>
         <button 
-          className={`tab-button ${activeTab === 'technicians' ? 'active' : ''}`}
+          className={`admin-tab ${activeTab === 'technicians' ? 'active' : ''}`}
           onClick={() => setActiveTab('technicians')}
         >
           👤 Technicians
@@ -305,12 +305,12 @@ const Administrator = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="tab-content">
+      <div className="admin-tab-content">
         
         {/* Regions Tab */}
         {activeTab === 'regions' && (
           <div className="regions-tab">
-            <div className="tab-header">
+            <div className="admin-tab-header">
               <h2>Manage Regions</h2>
               <button className="btn btn-primary" onClick={handleCreateRegion}>
                 + Create Region
@@ -318,12 +318,12 @@ const Administrator = () => {
             </div>
             
             <div className="table-container">
-              <table className="admin-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>Departments</th>
+                    <th>Region</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -367,7 +367,7 @@ const Administrator = () => {
         {/* Departments Tab */}
         {activeTab === 'departments' && (
           <div className="departments-tab">
-            <div className="tab-header">
+            <div className="admin-tab-header">
               <h2>Manage Departments</h2>
               <button className="btn btn-primary" onClick={handleCreateDepartment}>
                 + Create Department
@@ -426,7 +426,7 @@ const Administrator = () => {
         {/* Technicians Tab */}
         {activeTab === 'technicians' && (
           <div className="technicians-tab">
-            <div className="tab-header">
+            <div className="admin-tab-header">
               <h2>Manage Technicians</h2>
               <button className="btn btn-primary" onClick={handleCreateTechnician}>
                 + Create Technician
@@ -434,7 +434,7 @@ const Administrator = () => {
             </div>
             
             <div className="table-container">
-              <table className="admin-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Name</th>
@@ -486,7 +486,7 @@ const Administrator = () => {
 
       {/* Region Modal */}
       {showRegionModal && ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={() => setShowRegionModal(false)}>
+        <div className="modal" onClick={() => setShowRegionModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingRegion ? 'Edit Region' : 'Create Region'}</h2>
@@ -527,7 +527,7 @@ const Administrator = () => {
 
       {/* Department Modal */}
       {showDepartmentModal && ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={() => setShowDepartmentModal(false)}>
+        <div className="modal" onClick={() => setShowDepartmentModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingDepartment ? 'Edit Department' : 'Create Department'}</h2>
@@ -592,7 +592,7 @@ const Administrator = () => {
 
       {/* Technician Modal */}
       {showTechnicianModal && ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={() => setShowTechnicianModal(false)}>
+        <div className="modal" onClick={() => setShowTechnicianModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingTechnician ? 'Edit Technician' : 'Create Technician'}</h2>
