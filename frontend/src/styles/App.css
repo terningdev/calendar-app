@@ -2649,16 +2649,33 @@ body {
   margin-bottom: 2px !important;
 }
 
-/* Vakt text styling for day cells */
-.fc-vakt-text {
+/* Day cell header styling - date with optional vakt */
+.fc-day-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+  line-height: 1.2;
+  margin-bottom: 2px;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .fc-day-header {
+  color: var(--text-primary, #f1f5f9);
+}
+
+/* Absence line styling - Name - Title format */
+.fc-absence-line {
   font-size: 0.7rem;
   font-weight: 500;
   color: #dc3545;
   background-color: rgba(220, 53, 69, 0.1);
-  padding: 1px 3px;
-  border-radius: 3px;
-  margin-top: 2px;
-  line-height: 1;
+  padding: 1px 4px;
+  margin-bottom: 1px;
+  border-radius: 2px;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2666,9 +2683,21 @@ body {
   display: block;
 }
 
-[data-theme="dark"] .fc-vakt-text {
+[data-theme="dark"] .fc-absence-line {
   color: #f87171;
   background-color: rgba(248, 113, 113, 0.15);
+}
+
+/* Ensure proper spacing in day cells */
+.fc-daygrid-day-frame {
+  padding: 2px;
+  background-color: var(--card-bg, white);
+  min-height: 100px;
+}
+
+/* Remove old vakt text styling */
+.fc-vakt-text {
+  display: none;
 }
 
 /* Ensure day number and vakt text don't overlap */
