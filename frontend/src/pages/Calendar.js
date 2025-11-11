@@ -298,7 +298,6 @@ const Calendar = () => {
         backgroundColor: '#dc3545',
         borderColor: '#dc3545',
         textColor: '#ffffff',
-        display: 'background', // Display as background event
         classNames: ['fc-vakt-event']
       };
     });

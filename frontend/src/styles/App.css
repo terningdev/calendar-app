@@ -2726,12 +2726,12 @@ body {
 
 /* Vakt event styling */
 .fc-vakt-event {
-  opacity: 0.3 !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   background-color: #dc3545 !important;
   border: 1px solid #dc3545 !important;
   color: #ffffff !important;
+  opacity: 0.9 !important;
 }
 
 /* Absence event styling */
