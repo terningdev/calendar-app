@@ -2649,6 +2649,42 @@ body {
   margin-bottom: 2px !important;
 }
 
+/* Vakt text styling for day cells */
+.fc-vakt-text {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+  padding: 1px 3px;
+  border-radius: 3px;
+  margin-top: 2px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+}
+
+[data-theme="dark"] .fc-vakt-text {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.15);
+}
+
+/* Ensure day number and vakt text don't overlap */
+.fc-daygrid-day-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.fc-daygrid-day-number {
+  padding: 4px;
+  font-size: 0.9rem;
+  color: var(--text-primary, #333);
+  line-height: 1;
+}
+
 .fc-daygrid-block-event .fc-event-main {
   padding: 1px 2px;
 }

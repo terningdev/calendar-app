@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { ticketService } from '../services/ticketService';
 import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
+import { absenceService } from '../services/absenceService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
 import { useRegion } from '../contexts/RegionContext';
@@ -24,6 +25,7 @@ const Calendar = () => {
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [absences, setAbsences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -84,15 +86,17 @@ const Calendar = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [ticketsData, techniciansData, departmentsData] = await Promise.all([
+        const [ticketsData, techniciansData, departmentsData, absencesData] = await Promise.all([
           ticketService.getAll(),
           technicianService.getAll(),
-          departmentService.getAll()
+          departmentService.getAll(),
+          absenceService.getAll()
         ]);
         
         setTickets(ticketsData);
         setTechnicians(techniciansData);
         setDepartments(departmentsData);
+        setAbsences(absencesData);
       } catch (error) {
         console.error('Error loading data:', error);
         toast.error('Failed to load calendar data');
@@ -129,7 +133,7 @@ const Calendar = () => {
     }
   }, [selectedDate]);
 
-  // Convert tickets to FullCalendar events
+  // Convert tickets and absences to FullCalendar events
   const getEvents = () => {
     // Start with all tickets
     let filteredTickets = tickets;
@@ -199,7 +203,8 @@ const Calendar = () => {
       });
     }
 
-    return filteredTickets.map(ticket => {
+    // Process tickets into events
+    const ticketEvents = filteredTickets.map(ticket => {
       // Get technician names
       const techNames = Array.isArray(ticket.assignedTo)
         ? ticket.assignedTo.map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`).join(', ')
@@ -228,12 +233,82 @@ const Calendar = () => {
           ticket: ticket,
           description: ticket.description,
           technicians: techNames,
-          activityNumbers: ticket.activityNumbers || []
+          activityNumbers: ticket.activityNumbers || [],
+          eventType: 'ticket'
         },
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff'
       };
+    });
+
+    // Process absences - only "absence" type as regular events
+    let filteredAbsences = absences.filter(absence => absence.type === 'absence');
+    
+    // Filter absences by search term
+    if (searchTerm && searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase().trim();
+      filteredAbsences = filteredAbsences.filter(absence => {
+        // Search in title
+        const titleMatch = absence.title?.toLowerCase().includes(term);
+        
+        // Search in technician name (if populated)
+        const technicianMatch = absence.technicianId?.fullName?.toLowerCase().includes(term) ||
+                              absence.technicianId?.firstName?.toLowerCase().includes(term) ||
+                              absence.technicianId?.lastName?.toLowerCase().includes(term);
+        
+        return titleMatch || technicianMatch;
+      });
+    }
+
+    const absenceEvents = filteredAbsences.map(absence => {
+      // Get technician name
+      const techName = absence.technicianId 
+        ? absence.technicianId.fullName || `${absence.technicianId.firstName} ${absence.technicianId.lastName}`
+        : 'Unknown Technician';
+
+      // Calculate end date - add 1 day for exclusive end date
+      const start = new Date(absence.startDate);
+      const end = new Date(absence.endDate);
+      end.setDate(end.getDate() + 1);
+      
+      return {
+        id: `absence-${absence._id}`,
+        title: absence.title,
+        start: absence.startDate,
+        end: end.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        allDay: true,
+        extendedProps: {
+          absence: absence,
+          technicians: techName,
+          eventType: 'absence'
+        },
+        backgroundColor: '#dc3545', // Red color for absences
+        borderColor: '#dc3545',
+        textColor: '#ffffff'
+      };
+    });
+
+    return [...ticketEvents, ...absenceEvents];
+  };
+
+  // Get vakt entries for a specific date
+  const getVaktForDate = (date) => {
+    if (!absences) return [];
+    
+    const vaktEntries = absences.filter(absence => absence.type === 'vakt');
+    
+    return vaktEntries.filter(vakt => {
+      const vaktStart = new Date(vakt.startDate);
+      const vaktEnd = new Date(vakt.endDate);
+      const checkDate = new Date(date);
+      
+      // Remove time component for date comparison
+      vaktStart.setHours(0, 0, 0, 0);
+      vaktEnd.setHours(23, 59, 59, 999);
+      checkDate.setHours(0, 0, 0, 0);
+      
+      return checkDate >= vaktStart && checkDate <= vaktEnd;
     });
   };
 
@@ -602,6 +677,31 @@ const Calendar = () => {
             const cellDate = new Date(arg.date);
             cellDate.setHours(0, 0, 0, 0);
             return cellDate.getTime() === today.getTime() ? 'fc-day-today-custom' : '';
+          }}
+          dayCellContent={(arg) => {
+            const vaktEntries = getVaktForDate(arg.date);
+            const dateNumber = arg.date.getDate();
+            
+            if (vaktEntries.length > 0) {
+              // Create vakt text with technician names
+              const vaktTechnicians = vaktEntries.map(vakt => {
+                const techName = vakt.technicianId 
+                  ? vakt.technicianId.fullName || `${vakt.technicianId.firstName} ${vakt.technicianId.lastName}`
+                  : 'Unknown';
+                return techName;
+              }).join(', ');
+              
+              const vaktText = `Vakt ${vaktTechnicians}`;
+              
+              return {
+                html: `
+                  <div class="fc-daygrid-day-number">${dateNumber}</div>
+                  <div class="fc-vakt-text">${vaktText}</div>
+                `
+              };
+            }
+            
+            return { html: `<div class="fc-daygrid-day-number">${dateNumber}</div>` };
           }}
           eventContent={(arg) => {
             // Custom event content to style technician names separately
