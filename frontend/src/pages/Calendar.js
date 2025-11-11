@@ -285,6 +285,26 @@ const Calendar = () => {
     });
   };
 
+  // Calculate how many tickets can be displayed in a day cell
+  const getMaxTicketsForCell = () => {
+    // Base calculation on available space
+    let maxTickets = 3; // Default
+    
+    // Adjust based on window width
+    if (window.innerWidth < 768) {
+      maxTickets = 2; // Mobile
+    } else if (window.innerWidth > 1200) {
+      maxTickets = 4; // Large screens
+    }
+    
+    // Reduce if filters or agenda are open
+    if (showFilters || showAgenda) {
+      maxTickets = Math.max(2, maxTickets - 1);
+    }
+    
+    return maxTickets;
+  };
+
   // Get events for a specific date (for agenda view)
   const getEventsForDate = (date) => {
     if (!date) return [];
@@ -643,6 +663,10 @@ const Calendar = () => {
           events={getEvents()}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
+          dayMaxEvents={getMaxTicketsForCell()}
+          moreLinkClick="popover"
+          moreLinkClassNames="fc-more-link-custom"
+          moreLinkContent={(args) => `+${args.num}`}
           dayCellClassNames={(arg) => {
             // Highlight today's date
             const today = new Date();
@@ -658,30 +682,20 @@ const Calendar = () => {
             
             let html = '';
             
-            // Top line: Date on left, vakt on right (same horizontal line)
+            // Date at top left
+            html += `<div class="fc-day-number">${dateNumber}</div>`;
+            
+            // Vakt entries on separate lines
             if (vaktEntries.length > 0) {
-              const vaktTechnicians = vaktEntries.map(vakt => {
+              vaktEntries.forEach(vakt => {
                 const techName = vakt.technicianId 
                   ? vakt.technicianId.fullName || `${vakt.technicianId.firstName} ${vakt.technicianId.lastName}`
                   : 'Unknown';
-                return techName;
-              }).join(', ');
-              
-              html += `
-                <div class="fc-day-header">
-                  <span class="fc-day-number">${dateNumber}</span>
-                  <span class="fc-vakt-info">Vakt - ${vaktTechnicians}</span>
-                </div>
-              `;
-            } else {
-              html += `
-                <div class="fc-day-header">
-                  <span class="fc-day-number">${dateNumber}</span>
-                </div>
-              `;
+                html += `<div class="fc-vakt-line">Vakt ${techName}</div>`;
+              });
             }
             
-            // Absence lines: Name - Title
+            // Absence entries on separate lines
             if (absenceEntries.length > 0) {
               absenceEntries.forEach(absence => {
                 const techName = absence.technicianId 
@@ -721,26 +735,6 @@ const Calendar = () => {
           editable={false}
           selectable={false}
           selectMirror={true}
-          dayMaxEvents={4}
-          moreLinkClick={(info) => {
-            // Create a local date to avoid timezone issues
-            const localDate = new Date(info.dateStr + 'T00:00:00');
-            setAgendaDate(localDate);
-            setSelectedDate(localDate);
-            setShowAgenda(true);
-            // Let FullCalendar create the popover first, then hide it
-            setTimeout(() => {
-              const popovers = document.querySelectorAll('.fc-popover, .fc-more-popover');
-              popovers.forEach(popover => {
-                if (popover) {
-                  popover.style.visibility = 'hidden';
-                  popover.style.opacity = '0';
-                  popover.style.pointerEvents = 'none';
-                }
-              });
-            }, 10);
-            return 'popover';
-          }}
           eventOrder="start,-duration,title"
           eventTimeFormat={{
             hour: '2-digit',

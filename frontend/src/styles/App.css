@@ -2646,50 +2646,72 @@ body {
 
 /* FullCalendar event spacing - ensures proper gaps between overlapping events */
 .fc-daygrid-event-harness {
-  margin-bottom: 2px !important;
+  margin-bottom: 1px !important;
 }
 
-/* Day cell header styling - date left, vakt right */
-.fc-day-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
+/* Fixed calendar cell sizing for consistent layout */
+.fc-daygrid-day-frame {
+  padding: 3px;
+  background-color: var(--card-bg, white);
+  min-height: 120px;
+  height: 120px;
+  overflow: hidden;
+}
+
+/* Responsive cell sizing */
+@media (max-width: 768px) {
+  .fc-daygrid-day-frame {
+    min-height: 100px;
+    height: 100px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .fc-daygrid-day-frame {
+    min-height: 140px;
+    height: 140px;
+  }
+}
+
+/* When filters or agenda are active, reduce height */
+.calendar-wrapper.with-agenda .fc-daygrid-day-frame,
+.page-container.filter-sidebar-active .fc-daygrid-day-frame {
+  min-height: 100px;
+  height: 100px;
+}
+
+/* Day number styling - top left position */
+.fc-day-number {
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary, #333);
   line-height: 1.2;
   margin-bottom: 2px;
-  padding: 2px 4px;
-  min-height: 18px;
-}
-
-.fc-day-number {
-  font-weight: 600;
-  color: var(--text-primary, #333);
-}
-
-.fc-vakt-info {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #dc3545;
-  background-color: rgba(220, 53, 69, 0.1);
-  padding: 1px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 70%;
-}
-
-[data-theme="dark"] .fc-day-header {
-  color: var(--text-primary, #f1f5f9);
+  padding: 2px;
+  display: block;
 }
 
 [data-theme="dark"] .fc-day-number {
   color: var(--text-primary, #f1f5f9);
 }
 
-[data-theme="dark"] .fc-vakt-info {
+/* Vakt line styling */
+.fc-vakt-line {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+  padding: 1px 3px;
+  margin-bottom: 1px;
+  border-radius: 2px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+[data-theme="dark"] .fc-vakt-line {
   color: #f87171;
   background-color: rgba(248, 113, 113, 0.15);
 }
@@ -2700,14 +2722,13 @@ body {
   font-weight: 500;
   color: #dc3545;
   background-color: rgba(220, 53, 69, 0.1);
-  padding: 1px 4px;
+  padding: 1px 3px;
   margin-bottom: 1px;
   border-radius: 2px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
   display: block;
 }
 
@@ -2716,11 +2737,35 @@ body {
   background-color: rgba(248, 113, 113, 0.15);
 }
 
-/* Ensure proper spacing in day cells */
-.fc-daygrid-day-frame {
-  padding: 2px;
-  background-color: var(--card-bg, white);
-  min-height: 100px;
+/* More link styling for +N indicator */
+.fc-more-link-custom {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #666);
+  background-color: var(--bg-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #dee2e6);
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-top: 1px;
+}
+
+.fc-more-link-custom:hover {
+  background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+  text-decoration: none;
+}
+
+[data-theme="dark"] .fc-more-link-custom {
+  color: var(--text-secondary, #94a3b8);
+  background-color: var(--bg-secondary, #334155);
+  border-color: var(--border-color, #334155);
+}
+
+/* Remove old header styling */
+.fc-day-header {
+  display: none;
+}
+
+.fc-vakt-info {
+  display: none;
 }
 
 /* Remove old vakt text styling */
