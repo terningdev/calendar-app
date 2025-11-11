@@ -8,7 +8,7 @@ export const translations = {
     dashboard: 'Dashboard',
     calendar: 'Calendar',
     tickets: 'Tickets',
-    absenceVakt: 'Absence & On call',
+    absenceVakt: 'Period',
     administrator: 'Admin',
     skills: 'Skills',
     
@@ -155,7 +155,7 @@ export const translations = {
     dashboard: 'Dashbord',
     calendar: 'Kalender',
     tickets: 'Aktiviteter',
-    absenceVakt: 'Fravær / Vakt',
+    absenceVakt: 'Periode',
     administrator: 'Avdelinger og Teknikere',
     skills: 'Ferdigheter',
     

@@ -135,6 +135,7 @@ body {
   justify-content: center;
   gap: 0;
   overflow: visible !important;
+  flex: 1; /* Allow nav-links to expand and center themselves */
 }
 
 .nav-links li {
@@ -1713,6 +1714,22 @@ body {
 
 .nav-container {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 160px; /* Add padding to account for absolutely positioned elements */
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: visible !important;
+  flex: 1; /* Allow nav-links to expand and center themselves */
 }
 
 /* Mobile navigation adjustments for user menu */

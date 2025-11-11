@@ -158,17 +158,17 @@ const Navigation = () => {
               </Link>
             </li>
           )}
-          {permissions?.viewCalendar === true && (
-            <li>
-              <Link to="/calendar" className={isActive('/calendar')} onClick={closeMenu}>
-                {t('calendar')}
-              </Link>
-            </li>
-          )}
           {permissions?.viewTickets === true && (
             <li>
               <Link to="/tickets" className={isActive('/tickets')} onClick={closeMenu}>
                 {t('tickets')}
+              </Link>
+            </li>
+          )}
+          {permissions?.viewCalendar === true && (
+            <li>
+              <Link to="/calendar" className={isActive('/calendar')} onClick={closeMenu}>
+                {t('calendar')}
               </Link>
             </li>
           )}
@@ -186,8 +186,6 @@ const Navigation = () => {
               </Link>
             </li>
           )}
-          
-          {/* Skills link */}
           {permissions?.viewSkills === true && (
             <li>
               <Link to="/skills" className={isActive('/skills')} onClick={closeMenu}>
@@ -195,8 +193,6 @@ const Navigation = () => {
               </Link>
             </li>
           )}
-          
-          {/* Logs link */}
           {permissions?.viewLogs === true && (
             <li>
               <Link to="/logs" className={isActive('/logs')} onClick={closeMenu}>
@@ -204,8 +200,6 @@ const Navigation = () => {
               </Link>
             </li>
           )}
-          
-          {/* Administrator link - moved to bottom on mobile */}
           {permissions?.viewAdministrator === true && (
             <li className="nav-admin-item">
               <Link to="/administrator" className={isActive('/administrator')} onClick={closeMenu}>
