@@ -61,11 +61,31 @@ const Calendar = () => {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
+      
+      // Update FullCalendar with new dayMaxEvents when window resizes
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        // Small delay to allow resize to complete
+        setTimeout(() => {
+          calendarApi.updateSize();
+        }, 100);
+      }
     };
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+  
+  // Update dayMaxEvents when relevant states change
+  useEffect(() => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      // Force a re-render with updated dayMaxEvents
+      setTimeout(() => {
+        calendarApi.updateSize();
+      }, 100);
+    }
+  }, [showFilters, showAgenda]);
 
   // Click outside handler for mobile search
   useEffect(() => {
@@ -214,7 +234,7 @@ const Calendar = () => {
       });
     }
 
-    // Process tickets into events (absences are now handled in dayCellContent)
+    // Process tickets into events
     const ticketEvents = filteredTickets.map(ticket => {
       // Get technician names
       const techNames = Array.isArray(ticket.assignedTo)
@@ -228,7 +248,6 @@ const Calendar = () => {
 
       // Calculate end date - add 1 day if there's no endDate or if it's the same day
       let endDate = ticket.endDate || ticket.startDate;
-      const start = new Date(ticket.startDate);
       const end = new Date(endDate);
       
       // For FullCalendar, the end date is exclusive, so we need to add 1 day
@@ -253,50 +272,71 @@ const Calendar = () => {
       };
     });
 
-    return ticketEvents;
-  };
+    // Process vakt entries as spanning events
+    let filteredVakt = absences.filter(absence => absence.type === 'vakt');
+    
+    const vaktEvents = filteredVakt.map(vakt => {
+      const techName = vakt.technicianId 
+        ? vakt.technicianId.fullName || `${vakt.technicianId.firstName} ${vakt.technicianId.lastName}`
+        : 'Unknown Technician';
 
-  // Get vakt entries for a specific date
-  const getVaktForDate = (date) => {
-    if (!absences) return [];
-    
-    const vaktEntries = absences.filter(absence => absence.type === 'vakt');
-    
-    return vaktEntries.filter(vakt => {
-      const vaktStart = new Date(vakt.startDate);
-      const vaktEnd = new Date(vakt.endDate);
-      const checkDate = new Date(date);
+      // Calculate end date - add 1 day for exclusive end date
+      const end = new Date(vakt.endDate);
+      end.setDate(end.getDate() + 1);
       
-      // Remove time component for date comparison
-      vaktStart.setHours(0, 0, 0, 0);
-      vaktEnd.setHours(23, 59, 59, 999);
-      checkDate.setHours(0, 0, 0, 0);
-      
-      return checkDate >= vaktStart && checkDate <= vaktEnd;
+      return {
+        id: `vakt-${vakt._id}`,
+        title: `Vakt ${techName}`,
+        start: vakt.startDate,
+        end: end.toISOString().split('T')[0],
+        allDay: true,
+        extendedProps: {
+          absence: vakt,
+          technicians: techName,
+          eventType: 'vakt'
+        },
+        backgroundColor: '#dc3545',
+        borderColor: '#dc3545',
+        textColor: '#ffffff',
+        display: 'background', // Display as background event
+        classNames: ['fc-vakt-event']
+      };
     });
-  };
 
-  // Get absence entries for a specific date
-  const getAbsencesForDate = (date) => {
-    if (!absences) return [];
+    // Process absence entries as spanning events  
+    let filteredAbsences = absences.filter(absence => absence.type === 'absence');
     
-    const absenceEntries = absences.filter(absence => absence.type === 'absence');
-    
-    return absenceEntries.filter(absence => {
-      const absenceStart = new Date(absence.startDate);
-      const absenceEnd = new Date(absence.endDate);
-      const checkDate = new Date(date);
+    const absenceEvents = filteredAbsences.map(absence => {
+      const techName = absence.technicianId 
+        ? absence.technicianId.fullName || `${absence.technicianId.firstName} ${absence.technicianId.lastName}`
+        : 'Unknown Technician';
+
+      // Calculate end date - add 1 day for exclusive end date
+      const end = new Date(absence.endDate);
+      end.setDate(end.getDate() + 1);
       
-      // Remove time component for date comparison
-      absenceStart.setHours(0, 0, 0, 0);
-      absenceEnd.setHours(23, 59, 59, 999);
-      checkDate.setHours(0, 0, 0, 0);
-      
-      return checkDate >= absenceStart && checkDate <= absenceEnd;
+      return {
+        id: `absence-${absence._id}`,
+        title: `${techName} - ${absence.title}`,
+        start: absence.startDate,
+        end: end.toISOString().split('T')[0],
+        allDay: true,
+        extendedProps: {
+          absence: absence,
+          technicians: techName,
+          eventType: 'absence'
+        },
+        backgroundColor: '#ffc107',
+        borderColor: '#ffc107',
+        textColor: '#000000',
+        classNames: ['fc-absence-event']
+      };
     });
+
+    return [...vaktEvents, ...absenceEvents, ...ticketEvents];
   };
 
-  // Calculate how many tickets can be displayed in a day cell
+  // Get events for a specific date (for agenda view)
   const getMaxTicketsForCell = () => {
     // Base calculation on available space
     let maxTickets = 3; // Default
@@ -304,7 +344,9 @@ const Calendar = () => {
     // Adjust based on window width
     if (window.innerWidth < 768) {
       maxTickets = 2; // Mobile
-    } else if (window.innerWidth > 1200) {
+    } else if (window.innerWidth < 1200) {
+      maxTickets = 3; // Medium screens
+    } else {
       maxTickets = 4; // Large screens
     }
     
@@ -687,36 +729,8 @@ const Calendar = () => {
             return cellDate.getTime() === today.getTime() ? 'fc-day-today-custom' : '';
           }}
           dayCellContent={(arg) => {
-            const vaktEntries = getVaktForDate(arg.date);
-            const absenceEntries = getAbsencesForDate(arg.date);
             const dateNumber = arg.date.getDate();
-            
-            let html = '';
-            
-            // Date at top left
-            html += `<div class="fc-day-number">${dateNumber}</div>`;
-            
-            // Vakt entries on separate lines
-            if (vaktEntries.length > 0) {
-              vaktEntries.forEach(vakt => {
-                const techName = vakt.technicianId 
-                  ? vakt.technicianId.fullName || `${vakt.technicianId.firstName} ${vakt.technicianId.lastName}`
-                  : 'Unknown';
-                html += `<div class="fc-vakt-line">Vakt ${techName}</div>`;
-              });
-            }
-            
-            // Absence entries on separate lines
-            if (absenceEntries.length > 0) {
-              absenceEntries.forEach(absence => {
-                const techName = absence.technicianId 
-                  ? absence.technicianId.fullName || `${absence.technicianId.firstName} ${absence.technicianId.lastName}`
-                  : 'Unknown';
-                html += `<div class="fc-absence-line">${techName} - ${absence.title}</div>`;
-              });
-            }
-            
-            return { html: html };
+            return { html: `<div class="fc-day-number">${dateNumber}</div>` };
           }}
           eventContent={(arg) => {
             // Custom event content to style technician names separately

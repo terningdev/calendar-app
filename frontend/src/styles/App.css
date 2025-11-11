@@ -2706,10 +2706,55 @@ body {
   margin-bottom: 2px;
   padding: 2px;
   display: block;
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  z-index: 2;
+}
+
+/* Override FullCalendar's default day number positioning */
+.fc-daygrid-day-number {
+  position: absolute !important;
+  top: 2px !important;
+  left: 4px !important;
+  padding: 2px 4px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary, #333) !important;
+  z-index: 2 !important;
+}
+
+/* Vakt event styling */
+.fc-vakt-event {
+  opacity: 0.3 !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  background-color: #dc3545 !important;
+  border: 1px solid #dc3545 !important;
+  color: #ffffff !important;
+}
+
+/* Absence event styling */
+.fc-absence-event {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  background-color: #ffc107 !important;
+  border: 1px solid #e0a800 !important;
+  color: #000000 !important;
+}
+
+/* Remove old vakt and absence line styling since they're now events */
+.fc-vakt-line,
+.fc-absence-line {
+  display: none;
 }
 
 [data-theme="dark"] .fc-day-number {
-  color: var(--text-primary, #f1f5f9);
+  color: var(--text-primary, #f1f5f9) !important;
+}
+
+[data-theme="dark"] .fc-daygrid-day-number {
+  color: var(--text-primary, #f1f5f9) !important;
 }
 
 /* Vakt line styling */
