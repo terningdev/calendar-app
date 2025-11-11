@@ -2321,15 +2321,18 @@ body {
 
 .calendar-wrapper {
   flex: 1;
+  min-width: 0; /* Allow flex item to shrink below content size */
   padding: 20px;
   background: var(--card-bg, white);
   border-radius: 8px;
   box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
-  transition: background-color 0.3s ease, margin-right 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+  transition: background-color 0.3s ease, margin-left 0.3s ease-in-out;
 }
 
 .calendar-wrapper.with-agenda {
-  margin-right: 370px; /* Make space for the agenda panel */
+  flex: 1;
+  max-width: calc(100% - 370px); /* Reserve space for agenda panel */
+  transition: max-width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 /* Calendar wrapper animation when filter sidebar is active */
@@ -2463,7 +2466,7 @@ body {
   }
   
   .calendar-wrapper.with-agenda {
-    margin-right: 0;
+    max-width: 100%; /* Reset desktop constraint */
     margin-bottom: 320px; /* Make space for agenda panel at bottom */
     transition: margin-bottom 0.3s ease-in-out;
   }
@@ -2678,6 +2681,20 @@ body {
 .page-container.filter-sidebar-active .fc-daygrid-day-frame {
   min-height: 100px;
   height: 100px;
+}
+
+/* Ensure FullCalendar table resizes properly */
+.calendar-wrapper .fc {
+  width: 100%;
+  transition: width 0.3s ease-in-out;
+}
+
+.calendar-wrapper .fc-view-harness {
+  transition: width 0.3s ease-in-out;
+}
+
+.calendar-wrapper .fc-daygrid-body {
+  width: 100% !important;
 }
 
 /* Day number styling - top left position */

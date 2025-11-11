@@ -133,6 +133,17 @@ const Calendar = () => {
     }
   }, [selectedDate]);
 
+  // Handle FullCalendar resize when agenda opens/closes
+  useEffect(() => {
+    if (calendarRef.current) {
+      // Small delay to allow CSS transition to complete
+      setTimeout(() => {
+        const calendarApi = calendarRef.current.getApi();
+        calendarApi.updateSize();
+      }, 350); // Match the CSS transition duration
+    }
+  }, [showAgenda]);
+
   // Convert tickets and absences to FullCalendar events
   const getEvents = () => {
     // Start with all tickets
