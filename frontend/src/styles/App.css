@@ -2649,21 +2649,49 @@ body {
   margin-bottom: 2px !important;
 }
 
-/* Day cell header styling - date with optional vakt */
+/* Day cell header styling - date left, vakt right */
 .fc-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary, #333);
   line-height: 1.2;
   margin-bottom: 2px;
   padding: 2px 4px;
+  min-height: 18px;
+}
+
+.fc-day-number {
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.fc-vakt-info {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+  padding: 1px 4px;
+  border-radius: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 70%;
 }
 
 [data-theme="dark"] .fc-day-header {
   color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .fc-day-number {
+  color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="dark"] .fc-vakt-info {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.15);
 }
 
 /* Absence line styling - Name - Title format */

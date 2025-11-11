@@ -658,7 +658,7 @@ const Calendar = () => {
             
             let html = '';
             
-            // Top line: Date with optional vakt
+            // Top line: Date on left, vakt on right (same horizontal line)
             if (vaktEntries.length > 0) {
               const vaktTechnicians = vaktEntries.map(vakt => {
                 const techName = vakt.technicianId 
@@ -667,9 +667,18 @@ const Calendar = () => {
                 return techName;
               }).join(', ');
               
-              html += `<div class="fc-day-header">${dateNumber} - Vakt ${vaktTechnicians}</div>`;
+              html += `
+                <div class="fc-day-header">
+                  <span class="fc-day-number">${dateNumber}</span>
+                  <span class="fc-vakt-info">Vakt - ${vaktTechnicians}</span>
+                </div>
+              `;
             } else {
-              html += `<div class="fc-day-header">${dateNumber}</div>`;
+              html += `
+                <div class="fc-day-header">
+                  <span class="fc-day-number">${dateNumber}</span>
+                </div>
+              `;
             }
             
             // Absence lines: Name - Title
