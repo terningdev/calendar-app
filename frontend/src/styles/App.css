@@ -2338,7 +2338,7 @@ body {
 /* Calendar wrapper animation when filter sidebar is active */
 @media (min-width: 769px) {
   .page-container.filter-sidebar-active .calendar-wrapper {
-    margin-left: 350px;
+    margin-left: 0; /* Reset margin since page-container already has the margin */
     transition: margin-left 0.3s ease-in-out, margin-right 0.3s ease-in-out;
   }
 }
