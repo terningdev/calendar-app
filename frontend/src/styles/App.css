@@ -911,15 +911,17 @@ body {
   }
   
   /* Mobile adjustments for day symbols */
-  .fc-day-symbols {
-    top: 2px;
-    right: 2px;
-    gap: 0px;
+  .fc-day-symbols,
+  .fc-daygrid-day-frame .fc-day-symbols {
+    top: 1px !important;
+    right: 1px !important;
+    left: auto !important;
+    gap: 0px !important;
   }
   
   .vakt-symbol, .absence-symbol {
-    font-size: 9px;
-    padding: 0px;
+    font-size: 10px !important;
+    padding: 1px 2px !important;
   }
 
   /* Show mobile user menu container on mobile */
@@ -2784,26 +2786,49 @@ body {
   margin-top: 1px !important;
 }
 
-/* Day symbols styling */
+/* Day symbols styling - Force positioning on right side */
+.fc-daygrid-day-frame .fc-day-symbols {
+  position: absolute !important;
+  top: 2px !important;
+  right: 2px !important;
+  left: auto !important;
+  display: flex !important;
+  gap: 1px !important;
+  z-index: 15 !important;
+  align-items: center !important;
+  pointer-events: auto !important;
+  width: auto !important;
+  height: auto !important;
+  transform: none !important;
+}
+
 .fc-day-symbols {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  display: flex;
-  gap: 1px;
-  z-index: 12;
-  align-items: center;
+  position: absolute !important;
+  top: 2px !important;
+  right: 2px !important;
+  left: auto !important;
+  display: flex !important;
+  gap: 1px !important;
+  z-index: 15 !important;
+  align-items: center !important;
+  pointer-events: auto !important;
+  width: auto !important;
+  height: auto !important;
+  transform: none !important;
 }
 
 .vakt-symbol, .absence-symbol {
-  font-size: 11px;
-  cursor: help;
-  position: relative;
-  display: inline-block;
-  line-height: 1;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 2px;
-  padding: 1px;
+  font-size: 12px !important;
+  cursor: help !important;
+  position: relative !important;
+  display: inline-block !important;
+  line-height: 1 !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 3px !important;
+  padding: 2px 3px !important;
+  margin-left: 1px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
 }
 
 /* Tooltip styling */

@@ -718,7 +718,7 @@ const Calendar = () => {
             return { 
               html: `
                 <div class="fc-day-number">${dateNumber}</div>
-                <div class="fc-day-symbols">
+                <div class="fc-day-symbols" style="position: absolute !important; top: 2px !important; right: 2px !important; z-index: 20 !important; display: flex !important;">
                   ${vaktSymbol}
                   ${absenceSymbol}
                 </div>
