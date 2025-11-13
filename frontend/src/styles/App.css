@@ -914,10 +914,12 @@ body {
   .fc-day-symbols {
     top: 2px;
     right: 2px;
+    gap: 0px;
   }
   
   .vakt-symbol, .absence-symbol {
-    font-size: 10px;
+    font-size: 9px;
+    padding: 0px;
   }
 
   /* Show mobile user menu container on mobile */
@@ -2786,17 +2788,22 @@ body {
 .fc-day-symbols {
   position: absolute;
   top: 3px;
-  right: 4px;
+  right: 3px;
   display: flex;
-  gap: 2px;
-  z-index: 11;
+  gap: 1px;
+  z-index: 12;
+  align-items: center;
 }
 
 .vakt-symbol, .absence-symbol {
-  font-size: 12px;
+  font-size: 11px;
   cursor: help;
   position: relative;
   display: inline-block;
+  line-height: 1;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+  padding: 1px;
 }
 
 /* Tooltip styling */
@@ -2911,6 +2918,13 @@ body {
   color: var(--text-secondary, #94a3b8);
   background-color: var(--bg-secondary, #334155);
   border-color: var(--border-color, #334155);
+}
+
+/* Dark theme symbol styling */
+[data-theme="dark"] .vakt-symbol,
+[data-theme="dark"] .absence-symbol {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
 }
 
 /* Remove old header styling */
