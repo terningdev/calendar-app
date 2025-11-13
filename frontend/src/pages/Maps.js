@@ -8,6 +8,7 @@ import { ticketService } from '../services/ticketService';
 import { technicianService } from '../services/technicianService';
 import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
+import { safeLocalStorage } from '../utils/localStorage';
 import { useAuth } from '../contexts/AuthContext';
 import { useRegion } from '../contexts/RegionContext';
 import FilterSidebar from '../components/FilterSidebar';
@@ -71,25 +72,27 @@ const Maps = () => {
 
   // Clean up expired cache entries on component mount
   const cleanupExpiredCache = () => {
+    if (typeof window === 'undefined') return;
+    
     try {
-      const keys = Object.keys(localStorage);
+      const keys = safeLocalStorage.keys();
       const geocodeKeys = keys.filter(key => key.startsWith('geocode_'));
       const now = Date.now();
       const thirtyDays = 30 * 24 * 60 * 60 * 1000;
       
       geocodeKeys.forEach(key => {
         try {
-          const cached = localStorage.getItem(key);
+          const cached = safeLocalStorage.getItem(key);
           if (cached) {
             const data = JSON.parse(cached);
             // Remove if old format (no timestamp) or expired
             if (!data.timestamp || (now - data.timestamp) > thirtyDays) {
-              localStorage.removeItem(key);
+              safeLocalStorage.removeItem(key);
             }
           }
         } catch (error) {
           // Remove corrupted cache entries
-          localStorage.removeItem(key);
+          safeLocalStorage.removeItem(key);
         }
       });
     } catch (error) {
@@ -100,7 +103,7 @@ const Maps = () => {
   // Get cached geocoding result with expiration check
   const getCachedGeocode = (address) => {
     try {
-      const cached = localStorage.getItem(`geocode_${address}`);
+      const cached = safeLocalStorage.getItem(`geocode_${address}`);
       if (!cached) return null;
       
       const data = JSON.parse(cached);
@@ -110,7 +113,7 @@ const Maps = () => {
       
       // If cache is older than 30 days, remove it and return null
       if (cacheAge > thirtyDays) {
-        localStorage.removeItem(`geocode_${address}`);
+        safeLocalStorage.removeItem(`geocode_${address}`);
         return null;
       }
       
@@ -127,9 +130,9 @@ const Maps = () => {
         coords: coords,
         timestamp: Date.now()
       };
-      localStorage.setItem(`geocode_${address}`, JSON.stringify(cacheData));
+      safeLocalStorage.setItem(`geocode_${address}`, JSON.stringify(cacheData));
     } catch (error) {
-      // localStorage might be full, ignore error
+      // safeLocalStorage might be full, ignore error
     }
   };
 

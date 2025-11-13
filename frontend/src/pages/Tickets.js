@@ -7,6 +7,7 @@ import { departmentService } from '../services/departmentService';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../contexts/AuthContext';
 import { useRegion } from '../contexts/RegionContext';
+import { safeLocalStorage } from '../utils/localStorage';
 import FilterSidebar from '../components/FilterSidebar';
 
 const Tickets = () => {
@@ -595,12 +596,12 @@ const Tickets = () => {
     
     if (isDarkMode) {
       // Use brighter colors for dark mode for better visibility
-      assignedColor = localStorage.getItem('color-assigned-tickets') || '#4ade80'; // Brighter green
-      unassignedColor = localStorage.getItem('color-unassigned-tickets') || '#f87171'; // Brighter red
+      assignedColor = safeLocalStorage.getItem('color-assigned-tickets') || '#4ade80'; // Brighter green
+      unassignedColor = safeLocalStorage.getItem('color-unassigned-tickets') || '#f87171'; // Brighter red
     } else {
       // Use original colors for light mode
-      assignedColor = localStorage.getItem('color-assigned-tickets') || '#27ae60';
-      unassignedColor = localStorage.getItem('color-unassigned-tickets') || '#e74c3c';
+      assignedColor = safeLocalStorage.getItem('color-assigned-tickets') || '#27ae60';
+      unassignedColor = safeLocalStorage.getItem('color-unassigned-tickets') || '#e74c3c';
     }
     
     return isTicketAssigned(ticket) ? assignedColor : unassignedColor;
