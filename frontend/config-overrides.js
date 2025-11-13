@@ -1,27 +1,28 @@
 const webpack = require('webpack');
 
 module.exports = function override(config, env) {
-  // Add webpack plugins to handle localStorage during build
+  // Add webpack DefinePlugin to replace localStorage at compile time
   config.plugins.push(
     new webpack.DefinePlugin({
-      'typeof window': JSON.stringify('undefined'),
-      'typeof localStorage': JSON.stringify('undefined')
+      'process.env.DISABLE_LOCALSTORAGE': JSON.stringify('true')
     })
   );
 
-  // Add fallback for localStorage in Node.js environment
-  config.resolve.fallback = {
-    ...config.resolve.fallback,
-    localStorage: false,
-    sessionStorage: false
-  };
-
-  // Ignore localStorage-related modules during build
-  config.ignoreWarnings = [
-    ...(config.ignoreWarnings || []),
-    /localStorage/,
-    /sessionStorage/
-  ];
+  // Modify HtmlWebpackPlugin template options to avoid localStorage access
+  const htmlWebpackPlugin = config.plugins.find(
+    plugin => plugin.constructor.name === 'HtmlWebpackPlugin'
+  );
+  
+  if (htmlWebpackPlugin) {
+    htmlWebpackPlugin.options = {
+      ...htmlWebpackPlugin.options,
+      templateParameters: {
+        ...htmlWebpackPlugin.options.templateParameters,
+        localStorage: undefined,
+        sessionStorage: undefined
+      }
+    };
+  }
 
   return config;
 };
