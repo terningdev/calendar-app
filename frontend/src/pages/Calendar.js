@@ -272,67 +272,30 @@ const Calendar = () => {
       };
     });
 
-    // Process vakt entries as spanning events
-    let filteredVakt = absences.filter(absence => absence.type === 'vakt');
+
+
+    return [...ticketEvents];
+  };
+
+  // Get vakt and absence data for a specific date
+  const getVaktAndAbsenceForDate = (date) => {
+    const dateStr = date.toISOString().split('T')[0];
     
-    const vaktEvents = filteredVakt.map(vakt => {
-      const techName = vakt.technicianId 
-        ? vakt.technicianId.fullName || `${vakt.technicianId.firstName} ${vakt.technicianId.lastName}`
-        : 'Unknown Technician';
-
-      // Calculate end date - add 1 day for exclusive end date
-      const end = new Date(vakt.endDate);
-      end.setDate(end.getDate() + 1);
-      
-      return {
-        id: `vakt-${vakt._id}`,
-        title: `Vakt ${techName}`,
-        start: vakt.startDate,
-        end: end.toISOString().split('T')[0],
-        allDay: true,
-        extendedProps: {
-          absence: vakt,
-          technicians: techName,
-          eventType: 'vakt'
-        },
-        backgroundColor: '#dc3545',
-        borderColor: '#dc3545',
-        textColor: '#ffffff',
-        classNames: ['fc-vakt-event']
-      };
+    const vaktForDate = absences.filter(absence => {
+      if (absence.type !== 'vakt') return false;
+      const startDate = new Date(absence.startDate).toISOString().split('T')[0];
+      const endDate = new Date(absence.endDate).toISOString().split('T')[0];
+      return dateStr >= startDate && dateStr <= endDate;
     });
-
-    // Process absence entries as spanning events  
-    let filteredAbsences = absences.filter(absence => absence.type === 'absence');
     
-    const absenceEvents = filteredAbsences.map(absence => {
-      const techName = absence.technicianId 
-        ? absence.technicianId.fullName || `${absence.technicianId.firstName} ${absence.technicianId.lastName}`
-        : 'Unknown Technician';
-
-      // Calculate end date - add 1 day for exclusive end date
-      const end = new Date(absence.endDate);
-      end.setDate(end.getDate() + 1);
-      
-      return {
-        id: `absence-${absence._id}`,
-        title: `${techName} - ${absence.title}`,
-        start: absence.startDate,
-        end: end.toISOString().split('T')[0],
-        allDay: true,
-        extendedProps: {
-          absence: absence,
-          technicians: techName,
-          eventType: 'absence'
-        },
-        backgroundColor: '#ffc107',
-        borderColor: '#ffc107',
-        textColor: '#000000',
-        classNames: ['fc-absence-event']
-      };
+    const absenceForDate = absences.filter(absence => {
+      if (absence.type !== 'absence') return false;
+      const startDate = new Date(absence.startDate).toISOString().split('T')[0];
+      const endDate = new Date(absence.endDate).toISOString().split('T')[0];
+      return dateStr >= startDate && dateStr <= endDate;
     });
-
-    return [...vaktEvents, ...absenceEvents, ...ticketEvents];
+    
+    return { vakt: vaktForDate, absence: absenceForDate };
   };
 
   // Get events for a specific date (for agenda view)
@@ -729,7 +692,38 @@ const Calendar = () => {
           }}
           dayCellContent={(arg) => {
             const dateNumber = arg.date.getDate();
-            return { html: `<div class="fc-day-number">${dateNumber}</div>` };
+            const { vakt, absence } = getVaktAndAbsenceForDate(arg.date);
+            
+            let vaktSymbol = '';
+            let absenceSymbol = '';
+            
+            if (vakt.length > 0) {
+              const techNames = vakt.map(v => 
+                v.technicianId 
+                  ? v.technicianId.fullName || `${v.technicianId.firstName} ${v.technicianId.lastName}`
+                  : 'Unknown'
+              ).join(', ');
+              vaktSymbol = `<span class="vakt-symbol" title="${techNames}">📅</span>`;
+            }
+            
+            if (absence.length > 0) {
+              const techNames = absence.map(a => 
+                a.technicianId 
+                  ? a.technicianId.fullName || `${a.technicianId.firstName} ${a.technicianId.lastName}`
+                  : 'Unknown'
+              ).join(', ');
+              absenceSymbol = `<span class="absence-symbol" title="${techNames}">🔶</span>`;
+            }
+            
+            return { 
+              html: `
+                <div class="fc-day-number">${dateNumber}</div>
+                <div class="fc-day-symbols">
+                  ${vaktSymbol}
+                  ${absenceSymbol}
+                </div>
+              `
+            };
           }}
           eventContent={(arg) => {
             // Custom event content to style technician names separately
@@ -805,7 +799,9 @@ const Calendar = () => {
                   </div>
                   <div className="agenda-item-content">
                     <div className="agenda-item-title">{event.title}</div>
-                    <div className="agenda-item-tech">{event.extendedProps.technicians}</div>
+                    {event.extendedProps.eventType === 'ticket' && (
+                      <div className="agenda-item-tech">{event.extendedProps.technicians}</div>
+                    )}
                   </div>
                   <div 
                     className="agenda-item-color" 

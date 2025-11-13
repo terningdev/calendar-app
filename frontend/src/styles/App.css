@@ -909,6 +909,16 @@ body {
   .mobile-only {
     display: block !important;
   }
+  
+  /* Mobile adjustments for day symbols */
+  .fc-day-symbols {
+    top: 2px;
+    right: 2px;
+  }
+  
+  .vakt-symbol, .absence-symbol {
+    font-size: 10px;
+  }
 
   /* Show mobile user menu container on mobile */
   .mobile-user-menu-container {
@@ -2548,6 +2558,9 @@ body {
 
 .fc-event-title {
   font-weight: 500;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 /* Custom event content styling */
@@ -2659,6 +2672,8 @@ body {
   min-height: 120px;
   height: 120px;
   overflow: hidden;
+  position: relative;
+  padding-top: 25px; /* Add top padding to make room for date number */
 }
 
 /* Responsive cell sizing */
@@ -2666,6 +2681,7 @@ body {
   .fc-daygrid-day-frame {
     min-height: 100px;
     height: 100px;
+    padding-top: 22px;
   }
 }
 
@@ -2673,6 +2689,7 @@ body {
   .fc-daygrid-day-frame {
     min-height: 140px;
     height: 140px;
+    padding-top: 28px;
   }
 }
 
@@ -2681,6 +2698,7 @@ body {
 .page-container.filter-sidebar-active .fc-daygrid-day-frame {
   min-height: 100px;
   height: 100px;
+  padding-top: 22px;
 }
 
 /* Ensure FullCalendar table resizes properly */
@@ -2707,40 +2725,114 @@ body {
   padding: 2px;
   display: block;
   position: absolute;
-  top: 2px;
+  top: 3px;
   left: 4px;
-  z-index: 2;
+  z-index: 10;
+  background-color: var(--card-bg, white);
+  border-radius: 2px;
 }
 
 /* Override FullCalendar's default day number positioning */
 .fc-daygrid-day-number {
   position: absolute !important;
-  top: 2px !important;
+  top: 3px !important;
   left: 4px !important;
   padding: 2px 4px !important;
   font-size: 0.9rem !important;
   font-weight: 600 !important;
   color: var(--text-primary, #333) !important;
-  z-index: 2 !important;
+  z-index: 10 !important;
+  background-color: var(--card-bg, white) !important;
+  border-radius: 2px !important;
 }
 
 /* Vakt event styling */
 .fc-vakt-event {
-  font-size: 0.75rem !important;
+  font-size: 0.7rem !important;
   font-weight: 500 !important;
   background-color: #dc3545 !important;
   border: 1px solid #dc3545 !important;
   color: #ffffff !important;
   opacity: 0.9 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  height: 18px !important;
+  line-height: 16px !important;
+  margin-bottom: 1px !important;
 }
 
 /* Absence event styling */
 .fc-absence-event {
-  font-size: 0.75rem !important;
+  font-size: 0.7rem !important;
   font-weight: 500 !important;
   background-color: #ffc107 !important;
   border: 1px solid #e0a800 !important;
   color: #000000 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  height: 18px !important;
+  line-height: 16px !important;
+  margin-bottom: 1px !important;
+}
+
+/* Ensure events don't cover date numbers */
+.fc-daygrid-event {
+  margin-top: 1px !important;
+}
+
+/* Day symbols styling */
+.fc-day-symbols {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  z-index: 11;
+}
+
+.vakt-symbol, .absence-symbol {
+  font-size: 12px;
+  cursor: help;
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip styling */
+.vakt-symbol:hover::after,
+.absence-symbol:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.vakt-symbol:hover::before,
+.absence-symbol:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Event content container should respect the padding */
+.fc-daygrid-day-events {
+  margin-top: 2px !important;
 }
 
 /* Remove old vakt and absence line styling since they're now events */
