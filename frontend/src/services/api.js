@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { safeLocalStorage } from '../utils/localStorage';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -14,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem('authToken');
+    const token = safeLocalStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,7 +34,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      localStorage.removeItem('authToken');
+      safeLocalStorage.removeItem('authToken');
       window.location.href = '/login';
     }
     return Promise.reject(error);

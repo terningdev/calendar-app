@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../utils/translations';
+import { safeLocalStorage } from '../utils/localStorage';
 import bugReportService from '../services/bugReportService';
 import { toast } from 'react-toastify';
 
@@ -13,7 +14,9 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
   const [bugReportMessage, setBugReportMessage] = useState('');
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [theme, setTheme] = useState(() => {
+    return safeLocalStorage.getItem('theme') || 'light';
+  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -28,7 +31,7 @@ const UserMenu = ({ pendingUserCount, bugReportCount, onOpenPendingUsers, onOpen
   // Apply theme to document
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    safeLocalStorage.setItem('theme', theme);
   }, [theme]);
 
   // Close menu when clicking outside

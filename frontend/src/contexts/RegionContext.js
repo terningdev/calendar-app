@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import regionService from '../services/regionService';
+import { safeLocalStorage } from '../utils/localStorage';
 
 const RegionContext = createContext();
 
@@ -25,7 +26,7 @@ export const RegionProvider = ({ children }) => {
 
   // Load saved region from localStorage on mount
   useEffect(() => {
-    const savedRegionId = localStorage.getItem('selectedRegionId');
+    const savedRegionId = safeLocalStorage.getItem('selectedRegionId');
     if (savedRegionId && regions.length > 0) {
       const savedRegion = regions.find(region => region._id === savedRegionId);
       if (savedRegion) {
@@ -33,12 +34,12 @@ export const RegionProvider = ({ children }) => {
       } else {
         // If saved region doesn't exist, select first region
         setSelectedRegion(regions[0]);
-        localStorage.setItem('selectedRegionId', regions[0]._id);
+        safeLocalStorage.setItem('selectedRegionId', regions[0]._id);
       }
     } else if (regions.length > 0 && !selectedRegion) {
       // No saved region, select first one
       setSelectedRegion(regions[0]);
-      localStorage.setItem('selectedRegionId', regions[0]._id);
+      safeLocalStorage.setItem('selectedRegionId', regions[0]._id);
     }
   }, [regions]);
 
@@ -59,9 +60,9 @@ export const RegionProvider = ({ children }) => {
   const selectRegion = (region) => {
     setSelectedRegion(region);
     if (region) {
-      localStorage.setItem('selectedRegionId', region._id);
+      safeLocalStorage.setItem('selectedRegionId', region._id);
     } else {
-      localStorage.removeItem('selectedRegionId');
+      safeLocalStorage.removeItem('selectedRegionId');
     }
     // Trigger refresh for components listening to region changes
     setRefreshTrigger(prev => prev + 1);

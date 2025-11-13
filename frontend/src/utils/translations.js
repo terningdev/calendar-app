@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { safeLocalStorage } from './localStorage';
 
 // Translation utility for the Calendar application
 export const translations = {
@@ -302,11 +303,13 @@ const LanguageContext = createContext();
 
 // Language provider component
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
+  const [language, setLanguage] = useState(() => {
+    return safeLocalStorage.getItem('language') || 'en';
+  });
   
   const changeLanguage = (newLanguage) => {
     setLanguage(newLanguage);
-    localStorage.setItem('language', newLanguage);
+    safeLocalStorage.setItem('language', newLanguage);
   };
   
   const t = (key) => {

@@ -1,8 +1,10 @@
 import api from './api';
 
+import { safeLocalStorage } from '../utils/localStorage';
+
 // Helper function to get current region from localStorage
 const getCurrentRegionId = () => {
-  return localStorage.getItem('selectedRegionId');
+  return safeLocalStorage.getItem('selectedRegionId');
 };
 
 export const departmentService = {
