@@ -286,53 +286,64 @@ const Calendar = () => {
 
       // Calculate end date - for multi-day tickets, ensure proper spanning
       let endDate = ticket.endDate || ticket.startDate;
-      const start = new Date(ticket.startDate);
-      const end = new Date(endDate);
+      
+      // Convert dates to proper format for FullCalendar
+      // Handle both ISO strings and Date objects
+      let startDateForFC, endDateForFC;
+      
+      if (typeof ticket.startDate === 'string') {
+        startDateForFC = ticket.startDate.split('T')[0]; // Get YYYY-MM-DD part
+      } else {
+        startDateForFC = new Date(ticket.startDate).toISOString().split('T')[0];
+      }
+      
+      if (typeof endDate === 'string') {
+        endDateForFC = endDate.split('T')[0]; // Get YYYY-MM-DD part
+      } else {
+        endDateForFC = new Date(endDate).toISOString().split('T')[0];
+      }
+      
+      // For FullCalendar, the end date is exclusive, so we need to add 1 day
+      const endDateObj = new Date(endDateForFC);
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const finalEndDate = endDateObj.toISOString().split('T')[0];
       
       // Enhanced debugging for multi-day tickets
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`🔍 MULTI-DAY TICKET DATE PROCESSING: ${ticket.title}`);
-        console.log(`  Raw endDate: ${endDate}`);
-        console.log(`  Start Date object: ${start.toISOString()}`);
-        console.log(`  End Date object: ${end.toISOString()}`);
-        console.log(`  Is multi-day check: ${ticket.endDate && ticket.endDate !== ticket.startDate}`);
-        console.log(`  ticket.endDate: ${ticket.endDate}`);
-        console.log(`  ticket.startDate: ${ticket.startDate}`);
+        console.log(`  Original startDate: ${ticket.startDate} (${typeof ticket.startDate})`);
+        console.log(`  Original endDate: ${ticket.endDate} (${typeof ticket.endDate})`);
+        console.log(`  Formatted startDate: ${startDateForFC}`);
+        console.log(`  Formatted endDate: ${endDateForFC}`);
+        console.log(`  Final FullCalendar endDate: ${finalEndDate}`);
         console.log(`  Are dates different? ${ticket.endDate !== ticket.startDate}`);
+        
+        const startDate = new Date(startDateForFC);
+        const endDate = new Date(endDateForFC);
+        const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+        console.log(`  Duration: ${daysDiff} days`);
       }
       
       // Debug logging for multi-day events
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`Multi-day ticket: ${ticket.title}`);
-        console.log(`  Start: ${ticket.startDate} (${start.toISOString()})`);
-        console.log(`  End: ${ticket.endDate} (${end.toISOString()})`);
-      }
-      
-      // For FullCalendar, the end date is exclusive, so we need to add 1 day
-      // Always add 1 day because FullCalendar end is exclusive
-      end.setDate(end.getDate() + 1);
-      
-      const formattedEnd = end.toISOString().split('T')[0];
-      
-      // Debug the final event format
-      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        console.log(`  FullCalendar format: start=${ticket.startDate}, end=${formattedEnd}`);
+        console.log(`  Start: ${startDateForFC}`);
+        console.log(`  End: ${finalEndDate}`);
       }
       
       // Final debugging for multi-day tickets
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`🔍 MULTI-DAY TICKET FINAL EVENT: ${ticket.title}`);
-        console.log(`  Final start: ${ticket.startDate}`);
-        console.log(`  Final end: ${formattedEnd}`);
-        console.log(`  Days difference: ${Math.ceil((end - start) / (1000 * 60 * 60 * 24))}`);
+        console.log(`  Final start: ${startDateForFC}`);
+        console.log(`  Final end: ${finalEndDate}`);
         console.log(`  className: ${ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'}`);
       }
       
       return {
         id: ticket._id,
         title: displayTitle,
-        start: ticket.startDate,
-        end: formattedEnd, // Format as YYYY-MM-DD
+        start: startDateForFC,
+        end: finalEndDate,
         allDay: true,
         extendedProps: {
           ticket: ticket,
