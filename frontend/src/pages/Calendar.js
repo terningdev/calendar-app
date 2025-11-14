@@ -169,6 +169,17 @@ const Calendar = () => {
     // Start with all tickets
     let filteredTickets = tickets;
     
+    console.log(`🔍 PROCESSING ${tickets.length} total tickets`);
+    
+    // Check if ticket 6423405 exists in the original tickets
+    const ticket6423405 = tickets.find(t => t.title && t.title.includes('6423405'));
+    if (ticket6423405) {
+      console.log(`🔍 Found ticket 6423405 in original tickets:`, ticket6423405);
+    } else {
+      console.log(`❌ Ticket 6423405 NOT found in original tickets`);
+      console.log(`Available ticket titles:`, tickets.map(t => t.title).slice(0, 10));
+    }
+    
     // Filter by search term
     if (searchTerm && searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase().trim();
@@ -236,6 +247,17 @@ const Calendar = () => {
 
     // Process tickets into events
     const ticketEvents = filteredTickets.map(ticket => {
+      // Special debugging for ticket 6423405
+      if (ticket.title && ticket.title.includes('6423405')) {
+        console.log(`🔍 DEBUGGING TICKET 6423405:`);
+        console.log(`  Full ticket object:`, ticket);
+        console.log(`  Title: ${ticket.title}`);
+        console.log(`  StartDate: ${ticket.startDate}`);
+        console.log(`  EndDate: ${ticket.endDate}`);
+        console.log(`  StartDate type: ${typeof ticket.startDate}`);
+        console.log(`  EndDate type: ${typeof ticket.endDate}`);
+      }
+      
       // Get technician names
       const techNames = Array.isArray(ticket.assignedTo)
         ? ticket.assignedTo.map(tech => tech.fullName || `${tech.firstName} ${tech.lastName}`).join(', ')
@@ -250,6 +272,18 @@ const Calendar = () => {
       let endDate = ticket.endDate || ticket.startDate;
       const start = new Date(ticket.startDate);
       const end = new Date(endDate);
+      
+      // Enhanced debugging for ticket 6423405
+      if (ticket.title && ticket.title.includes('6423405')) {
+        console.log(`🔍 TICKET 6423405 DATE PROCESSING:`);
+        console.log(`  Raw endDate: ${endDate}`);
+        console.log(`  Start Date object: ${start.toISOString()}`);
+        console.log(`  End Date object: ${end.toISOString()}`);
+        console.log(`  Is multi-day check: ${ticket.endDate && ticket.endDate !== ticket.startDate}`);
+        console.log(`  ticket.endDate: ${ticket.endDate}`);
+        console.log(`  ticket.startDate: ${ticket.startDate}`);
+        console.log(`  Are dates different? ${ticket.endDate !== ticket.startDate}`);
+      }
       
       // Debug logging for multi-day events
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
@@ -267,6 +301,15 @@ const Calendar = () => {
       // Debug the final event format
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`  FullCalendar format: start=${ticket.startDate}, end=${formattedEnd}`);
+      }
+      
+      // Final debugging for ticket 6423405
+      if (ticket.title && ticket.title.includes('6423405')) {
+        console.log(`🔍 TICKET 6423405 FINAL EVENT:`);
+        console.log(`  Final start: ${ticket.startDate}`);
+        console.log(`  Final end: ${formattedEnd}`);
+        console.log(`  Days difference: ${Math.ceil((end - start) / (1000 * 60 * 60 * 24))}`);
+        console.log(`  className: ${ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'}`);
       }
       
       return {
