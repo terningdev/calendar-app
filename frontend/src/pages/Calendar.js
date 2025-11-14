@@ -251,21 +251,29 @@ const Calendar = () => {
       const start = new Date(ticket.startDate);
       const end = new Date(endDate);
       
+      // Debug logging for multi-day events
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        console.log(`Multi-day ticket: ${ticket.title}`);
+        console.log(`  Start: ${ticket.startDate} (${start.toISOString()})`);
+        console.log(`  End: ${ticket.endDate} (${end.toISOString()})`);
+      }
+      
       // For FullCalendar, the end date is exclusive, so we need to add 1 day
-      // Only add 1 day if it's not already different from start date
-      if (end.getTime() === start.getTime()) {
-        // Single day event - add 1 day for FullCalendar exclusive end
-        end.setDate(end.getDate() + 1);
-      } else {
-        // Multi-day event - add 1 day because FullCalendar end is exclusive
-        end.setDate(end.getDate() + 1);
+      // Always add 1 day because FullCalendar end is exclusive
+      end.setDate(end.getDate() + 1);
+      
+      const formattedEnd = end.toISOString().split('T')[0];
+      
+      // Debug the final event format
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        console.log(`  FullCalendar format: start=${ticket.startDate}, end=${formattedEnd}`);
       }
       
       return {
         id: ticket._id,
         title: displayTitle,
         start: ticket.startDate,
-        end: end.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        end: formattedEnd, // Format as YYYY-MM-DD
         allDay: true,
         extendedProps: {
           ticket: ticket,
@@ -277,7 +285,8 @@ const Calendar = () => {
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
-        display: 'block' // Ensure events display as blocks for multi-day spanning
+        display: 'block', // Ensure events display as blocks for multi-day spanning
+        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'
       };
     });
 

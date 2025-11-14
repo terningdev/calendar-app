@@ -2644,6 +2644,31 @@ body {
   padding-bottom: 2px !important;
 }
 
+/* Multi-day event specific styling */
+.multi-day-event {
+  border-radius: 3px !important;
+  margin-bottom: 1px !important;
+}
+
+.single-day-event {
+  border-radius: 3px !important;
+  margin-bottom: 1px !important;
+}
+
+/* Force multi-day events to render properly */
+.fc-daygrid-event {
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
+}
+
+.fc-event-main-frame {
+  direction: ltr !important;
+}
+
+.fc-event-main {
+  width: 100% !important;
+}
+
 .fc-col-header-cell-cushion {
   padding: 8px 4px;
   font-weight: 600;
