@@ -2786,35 +2786,21 @@ body {
   margin-top: 1px !important;
 }
 
-/* Day symbols styling - Force positioning on right side */
-.fc-daygrid-day-frame .fc-day-symbols {
-  position: absolute !important;
-  top: 2px !important;
-  right: 2px !important;
-  left: auto !important;
+/* Day symbols styling - Flexbox approach */
+.fc-day-symbols {
   display: flex !important;
+  flex-direction: column !important;
   gap: 1px !important;
-  z-index: 15 !important;
-  align-items: center !important;
+  align-items: flex-end !important;
   pointer-events: auto !important;
-  width: auto !important;
-  height: auto !important;
-  transform: none !important;
 }
 
-.fc-day-symbols {
-  position: absolute !important;
-  top: 2px !important;
-  right: 2px !important;
-  left: auto !important;
-  display: flex !important;
-  gap: 1px !important;
-  z-index: 15 !important;
-  align-items: center !important;
+.fc-day-symbols .vakt-symbol,
+.fc-day-symbols .absence-symbol {
+  display: inline-block !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
   pointer-events: auto !important;
-  width: auto !important;
-  height: auto !important;
-  transform: none !important;
 }
 
 .vakt-symbol, .absence-symbol {

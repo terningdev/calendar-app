@@ -703,7 +703,8 @@ const Calendar = () => {
                   ? v.technicianId.fullName || `${v.technicianId.firstName} ${v.technicianId.lastName}`
                   : 'Unknown'
               ).join(', ');
-              vaktSymbol = `<span class="vakt-symbol" title="${techNames}">📅</span>`;
+              vaktSymbol = `<span class="vakt-symbol" title="${techNames}" style="font-size: 10px; background: rgba(255,255,255,0.9); border-radius: 3px; padding: 1px 2px; pointer-events: auto;">📅</span>`;
+              console.log('Generated vakt symbol for date:', dateNumber, 'technicians:', techNames);
             }
             
             if (absence.length > 0) {
@@ -712,15 +713,18 @@ const Calendar = () => {
                   ? a.technicianId.fullName || `${a.technicianId.firstName} ${a.technicianId.lastName}`
                   : 'Unknown'
               ).join(', ');
-              absenceSymbol = `<span class="absence-symbol" title="${techNames}">🔶</span>`;
+              absenceSymbol = `<span class="absence-symbol" title="${techNames}" style="font-size: 10px; background: rgba(255,255,255,0.9); border-radius: 3px; padding: 1px 2px; pointer-events: auto;">🔶</span>`;
+              console.log('Generated absence symbol for date:', dateNumber, 'technicians:', techNames);
             }
             
             return { 
               html: `
-                <div class="fc-day-number">${dateNumber}</div>
-                <div class="fc-day-symbols" style="position: absolute !important; top: 2px !important; right: 2px !important; z-index: 20 !important; display: flex !important;">
-                  ${vaktSymbol}
-                  ${absenceSymbol}
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; height: 100%; padding: 2px;">
+                  <span style="font-weight: bold; font-size: 14px;">${dateNumber}</span>
+                  <div class="fc-day-symbols" style="display: flex; flex-direction: column; gap: 1px; align-items: flex-end;">
+                    ${vaktSymbol}
+                    ${absenceSymbol}
+                  </div>
                 </div>
               `
             };
