@@ -703,7 +703,7 @@ const Calendar = () => {
                   ? v.technicianId.fullName || `${v.technicianId.firstName} ${v.technicianId.lastName}`
                   : 'Unknown'
               ).join(', ');
-              vaktSymbol = `<span class="vakt-symbol" title="${techNames}" style="font-size: 10px; background: rgba(255,255,255,0.9); border-radius: 3px; padding: 1px 2px; pointer-events: auto;">📅</span>`;
+              vaktSymbol = `<span title="${techNames}" style="display: inline-block !important; font-size: 10px !important; background: rgba(255,255,255,0.9) !important; border-radius: 3px !important; padding: 1px 2px !important; pointer-events: auto !important; margin: 0 !important; line-height: 1 !important;">📅</span>`;
               console.log('Generated vakt symbol for date:', dateNumber, 'technicians:', techNames);
             }
             
@@ -713,15 +713,15 @@ const Calendar = () => {
                   ? a.technicianId.fullName || `${a.technicianId.firstName} ${a.technicianId.lastName}`
                   : 'Unknown'
               ).join(', ');
-              absenceSymbol = `<span class="absence-symbol" title="${techNames}" style="font-size: 10px; background: rgba(255,255,255,0.9); border-radius: 3px; padding: 1px 2px; pointer-events: auto;">🔶</span>`;
+              absenceSymbol = `<span title="${techNames}" style="display: inline-block !important; font-size: 10px !important; background: rgba(255,255,255,0.9) !important; border-radius: 3px !important; padding: 1px 2px !important; pointer-events: auto !important; margin: 0 !important; line-height: 1 !important;">🔶</span>`;
               console.log('Generated absence symbol for date:', dateNumber, 'technicians:', techNames);
             }
             
             return { 
               html: `
-                <div style="position: relative; width: 100%; height: 100%; padding: 2px; box-sizing: border-box;">
-                  <span style="font-weight: bold; font-size: 14px; position: absolute; top: 2px; left: 2px;">${dateNumber}</span>
-                  <div class="fc-day-symbols" style="position: absolute; top: 2px; right: 2px; display: flex; flex-direction: row; gap: 2px;">
+                <div style="position: relative !important; width: 100% !important; height: 100% !important; padding: 2px !important; box-sizing: border-box !important;">
+                  <span style="font-weight: bold !important; font-size: 14px !important; position: absolute !important; top: 2px !important; left: 2px !important; z-index: 5 !important;">${dateNumber}</span>
+                  <div style="position: absolute !important; top: 2px !important; right: 2px !important; display: flex !important; flex-direction: row !important; gap: 2px !important; z-index: 15 !important; pointer-events: auto !important;">
                     ${absenceSymbol}
                     ${vaktSymbol}
                   </div>
