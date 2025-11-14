@@ -690,44 +690,81 @@ const Calendar = () => {
             cellDate.setHours(0, 0, 0, 0);
             return cellDate.getTime() === today.getTime() ? 'fc-day-today-custom' : '';
           }}
-          dayCellContent={(arg) => {
-            const dateNumber = arg.date.getDate();
+          dayCellDidMount={(arg) => {
+            const dateStr = arg.date.toISOString().split('T')[0];
             const { vakt, absence } = getVaktAndAbsenceForDate(arg.date);
             
-            let vaktSymbol = '';
-            let absenceSymbol = '';
-            
-            if (vakt.length > 0) {
-              const techNames = vakt.map(v => 
-                v.technicianId 
-                  ? v.technicianId.fullName || `${v.technicianId.firstName} ${v.technicianId.lastName}`
-                  : 'Unknown'
-              ).join(', ');
-              vaktSymbol = `<span title="${techNames}" style="display: inline-block !important; font-size: 10px !important; background: rgba(255,255,255,0.9) !important; border-radius: 3px !important; padding: 1px 2px !important; pointer-events: auto !important; margin: 0 !important; line-height: 1 !important;">📅</span>`;
-              console.log('Generated vakt symbol for date:', dateNumber, 'technicians:', techNames);
+            // Remove any existing symbols
+            const existingSymbols = arg.el.querySelector('.custom-day-symbols');
+            if (existingSymbols) {
+              existingSymbols.remove();
             }
             
-            if (absence.length > 0) {
-              const techNames = absence.map(a => 
-                a.technicianId 
-                  ? a.technicianId.fullName || `${a.technicianId.firstName} ${a.technicianId.lastName}`
-                  : 'Unknown'
-              ).join(', ');
-              absenceSymbol = `<span title="${techNames}" style="display: inline-block !important; font-size: 10px !important; background: rgba(255,255,255,0.9) !important; border-radius: 3px !important; padding: 1px 2px !important; pointer-events: auto !important; margin: 0 !important; line-height: 1 !important;">🔶</span>`;
-              console.log('Generated absence symbol for date:', dateNumber, 'technicians:', techNames);
+            if (vakt.length > 0 || absence.length > 0) {
+              // Create symbols container
+              const symbolsContainer = document.createElement('div');
+              symbolsContainer.className = 'custom-day-symbols';
+              symbolsContainer.style.cssText = `
+                position: absolute !important;
+                top: 2px !important;
+                right: 2px !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 2px !important;
+                z-index: 999 !important;
+                pointer-events: auto !important;
+              `;
+              
+              // Add absence symbol first
+              if (absence.length > 0) {
+                const techNames = absence.map(a => 
+                  a.technicianId 
+                    ? a.technicianId.fullName || `${a.technicianId.firstName} ${a.technicianId.lastName}`
+                    : 'Unknown'
+                ).join(', ');
+                
+                const absenceSpan = document.createElement('span');
+                absenceSpan.innerHTML = '🔶';
+                absenceSpan.title = techNames;
+                absenceSpan.style.cssText = `
+                  font-size: 10px !important;
+                  background: rgba(255,255,255,0.9) !important;
+                  border-radius: 3px !important;
+                  padding: 1px 2px !important;
+                  line-height: 1 !important;
+                  display: inline-block !important;
+                `;
+                symbolsContainer.appendChild(absenceSpan);
+                console.log('Added absence symbol for date:', arg.date.getDate(), 'technicians:', techNames);
+              }
+              
+              // Add vakt symbol second
+              if (vakt.length > 0) {
+                const techNames = vakt.map(v => 
+                  v.technicianId 
+                    ? v.technicianId.fullName || `${v.technicianId.firstName} ${v.technicianId.lastName}`
+                    : 'Unknown'
+                ).join(', ');
+                
+                const vaktSpan = document.createElement('span');
+                vaktSpan.innerHTML = '📅';
+                vaktSpan.title = techNames;
+                vaktSpan.style.cssText = `
+                  font-size: 10px !important;
+                  background: rgba(255,255,255,0.9) !important;
+                  border-radius: 3px !important;
+                  padding: 1px 2px !important;
+                  line-height: 1 !important;
+                  display: inline-block !important;
+                `;
+                symbolsContainer.appendChild(vaktSpan);
+                console.log('Added vakt symbol for date:', arg.date.getDate(), 'technicians:', techNames);
+              }
+              
+              // Make sure the cell has relative positioning
+              arg.el.style.position = 'relative';
+              arg.el.appendChild(symbolsContainer);
             }
-            
-            return { 
-              html: `
-                <div style="position: relative !important; width: 100% !important; height: 100% !important; padding: 2px !important; box-sizing: border-box !important;">
-                  <span style="font-weight: bold !important; font-size: 14px !important; position: absolute !important; top: 2px !important; left: 2px !important; z-index: 5 !important;">${dateNumber}</span>
-                  <div style="position: absolute !important; top: 2px !important; right: 2px !important; display: flex !important; flex-direction: row !important; gap: 2px !important; z-index: 15 !important; pointer-events: auto !important;">
-                    ${absenceSymbol}
-                    ${vaktSymbol}
-                  </div>
-                </div>
-              `
-            };
           }}
           eventContent={(arg) => {
             // Custom event content to style technician names separately
