@@ -177,7 +177,23 @@ const Calendar = () => {
       console.log(`🔍 Found ticket 6423405 in original tickets:`, ticket6423405);
     } else {
       console.log(`❌ Ticket 6423405 NOT found in original tickets`);
-      console.log(`Available ticket titles:`, tickets.map(t => t.title).slice(0, 10));
+      console.log(`🔍 Available tickets (first 10):`, tickets.map(t => ({
+        title: t.title,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        id: t._id
+      })).slice(0, 10));
+      
+      // Look for any multi-day tickets
+      const multiDayTickets = tickets.filter(t => t.endDate && t.endDate !== t.startDate);
+      console.log(`🔍 Found ${multiDayTickets.length} multi-day tickets:`, 
+        multiDayTickets.map(t => ({
+          title: t.title,
+          startDate: t.startDate,
+          endDate: t.endDate,
+          id: t._id
+        }))
+      );
     }
     
     // Filter by search term
@@ -247,9 +263,9 @@ const Calendar = () => {
 
     // Process tickets into events
     const ticketEvents = filteredTickets.map(ticket => {
-      // Special debugging for ticket 6423405
-      if (ticket.title && ticket.title.includes('6423405')) {
-        console.log(`🔍 DEBUGGING TICKET 6423405:`);
+      // Enhanced debugging for ANY multi-day ticket
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        console.log(`🔍 DEBUGGING MULTI-DAY TICKET: ${ticket.title}`);
         console.log(`  Full ticket object:`, ticket);
         console.log(`  Title: ${ticket.title}`);
         console.log(`  StartDate: ${ticket.startDate}`);
@@ -273,9 +289,9 @@ const Calendar = () => {
       const start = new Date(ticket.startDate);
       const end = new Date(endDate);
       
-      // Enhanced debugging for ticket 6423405
-      if (ticket.title && ticket.title.includes('6423405')) {
-        console.log(`🔍 TICKET 6423405 DATE PROCESSING:`);
+      // Enhanced debugging for multi-day tickets
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        console.log(`🔍 MULTI-DAY TICKET DATE PROCESSING: ${ticket.title}`);
         console.log(`  Raw endDate: ${endDate}`);
         console.log(`  Start Date object: ${start.toISOString()}`);
         console.log(`  End Date object: ${end.toISOString()}`);
@@ -303,9 +319,9 @@ const Calendar = () => {
         console.log(`  FullCalendar format: start=${ticket.startDate}, end=${formattedEnd}`);
       }
       
-      // Final debugging for ticket 6423405
-      if (ticket.title && ticket.title.includes('6423405')) {
-        console.log(`🔍 TICKET 6423405 FINAL EVENT:`);
+      // Final debugging for multi-day tickets
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        console.log(`🔍 MULTI-DAY TICKET FINAL EVENT: ${ticket.title}`);
         console.log(`  Final start: ${ticket.startDate}`);
         console.log(`  Final end: ${formattedEnd}`);
         console.log(`  Days difference: ${Math.ceil((end - start) / (1000 * 60 * 60 * 24))}`);
