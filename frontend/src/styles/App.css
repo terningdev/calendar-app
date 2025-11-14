@@ -2786,13 +2786,17 @@ body {
   margin-top: 1px !important;
 }
 
-/* Day symbols styling - Flexbox approach */
+/* Day symbols styling - Horizontal layout on far right of cell */
 .fc-day-symbols {
   display: flex !important;
-  flex-direction: column !important;
-  gap: 1px !important;
-  align-items: flex-end !important;
+  flex-direction: row !important;
+  gap: 2px !important;
+  align-items: center !important;
   pointer-events: auto !important;
+  position: absolute !important;
+  top: 2px !important;
+  right: 2px !important;
+  z-index: 10 !important;
 }
 
 .fc-day-symbols .vakt-symbol,
@@ -2801,6 +2805,7 @@ body {
   font-size: 10px !important;
   line-height: 1 !important;
   pointer-events: auto !important;
+  flex-shrink: 0 !important;
 }
 
 .vakt-symbol, .absence-symbol {
