@@ -2797,6 +2797,7 @@ body {
   top: 2px !important;
   right: 2px !important;
   z-index: 10 !important;
+  background: transparent !important;
 }
 
 .fc-day-symbols .vakt-symbol,
@@ -2806,6 +2807,18 @@ body {
   line-height: 1 !important;
   pointer-events: auto !important;
   flex-shrink: 0 !important;
+  margin: 0 !important;
+}
+
+/* Ensure date numbers are visible and positioned correctly */
+.fc-daygrid-day-number,
+.fc-day-number {
+  font-weight: bold !important;
+  font-size: 14px !important;
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  z-index: 5 !important;
 }
 
 .vakt-symbol, .absence-symbol {

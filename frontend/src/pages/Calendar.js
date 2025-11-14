@@ -719,9 +719,9 @@ const Calendar = () => {
             
             return { 
               html: `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; height: 100%; padding: 2px; position: relative;">
-                  <span style="font-weight: bold; font-size: 14px;">${dateNumber}</span>
-                  <div class="fc-day-symbols" style="display: flex; flex-direction: row; gap: 2px; align-items: center; position: absolute; top: 2px; right: 2px;">
+                <div style="position: relative; width: 100%; height: 100%; padding: 2px; box-sizing: border-box;">
+                  <span style="font-weight: bold; font-size: 14px; position: absolute; top: 2px; left: 2px;">${dateNumber}</span>
+                  <div class="fc-day-symbols" style="position: absolute; top: 2px; right: 2px; display: flex; flex-direction: row; gap: 2px;">
                     ${absenceSymbol}
                     ${vaktSymbol}
                   </div>
