@@ -246,12 +246,20 @@ const Calendar = () => {
       // Create display title - on mobile show just title, on desktop separate techs from title
       const displayTitle = isMobile ? ticket.title : ticket.title;
 
-      // Calculate end date - add 1 day if there's no endDate or if it's the same day
+      // Calculate end date - for multi-day tickets, ensure proper spanning
       let endDate = ticket.endDate || ticket.startDate;
+      const start = new Date(ticket.startDate);
       const end = new Date(endDate);
       
       // For FullCalendar, the end date is exclusive, so we need to add 1 day
-      end.setDate(end.getDate() + 1);
+      // Only add 1 day if it's not already different from start date
+      if (end.getTime() === start.getTime()) {
+        // Single day event - add 1 day for FullCalendar exclusive end
+        end.setDate(end.getDate() + 1);
+      } else {
+        // Multi-day event - add 1 day because FullCalendar end is exclusive
+        end.setDate(end.getDate() + 1);
+      }
       
       return {
         id: ticket._id,
@@ -268,7 +276,8 @@ const Calendar = () => {
         },
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
-        textColor: '#ffffff'
+        textColor: '#ffffff',
+        display: 'block' // Ensure events display as blocks for multi-day spanning
       };
     });
 

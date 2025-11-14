@@ -2554,10 +2554,12 @@ body {
 
 .fc-event {
   cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 0.85rem;
-  margin-bottom: 2px !important;  /* Add spacing between overlapping events */
+  border-radius: 3px;
+  padding: 1px 3px;
+  font-size: 0.75rem;
+  margin-bottom: 1px !important;  /* Reduced spacing for more compact view */
+  line-height: 1.2 !important;
+  min-height: 16px !important; /* Smaller minimum height */
 }
 
 .fc-event-title {
@@ -2571,39 +2573,43 @@ body {
 .fc-event-content-custom {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 2px;
+  gap: 1px;
+  padding: 1px;
   overflow: hidden;
   width: 100%;
+  line-height: 1.1;
 }
 
 .fc-event-tech {
   font-style: italic;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   opacity: 0.9;
   font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  line-height: 1;
 }
 
 .fc-event-title-custom {
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  line-height: 1.1;
 }
 
 .fc-event-title-mobile {
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  line-height: 1.1;
 }
 
 /* Highlight today's date with border */
@@ -2616,6 +2622,26 @@ body {
   padding: 4px;
   font-size: 0.9rem;
   color: var(--text-primary, #333);
+}
+
+/* Ensure multi-day events span properly */
+.fc-daygrid-event-harness {
+  margin-bottom: 1px !important;
+}
+
+.fc-daygrid-block-event {
+  padding: 1px 3px !important;
+  margin-bottom: 1px !important;
+}
+
+.fc-daygrid-block-event .fc-event-main {
+  padding: 0 !important;
+}
+
+/* More compact event spacing */
+.fc-daygrid-day-events {
+  margin-bottom: 0 !important;
+  padding-bottom: 2px !important;
 }
 
 .fc-col-header-cell-cushion {
