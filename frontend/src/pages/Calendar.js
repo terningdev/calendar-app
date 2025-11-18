@@ -306,12 +306,17 @@ const Calendar = () => {
       // For multi-day events, FullCalendar v6 might need Date objects instead of strings
       let finalStartDate, finalEndDate;
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        // For multi-day events, use simple date strings without time components
-        // FullCalendar handles these better for all-day multi-day events
-        finalStartDate = startDateForFC; // Keep as YYYY-MM-DD string
-        const endDateObj = new Date(endDateForFC);
+        // For multi-day events, create proper Date objects with explicit times
+        // Use noon to avoid any timezone edge cases
+        finalStartDate = new Date(startDateForFC + 'T12:00:00');
+        const endDateObj = new Date(endDateForFC + 'T12:00:00');
         endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
-        finalEndDate = endDateObj.toISOString().split('T')[0]; // Keep as YYYY-MM-DD string
+        finalEndDate = endDateObj;
+        
+        console.log(`🔍 USING DATE OBJECTS FOR MULTI-DAY: ${ticket.title}`);
+        console.log(`  Start Date object: ${finalStartDate}`);
+        console.log(`  End Date object: ${finalEndDate}`);
+        console.log(`  Days between: ${Math.ceil((finalEndDate - finalStartDate) / (1000 * 60 * 60 * 24))}`);
       } else {
         // For single-day events, use string format
         finalStartDate = startDateForFC;
@@ -832,20 +837,31 @@ const Calendar = () => {
           eventOverlap={true}
           selectOverlap={true}
           eventDidMount={(info) => {
-            // Debug what FullCalendar is doing with multi-day events
-            const isMultiDay = info.event.extendedProps.ticket?.endDate && 
-                              info.event.extendedProps.ticket?.endDate !== info.event.extendedProps.ticket?.startDate;
+            // Debug what FullCalendar is doing with ALL events first
+            console.log(`🔍 FULLCALENDAR MOUNTED ANY EVENT: ${info.event.title}`);
+            console.log(`  Event start: ${info.event.start}`);
+            console.log(`  Event end: ${info.event.end}`);
+            console.log(`  Event allDay: ${info.event.allDay}`);
+            console.log(`  Event className: ${info.event.classNames}`);
+            console.log(`  Event extendedProps:`, info.event.extendedProps);
+            
+            // Check if it's a multi-day event
+            const isMultiDay = info.event.classNames.includes('multi-day-event');
+            console.log(`  Is multi-day: ${isMultiDay}`);
+            
             if (isMultiDay) {
-              console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
-              console.log(`  Event start: ${info.event.start}`);
-              console.log(`  Event end: ${info.event.end}`);
-              console.log(`  Event allDay: ${info.event.allDay}`);
+              console.log(`🔍 FULLCALENDAR MOUNTED MULTI-DAY EVENT: ${info.event.title}`);
               console.log(`  DOM element:`, info.el);
               console.log(`  Event view: ${info.view.type}`);
               
               // Force the element to be visible and spanning
-              info.el.style.display = 'block';
+              info.el.style.display = 'block !important';
               info.el.style.zIndex = '1';
+              info.el.style.backgroundColor = info.event.backgroundColor;
+              info.el.style.border = `1px solid ${info.event.borderColor}`;
+              
+              // Add a visual indicator that we've processed this
+              info.el.setAttribute('data-multi-day-processed', 'true');
             }
           }}
           dayCellClassNames={(arg) => {
