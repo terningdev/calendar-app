@@ -339,7 +339,7 @@ const Calendar = () => {
         console.log(`  className: ${ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'}`);
       }
       
-      return {
+      const eventObject = {
         id: ticket._id,
         title: displayTitle,
         start: startDateForFC,
@@ -355,14 +355,43 @@ const Calendar = () => {
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
-        display: 'block', // Ensure events display as blocks for multi-day spanning
         className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'
       };
+
+      // Log the final event object for multi-day tickets
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        console.log(`🔍 COMPLETE EVENT OBJECT:`, eventObject);
+      }
+      
+      return eventObject;
     });
 
 
 
-    return [...ticketEvents];
+    const finalEvents = [...ticketEvents];
+    
+    // Debug: Log final events array for multi-day tickets
+    const multiDayEvents = finalEvents.filter(e => {
+      const start = new Date(e.start);
+      const end = new Date(e.end);
+      const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      return daysDiff > 1;
+    });
+    
+    if (multiDayEvents.length > 0) {
+      console.log(`🔍 FINAL MULTI-DAY EVENTS BEING PASSED TO FULLCALENDAR (${multiDayEvents.length}):`, 
+        multiDayEvents.map(e => ({
+          id: e.id,
+          title: e.title,
+          start: e.start,
+          end: e.end,
+          className: e.className,
+          allDay: e.allDay
+        }))
+      );
+    }
+
+    return finalEvents;
   };
 
   // Get vakt and absence data for a specific date
@@ -770,6 +799,9 @@ const Calendar = () => {
           moreLinkClick="popover"
           moreLinkClassNames="fc-more-link-custom"
           moreLinkContent={(args) => `+${args.num}`}
+          eventDisplay="block"
+          displayEventTime={false}
+          displayEventEnd={false}
           dayCellClassNames={(arg) => {
             // Highlight today's date
             const today = new Date();
@@ -895,9 +927,6 @@ const Calendar = () => {
             meridiem: false,
             hour12: false
           }}
-          eventDisplay="block"
-          displayEventTime={false}
-          displayEventEnd={false}
           buttonText={{
             today: 'Today',
             month: 'Month',
