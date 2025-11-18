@@ -303,18 +303,18 @@ const Calendar = () => {
         endDateForFC = new Date(endDate).toISOString().split('T')[0];
       }
       
-      // For multi-day events, use date-time strings with noon time for timezone safety
+      // For multi-day events, use all-day format with date-only strings (the FullCalendar standard)
       let finalStartDate, finalEndDate;
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        // For multi-day events, use date-time strings with noon times to avoid timezone issues
-        finalStartDate = startDateForFC + 'T12:00:00';
+        // For multi-day events, use date-only strings and allDay: true (FullCalendar standard)
+        finalStartDate = startDateForFC; // "2025-11-04"
         const endDateObj = new Date(endDateForFC);
         endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
-        finalEndDate = endDateObj.toISOString().split('T')[0] + 'T12:00:00';
+        finalEndDate = endDateObj.toISOString().split('T')[0]; // "2025-11-06"
         
-        console.log(`🔍 USING DATE-TIME STRINGS WITH NOON FOR MULTI-DAY SPANNING: ${ticket.title}`);
-        console.log(`  Start date-time string: ${finalStartDate}`);
-        console.log(`  End date-time string (with +1 day): ${finalEndDate}`);
+        console.log(`🔍 USING ALL-DAY FORMAT FOR MULTI-DAY SPANNING: ${ticket.title}`);
+        console.log(`  Start date: ${finalStartDate}`);
+        console.log(`  End date (with +1 day): ${finalEndDate}`);
         
         const daysBetween = Math.ceil((new Date(endDateForFC) - new Date(startDateForFC)) / (1000 * 60 * 60 * 24));
         console.log(`  Days between: ${daysBetween}`);
@@ -363,9 +363,9 @@ const Calendar = () => {
         title: displayTitle,
         start: finalStartDate,
         end: finalEndDate,
-        // For multi-day events, explicitly set allDay to false to enable proper spanning
+        // For multi-day events, use allDay: true with date-only strings (FullCalendar standard)
         ...(ticket.endDate && ticket.endDate !== ticket.startDate 
-          ? { allDay: false } // Explicitly set allDay false for multi-day events  
+          ? { allDay: true } // Use allDay: true for multi-day events with date-only strings
           : { allDay: true } // Set allDay true for single-day events
         ),
         extendedProps: {
@@ -379,8 +379,9 @@ const Calendar = () => {
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
         className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event',
-        // For multi-day events, ensure proper rendering
+        // For multi-day events, force block display and spanning behavior
         ...(ticket.endDate && ticket.endDate !== ticket.startDate && {
+          eventDisplay: 'block',
           display: 'block'
         })
       };
