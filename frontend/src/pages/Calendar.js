@@ -888,25 +888,34 @@ const Calendar = () => {
               console.log(`  Classes BEFORE modification:`, info.el.className);
               
               // Check if this is truly spanning multiple days in the calendar
-              const start = new Date(info.event.start);
-              const end = new Date(info.event.end);
-              const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+              const eventStart = info.event.start;
+              const eventEnd = info.event.end;
+              
+              console.log(`  Event start object:`, eventStart);
+              console.log(`  Event end object:`, eventEnd);
+              
+              // Calculate days more accurately using the actual event dates
+              const startDateLocal = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+              const endDateLocal = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+              const daysDiff = Math.ceil((endDateLocal - startDateLocal) / (1000 * 60 * 60 * 24));
+              
+              console.log(`  Start date (local): ${startDateLocal.toISOString().split('T')[0]}`);
+              console.log(`  End date (local): ${endDateLocal.toISOString().split('T')[0]}`);
               console.log(`  Days difference calculated: ${daysDiff}`);
               
               if (daysDiff > 1) {
                 // FORCE MULTI-DAY RENDERING: Clone this element for each day
-                const startDate = new Date(info.event.start);
-                const endDate = new Date(info.event.end);
+                console.log(`  Creating continuation elements for ${daysDiff} days`);
                 
                 // Get the calendar container
                 const calendar = info.view.calendar;
                 const calendarEl = calendar.el;
                 
                 // Force create elements for continuation days
-                let currentDate = new Date(startDate);
+                let currentDate = new Date(startDateLocal); // Use the corrected start date
                 let dayIndex = 0;
                 
-                while (currentDate < endDate) {
+                while (currentDate < endDateLocal) {
                   const dateStr = currentDate.toISOString().split('T')[0];
                   console.log(`  Processing day ${dayIndex}: ${dateStr}`);
                   
@@ -934,8 +943,12 @@ const Calendar = () => {
                       
                       // Add the continuation element
                       eventsContainer.appendChild(continuationEl);
-                      console.log(`  Added continuation element to day ${dayIndex}`);
+                      console.log(`  Added continuation element to day ${dayIndex} (${dateStr})`);
+                    } else {
+                      console.log(`  Skipping day 0 (original event already exists): ${dateStr}`);
                     }
+                  } else {
+                    console.log(`  Day cell NOT found for ${dateStr}`);
                   }
                   
                   currentDate.setDate(currentDate.getDate() + 1);
