@@ -842,6 +842,18 @@ const Calendar = () => {
           displayEventEnd={false}
           eventOverlap={true}
           selectOverlap={true}
+          eventClassNames={(info) => {
+            // Force proper class names for multi-day events
+            const event = info.event;
+            const isMultiDay = event.classNames.includes('multi-day-event');
+            
+            if (isMultiDay) {
+              console.log(`🔍 FORCING MULTI-DAY CLASSES: ${event.title}`);
+              return ['multi-day-event', 'fc-daygrid-block-event', 'fc-h-event'];
+            }
+            
+            return ['single-day-event', 'fc-daygrid-block-event', 'fc-h-event'];
+          }}
           eventDidMount={(info) => {
             // Debug what FullCalendar is doing with ALL events first
             console.log(`🔍 FULLCALENDAR MOUNTED ANY EVENT: ${info.event.title}`);
@@ -850,6 +862,7 @@ const Calendar = () => {
             console.log(`  Event allDay: ${info.event.allDay}`);
             console.log(`  Event className: ${info.event.classNames}`);
             console.log(`  Event extendedProps:`, info.event.extendedProps);
+            console.log(`  DOM element classes:`, info.el.className);
             
             // Check if it's a multi-day event
             const isMultiDay = info.event.classNames.includes('multi-day-event');
@@ -859,15 +872,52 @@ const Calendar = () => {
               console.log(`🔍 FULLCALENDAR MOUNTED MULTI-DAY EVENT: ${info.event.title}`);
               console.log(`  DOM element:`, info.el);
               console.log(`  Event view: ${info.view.type}`);
+              console.log(`  DOM element HTML:`, info.el.outerHTML);
+              
+              // Force multi-day styling and remove conflicting classes
+              info.el.classList.remove('fc-event-start', 'fc-event-end');
+              info.el.classList.add('fc-event-start', 'fc-event-continues');
               
               // Force the element to be visible and spanning
               info.el.style.display = 'block !important';
+              info.el.style.width = '100% !important';
               info.el.style.zIndex = '1';
               info.el.style.backgroundColor = info.event.backgroundColor;
               info.el.style.border = `1px solid ${info.event.borderColor}`;
               
               // Add a visual indicator that we've processed this
               info.el.setAttribute('data-multi-day-processed', 'true');
+            }
+          }}
+          eventContent={(eventInfo) => {
+            // Force proper content for multi-day events
+            const isMultiDay = eventInfo.event.classNames.includes('multi-day-event');
+            
+            if (isMultiDay) {
+              console.log(`🔍 FORCING MULTI-DAY CONTENT: ${eventInfo.event.title}`);
+              
+              return {
+                html: `<div class="fc-event-main-frame">
+                  <div class="fc-event-title-container">
+                    <div class="fc-event-title fc-sticky">${eventInfo.event.title}</div>
+                  </div>
+                </div>`
+              };
+            }
+            
+            // Custom event content to style technician names separately for single-day events
+            if (isMobile) {
+              return { html: `<div class="fc-event-title-mobile">${eventInfo.event.title}</div>` };
+            } else {
+              const technicians = eventInfo.event.extendedProps.technicians;
+              return { 
+                html: `
+                  <div class="fc-event-content-custom">
+                    <div class="fc-event-tech">${technicians}</div>
+                    <div class="fc-event-title-custom">${eventInfo.event.title}</div>
+                  </div>
+                ` 
+              };
             }
           }}
           dayCellClassNames={(arg) => {
@@ -952,22 +1002,6 @@ const Calendar = () => {
               // Make sure the cell has relative positioning
               arg.el.style.position = 'relative';
               arg.el.appendChild(symbolsContainer);
-            }
-          }}
-          eventContent={(arg) => {
-            // Custom event content to style technician names separately
-            if (isMobile) {
-              return { html: `<div class="fc-event-title-mobile">${arg.event.title}</div>` };
-            } else {
-              const technicians = arg.event.extendedProps.technicians;
-              return { 
-                html: `
-                  <div class="fc-event-content-custom">
-                    <div class="fc-event-tech">${technicians}</div>
-                    <div class="fc-event-title-custom">${arg.event.title}</div>
-                  </div>
-                ` 
-              };
             }
           }}
           height={isMobile ? 'auto' : '85vh'}
