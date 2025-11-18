@@ -362,7 +362,11 @@ const Calendar = () => {
         title: displayTitle,
         start: finalStartDate,
         end: finalEndDate,
-        allDay: true,
+        // For multi-day events, don't set allDay to let FullCalendar handle it properly
+        ...(ticket.endDate && ticket.endDate !== ticket.startDate 
+          ? {} // Don't set allDay for multi-day events
+          : { allDay: true } // Set allDay only for single-day events
+        ),
         extendedProps: {
           ticket: ticket,
           description: ticket.description,
