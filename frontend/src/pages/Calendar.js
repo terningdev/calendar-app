@@ -831,6 +831,23 @@ const Calendar = () => {
           displayEventEnd={false}
           eventOverlap={true}
           selectOverlap={true}
+          eventDidMount={(info) => {
+            // Debug what FullCalendar is doing with multi-day events
+            const isMultiDay = info.event.extendedProps.ticket?.endDate && 
+                              info.event.extendedProps.ticket?.endDate !== info.event.extendedProps.ticket?.startDate;
+            if (isMultiDay) {
+              console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
+              console.log(`  Event start: ${info.event.start}`);
+              console.log(`  Event end: ${info.event.end}`);
+              console.log(`  Event allDay: ${info.event.allDay}`);
+              console.log(`  DOM element:`, info.el);
+              console.log(`  Event view: ${info.view.type}`);
+              
+              // Force the element to be visible and spanning
+              info.el.style.display = 'block';
+              info.el.style.zIndex = '1';
+            }
+          }}
           dayCellClassNames={(arg) => {
             // Highlight today's date
             const today = new Date();
@@ -956,6 +973,10 @@ const Calendar = () => {
             meridiem: false,
             hour12: false
           }}
+          // Force proper multi-day rendering
+          dayMaxEventRows={false}
+          eventConstraint={undefined}
+          eventAllow={undefined}
           buttonText={{
             today: 'Today',
             month: 'Month',

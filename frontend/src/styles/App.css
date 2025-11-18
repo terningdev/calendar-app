@@ -2680,6 +2680,36 @@ body {
   z-index: 1 !important;
 }
 
+/* Aggressive multi-day event fixes */
+.fc-daygrid-event.multi-day-event {
+  display: block !important;
+  width: 100% !important;
+}
+
+.fc-daygrid-event.multi-day-event .fc-event-main {
+  display: block !important;
+}
+
+.fc-daygrid-event.multi-day-event .fc-event-main-frame {
+  display: block !important;
+}
+
+/* Force FullCalendar to render multi-day events across all days */
+.fc-daygrid-day-events .multi-day-event {
+  display: block !important;
+  position: relative !important;
+}
+
+/* Override any FullCalendar hiding of continuing events */
+.fc-daygrid-event.fc-event-mirror {
+  display: block !important;
+}
+
+.fc-daygrid-event.fc-event-start,
+.fc-daygrid-event.fc-event-end {
+  display: block !important;
+}
+
 .fc-col-header-cell-cushion {
   padding: 8px 4px;
   font-weight: 600;
