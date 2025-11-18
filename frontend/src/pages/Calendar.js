@@ -303,20 +303,21 @@ const Calendar = () => {
         endDateForFC = new Date(endDate).toISOString().split('T')[0];
       }
       
-      // For multi-day events, FullCalendar v6 might need Date objects instead of strings
+      // For multi-day events, use date-only strings for proper spanning in dayGrid
       let finalStartDate, finalEndDate;
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        // For multi-day events, create proper Date objects with explicit times
-        // Use noon to avoid any timezone edge cases
-        finalStartDate = new Date(startDateForFC + 'T12:00:00');
-        const endDateObj = new Date(endDateForFC + 'T12:00:00');
+        // For multi-day events, use date-only strings (no time) for proper spanning
+        finalStartDate = startDateForFC;
+        const endDateObj = new Date(endDateForFC);
         endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
-        finalEndDate = endDateObj;
+        finalEndDate = endDateObj.toISOString().split('T')[0];
         
-        console.log(`🔍 USING DATE OBJECTS FOR MULTI-DAY: ${ticket.title}`);
-        console.log(`  Start Date object: ${finalStartDate}`);
-        console.log(`  End Date object: ${finalEndDate}`);
-        console.log(`  Days between: ${Math.ceil((finalEndDate - finalStartDate) / (1000 * 60 * 60 * 24))}`);
+        console.log(`🔍 USING DATE STRINGS FOR MULTI-DAY SPANNING: ${ticket.title}`);
+        console.log(`  Start date string: ${finalStartDate}`);
+        console.log(`  End date string (with +1 day): ${finalEndDate}`);
+        
+        const daysBetween = Math.ceil((new Date(endDateForFC) - new Date(startDateForFC)) / (1000 * 60 * 60 * 24));
+        console.log(`  Days between: ${daysBetween}`);
       } else {
         // For single-day events, use string format
         finalStartDate = startDateForFC;
