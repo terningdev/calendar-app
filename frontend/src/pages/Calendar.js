@@ -303,18 +303,18 @@ const Calendar = () => {
         endDateForFC = new Date(endDate).toISOString().split('T')[0];
       }
       
-      // For multi-day events, use date-only strings for proper spanning in dayGrid
+      // For multi-day events, use date-time strings for proper spanning in dayGrid  
       let finalStartDate, finalEndDate;
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        // For multi-day events, use date-only strings (no time) for proper spanning
-        finalStartDate = startDateForFC;
+        // For multi-day events, use date-time strings with midnight times for proper spanning
+        finalStartDate = startDateForFC + 'T00:00:00';
         const endDateObj = new Date(endDateForFC);
         endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
-        finalEndDate = endDateObj.toISOString().split('T')[0];
+        finalEndDate = endDateObj.toISOString().split('T')[0] + 'T00:00:00';
         
-        console.log(`🔍 USING DATE STRINGS FOR MULTI-DAY SPANNING: ${ticket.title}`);
-        console.log(`  Start date string: ${finalStartDate}`);
-        console.log(`  End date string (with +1 day): ${finalEndDate}`);
+        console.log(`🔍 USING DATE-TIME STRINGS FOR MULTI-DAY SPANNING: ${ticket.title}`);
+        console.log(`  Start date-time string: ${finalStartDate}`);
+        console.log(`  End date-time string (with +1 day): ${finalEndDate}`);
         
         const daysBetween = Math.ceil((new Date(endDateForFC) - new Date(startDateForFC)) / (1000 * 60 * 60 * 24));
         console.log(`  Days between: ${daysBetween}`);
@@ -363,10 +363,10 @@ const Calendar = () => {
         title: displayTitle,
         start: finalStartDate,
         end: finalEndDate,
-        // For multi-day events, don't set allDay to let FullCalendar handle it properly
+        // For multi-day events, explicitly set allDay to false to enable proper spanning
         ...(ticket.endDate && ticket.endDate !== ticket.startDate 
-          ? {} // Don't set allDay for multi-day events
-          : { allDay: true } // Set allDay only for single-day events
+          ? { allDay: false } // Explicitly set allDay false for multi-day events  
+          : { allDay: true } // Set allDay true for single-day events
         ),
         extendedProps: {
           ticket: ticket,
