@@ -303,19 +303,31 @@ const Calendar = () => {
         endDateForFC = new Date(endDate).toISOString().split('T')[0];
       }
       
-      // For FullCalendar, the end date is exclusive, so we need to add 1 day
-      const endDateObj = new Date(endDateForFC);
-      endDateObj.setDate(endDateObj.getDate() + 1);
-      const finalEndDate = endDateObj.toISOString().split('T')[0];
+      // For multi-day events, FullCalendar v6 might need Date objects instead of strings
+      let finalStartDate, finalEndDate;
+      if (ticket.endDate && ticket.endDate !== ticket.startDate) {
+        // For multi-day events, use Date objects
+        finalStartDate = new Date(startDateForFC + 'T00:00:00');
+        const endDateObj = new Date(endDateForFC);
+        endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
+        finalEndDate = new Date(endDateObj.toISOString().split('T')[0] + 'T00:00:00');
+      } else {
+        // For single-day events, use string format
+        finalStartDate = startDateForFC;
+        const endDateObj = new Date(endDateForFC);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        finalEndDate = endDateObj.toISOString().split('T')[0];
+      }
       
       // Enhanced debugging for multi-day tickets
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`🔍 MULTI-DAY TICKET DATE PROCESSING: ${ticket.title}`);
         console.log(`  Original startDate: ${ticket.startDate} (${typeof ticket.startDate})`);
         console.log(`  Original endDate: ${ticket.endDate} (${typeof ticket.endDate})`);
-        console.log(`  Formatted startDate: ${startDateForFC}`);
-        console.log(`  Formatted endDate: ${endDateForFC}`);
-        console.log(`  Final FullCalendar endDate: ${finalEndDate}`);
+        console.log(`  Formatted startDateForFC: ${startDateForFC}`);
+        console.log(`  Formatted endDateForFC: ${endDateForFC}`);
+        console.log(`  Final start (for FullCalendar): ${finalStartDate}`);
+        console.log(`  Final end (for FullCalendar): ${finalEndDate}`);
         console.log(`  Are dates different? ${ticket.endDate !== ticket.startDate}`);
         
         const startDate = new Date(startDateForFC);
@@ -327,14 +339,14 @@ const Calendar = () => {
       // Debug logging for multi-day events
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`Multi-day ticket: ${ticket.title}`);
-        console.log(`  Start: ${startDateForFC}`);
+        console.log(`  Start: ${finalStartDate}`);
         console.log(`  End: ${finalEndDate}`);
       }
       
       // Final debugging for multi-day tickets
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
         console.log(`🔍 MULTI-DAY TICKET FINAL EVENT: ${ticket.title}`);
-        console.log(`  Final start: ${startDateForFC}`);
+        console.log(`  Final start: ${finalStartDate}`);
         console.log(`  Final end: ${finalEndDate}`);
         console.log(`  className: ${ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'}`);
       }
@@ -342,7 +354,7 @@ const Calendar = () => {
       const eventObject = {
         id: ticket._id,
         title: displayTitle,
-        start: startDateForFC,
+        start: finalStartDate,
         end: finalEndDate,
         allDay: true,
         extendedProps: {
@@ -355,12 +367,28 @@ const Calendar = () => {
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
-        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'
+        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event',
+        // Force FullCalendar to treat this as a proper multi-day event
+        ...(ticket.endDate && ticket.endDate !== ticket.startDate && {
+          rendering: undefined, // Ensure no background rendering
+          overlap: true,
+          constraint: undefined
+        })
       };
 
       // Log the final event object for multi-day tickets
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        console.log(`🔍 COMPLETE EVENT OBJECT:`, eventObject);
+        console.log(`🔍 COMPLETE EVENT OBJECT:`, JSON.stringify(eventObject, null, 2));
+        console.log(`🔍 EVENT OBJECT BREAKDOWN:`, {
+          id: eventObject.id,
+          title: eventObject.title,
+          start: eventObject.start,
+          startType: typeof eventObject.start,
+          end: eventObject.end,
+          endType: typeof eventObject.end,
+          allDay: eventObject.allDay,
+          className: eventObject.className
+        });
       }
       
       return eventObject;
