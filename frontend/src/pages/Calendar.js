@@ -306,11 +306,12 @@ const Calendar = () => {
       // For multi-day events, FullCalendar v6 might need Date objects instead of strings
       let finalStartDate, finalEndDate;
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        // For multi-day events, use Date objects
-        finalStartDate = new Date(startDateForFC + 'T00:00:00');
+        // For multi-day events, use simple date strings without time components
+        // FullCalendar handles these better for all-day multi-day events
+        finalStartDate = startDateForFC; // Keep as YYYY-MM-DD string
         const endDateObj = new Date(endDateForFC);
         endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
-        finalEndDate = new Date(endDateObj.toISOString().split('T')[0] + 'T00:00:00');
+        finalEndDate = endDateObj.toISOString().split('T')[0]; // Keep as YYYY-MM-DD string
       } else {
         // For single-day events, use string format
         finalStartDate = startDateForFC;
@@ -368,11 +369,9 @@ const Calendar = () => {
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
         className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event',
-        // Force FullCalendar to treat this as a proper multi-day event
+        // For multi-day events, ensure proper rendering
         ...(ticket.endDate && ticket.endDate !== ticket.startDate && {
-          rendering: undefined, // Ensure no background rendering
-          overlap: true,
-          constraint: undefined
+          display: 'block'
         })
       };
 
@@ -830,6 +829,8 @@ const Calendar = () => {
           eventDisplay="block"
           displayEventTime={false}
           displayEventEnd={false}
+          eventOverlap={true}
+          selectOverlap={true}
           dayCellClassNames={(arg) => {
             // Highlight today's date
             const today = new Date();
