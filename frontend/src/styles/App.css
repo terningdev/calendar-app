@@ -2710,6 +2710,39 @@ body {
   display: block !important;
 }
 
+/* AGGRESSIVE MULTI-DAY FORCING */
+.fc-daygrid .fc-event.multi-day-event.fc-event-start.fc-event-end {
+  /* This targets events that have both start AND end classes (the problematic ones) */
+  display: block !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Force multi-day events to NOT be treated as single-day */
+.fc-event.multi-day-event {
+  /* Remove the simultaneous start/end styling */
+  border-radius: 3px 0 0 3px !important; /* Only round left corners for start */
+}
+
+.fc-event.multi-day-event.fc-event-continues {
+  border-radius: 0 3px 3px 0 !important; /* Only round right corners for continues */
+}
+
+/* Prevent FullCalendar from collapsing multi-day events */
+.fc-daygrid-event.multi-day-event:not(.fc-event-continues) {
+  /* For events that should continue but don't have the continues class */
+  margin-right: 0 !important;
+  border-right: none !important;
+}
+
+/* Force proper grid spanning */
+.fc-daygrid .fc-daygrid-day .fc-daygrid-day-events .multi-day-event {
+  position: relative !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+}
+
 .fc-col-header-cell-cushion {
   padding: 8px 4px;
   font-weight: 600;

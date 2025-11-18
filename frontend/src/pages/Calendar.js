@@ -842,6 +842,7 @@ const Calendar = () => {
           displayEventEnd={false}
           eventOverlap={true}
           selectOverlap={true}
+          eventMaxStack={10}
           eventClassNames={(info) => {
             // Force proper class names for multi-day events
             const event = info.event;
@@ -874,19 +875,32 @@ const Calendar = () => {
               console.log(`  Event view: ${info.view.type}`);
               console.log(`  DOM element HTML:`, info.el.outerHTML);
               
+              // Log current classes before modification
+              console.log(`  Classes BEFORE modification:`, info.el.className);
+              
               // Force multi-day styling and remove conflicting classes
               info.el.classList.remove('fc-event-start', 'fc-event-end');
               info.el.classList.add('fc-event-start', 'fc-event-continues');
               
+              // Log classes after modification
+              console.log(`  Classes AFTER modification:`, info.el.className);
+              
               // Force the element to be visible and spanning
               info.el.style.display = 'block !important';
               info.el.style.width = '100% !important';
+              info.el.style.position = 'relative !important';
               info.el.style.zIndex = '1';
               info.el.style.backgroundColor = info.event.backgroundColor;
               info.el.style.border = `1px solid ${info.event.borderColor}`;
               
               // Add a visual indicator that we've processed this
               info.el.setAttribute('data-multi-day-processed', 'true');
+              
+              // Force a rerender to ensure the changes take effect
+              setTimeout(() => {
+                console.log(`  Final classes after timeout:`, info.el.className);
+                console.log(`  Final HTML after timeout:`, info.el.outerHTML);
+              }, 100);
             }
           }}
           eventContent={(eventInfo) => {
