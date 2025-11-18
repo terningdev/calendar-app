@@ -843,6 +843,15 @@ const Calendar = () => {
           eventOverlap={true}
           selectOverlap={true}
           eventMaxStack={10}
+          progressiveEventRendering={true}
+          eventSourceSuccess={(events) => {
+            console.log(`🔍 FullCalendar received ${events.length} events for rendering`);
+            return events;
+          }}
+          eventAllow={(dropInfo, draggedEvent) => {
+            // This helps FullCalendar understand multi-day event constraints
+            return true;
+          }}
           eventClassNames={(info) => {
             // Force proper class names for multi-day events
             const event = info.event;
@@ -877,6 +886,62 @@ const Calendar = () => {
               
               // Log current classes before modification
               console.log(`  Classes BEFORE modification:`, info.el.className);
+              
+              // Check if this is truly spanning multiple days in the calendar
+              const start = new Date(info.event.start);
+              const end = new Date(info.event.end);
+              const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+              console.log(`  Days difference calculated: ${daysDiff}`);
+              
+              if (daysDiff > 1) {
+                // FORCE MULTI-DAY RENDERING: Clone this element for each day
+                const startDate = new Date(info.event.start);
+                const endDate = new Date(info.event.end);
+                
+                // Get the calendar container
+                const calendar = info.view.calendar;
+                const calendarEl = calendar.el;
+                
+                // Force create elements for continuation days
+                let currentDate = new Date(startDate);
+                let dayIndex = 0;
+                
+                while (currentDate < endDate) {
+                  const dateStr = currentDate.toISOString().split('T')[0];
+                  console.log(`  Processing day ${dayIndex}: ${dateStr}`);
+                  
+                  // Find the day cell for this date
+                  const dayCell = calendarEl.querySelector(`[data-date="${dateStr}"]`);
+                  if (dayCell) {
+                    console.log(`  Found day cell for ${dateStr}:`, dayCell);
+                    
+                    if (dayIndex > 0) {
+                      // Create a continuation element for days after the first
+                      const continuationEl = info.el.cloneNode(true);
+                      continuationEl.classList.remove('fc-event-start', 'fc-event-end');
+                      continuationEl.classList.add('fc-event-continues');
+                      continuationEl.setAttribute('data-multi-day-continuation', 'true');
+                      continuationEl.setAttribute('data-day-index', dayIndex.toString());
+                      
+                      // Find the events container in this day cell
+                      let eventsContainer = dayCell.querySelector('.fc-daygrid-day-events');
+                      if (!eventsContainer) {
+                        // Create events container if it doesn't exist
+                        eventsContainer = document.createElement('div');
+                        eventsContainer.className = 'fc-daygrid-day-events';
+                        dayCell.appendChild(eventsContainer);
+                      }
+                      
+                      // Add the continuation element
+                      eventsContainer.appendChild(continuationEl);
+                      console.log(`  Added continuation element to day ${dayIndex}`);
+                    }
+                  }
+                  
+                  currentDate.setDate(currentDate.getDate() + 1);
+                  dayIndex++;
+                }
+              }
               
               // Force multi-day styling and remove conflicting classes
               info.el.classList.remove('fc-event-start', 'fc-event-end');
