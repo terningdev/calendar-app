@@ -303,16 +303,16 @@ const Calendar = () => {
         endDateForFC = new Date(endDate).toISOString().split('T')[0];
       }
       
-      // For multi-day events, use date-time strings for proper spanning in dayGrid  
+      // For multi-day events, use date-time strings with noon time for timezone safety
       let finalStartDate, finalEndDate;
       if (ticket.endDate && ticket.endDate !== ticket.startDate) {
-        // For multi-day events, use date-time strings with midnight times for proper spanning
-        finalStartDate = startDateForFC + 'T00:00:00';
+        // For multi-day events, use date-time strings with noon times to avoid timezone issues
+        finalStartDate = startDateForFC + 'T12:00:00';
         const endDateObj = new Date(endDateForFC);
         endDateObj.setDate(endDateObj.getDate() + 1); // FullCalendar end dates are exclusive
-        finalEndDate = endDateObj.toISOString().split('T')[0] + 'T00:00:00';
+        finalEndDate = endDateObj.toISOString().split('T')[0] + 'T12:00:00';
         
-        console.log(`🔍 USING DATE-TIME STRINGS FOR MULTI-DAY SPANNING: ${ticket.title}`);
+        console.log(`🔍 USING DATE-TIME STRINGS WITH NOON FOR MULTI-DAY SPANNING: ${ticket.title}`);
         console.log(`  Start date-time string: ${finalStartDate}`);
         console.log(`  End date-time string (with +1 day): ${finalEndDate}`);
         
