@@ -11,6 +11,7 @@ import { RegionProvider } from './contexts/RegionContext';
 import AuthWrapper from './components/AuthWrapper';
 import Navigation from './components/Navigation';
 import GlobalModals from './components/GlobalModals';
+import DeploymentStatus from './components/DeploymentStatus';
 import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Administrator from './pages/Administrator';
@@ -55,6 +56,7 @@ function App() {
                 <AuthWrapper>
                   <Navigation />
                   <GlobalModals />
+                  <DeploymentStatus />
                   <MainContent />
                 </AuthWrapper>
                 <ToastContainer 
