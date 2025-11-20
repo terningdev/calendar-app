@@ -894,13 +894,17 @@ const Calendar = () => {
               console.log(`  Event start object:`, eventStart);
               console.log(`  Event end object:`, eventEnd);
               
-              // Calculate days more accurately using the actual event dates
-              const startDateLocal = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
-              const endDateLocal = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+              // Use the event's date strings directly to avoid timezone issues
+              const startDateStr = info.event.startStr.split('T')[0]; // Get just the date part
+              const endDateStr = info.event.endStr.split('T')[0];     // Get just the date part
+              
+              // Parse dates correctly
+              const startDateLocal = new Date(startDateStr + 'T00:00:00');
+              const endDateLocal = new Date(endDateStr + 'T00:00:00');
               const daysDiff = Math.ceil((endDateLocal - startDateLocal) / (1000 * 60 * 60 * 24));
               
-              console.log(`  Start date (local): ${startDateLocal.toISOString().split('T')[0]}`);
-              console.log(`  End date (local): ${endDateLocal.toISOString().split('T')[0]}`);
+              console.log(`  Start date string: ${startDateStr}`);
+              console.log(`  End date string: ${endDateStr}`);
               console.log(`  Days difference calculated: ${daysDiff}`);
               
               if (daysDiff > 1) {
@@ -912,7 +916,7 @@ const Calendar = () => {
                 const calendarEl = calendar.el;
                 
                 // Force create elements for continuation days
-                let currentDate = new Date(startDateLocal); // Use the corrected start date
+                let currentDate = new Date(startDateStr + 'T00:00:00');
                 let dayIndex = 0;
                 
                 while (currentDate < endDateLocal) {
@@ -945,7 +949,8 @@ const Calendar = () => {
                       eventsContainer.appendChild(continuationEl);
                       console.log(`  Added continuation element to day ${dayIndex} (${dateStr})`);
                     } else {
-                      console.log(`  Skipping day 0 (original event already exists): ${dateStr}`);
+                      // Skip the first day as it already has the original event
+                      console.log(`  Skipping day ${dayIndex} (original event already exists): ${dateStr}`);
                     }
                   } else {
                     console.log(`  Day cell NOT found for ${dateStr}`);
@@ -1124,7 +1129,6 @@ const Calendar = () => {
           // Force proper multi-day rendering
           dayMaxEventRows={false}
           eventConstraint={undefined}
-          eventAllow={undefined}
           buttonText={{
             today: 'Today',
             month: 'Month',
