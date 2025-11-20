@@ -940,23 +940,52 @@ const Calendar = () => {
                     if (dayIndex > 0) {
                       // Create a continuation element for days after the first
                       const continuationEl = info.el.cloneNode(true);
+                      
+                      // Remove original event classes and add continuation classes
                       continuationEl.classList.remove('fc-event-start', 'fc-event-end');
-                      continuationEl.classList.add('fc-event-continues');
+                      continuationEl.classList.add('fc-event-continues', 'fc-event-continuation');
                       continuationEl.setAttribute('data-multi-day-continuation', 'true');
                       continuationEl.setAttribute('data-day-index', dayIndex.toString());
                       
-                      // Find the events container in this day cell
-                      let eventsContainer = dayCell.querySelector('.fc-daygrid-day-events');
-                      if (!eventsContainer) {
-                        // Create events container if it doesn't exist
-                        eventsContainer = document.createElement('div');
-                        eventsContainer.className = 'fc-daygrid-day-events';
-                        dayCell.appendChild(eventsContainer);
+                      // Ensure visibility and proper styling
+                      continuationEl.style.display = 'block';
+                      continuationEl.style.visibility = 'visible';
+                      continuationEl.style.opacity = '1';
+                      continuationEl.style.position = 'relative';
+                      continuationEl.style.width = '100%';
+                      continuationEl.style.backgroundColor = info.event.backgroundColor;
+                      continuationEl.style.borderColor = info.event.borderColor;
+                      continuationEl.style.zIndex = '10';
+                      
+                      // Find the day content area - try multiple selectors to find the right container
+                      let targetContainer = null;
+                      
+                      // Try to find existing events container first
+                      targetContainer = dayCell.querySelector('.fc-daygrid-day-events');
+                      
+                      if (!targetContainer) {
+                        // Try to find day content
+                        targetContainer = dayCell.querySelector('.fc-daygrid-day-top');
+                      }
+                      
+                      if (!targetContainer) {
+                        // Try day frame
+                        targetContainer = dayCell.querySelector('.fc-daygrid-day-frame');
+                      }
+                      
+                      if (!targetContainer) {
+                        // Create our own events container
+                        targetContainer = document.createElement('div');
+                        targetContainer.className = 'fc-daygrid-day-events';
+                        targetContainer.style.position = 'relative';
+                        targetContainer.style.zIndex = '10';
+                        dayCell.appendChild(targetContainer);
                       }
                       
                       // Add the continuation element
-                      eventsContainer.appendChild(continuationEl);
-                      console.log(`  Added continuation element to day ${dayIndex} (${dateStr})`);
+                      targetContainer.appendChild(continuationEl);
+                      console.log(`  Added continuation element to day ${dayIndex} (${dateStr}) in container:`, targetContainer.className);
+                      console.log(`  Continuation element style:`, continuationEl.style.cssText);
                     } else {
                       // Skip the first day as it already has the original event
                       console.log(`  Skipping day ${dayIndex} (original event already exists): ${dateStr}`);
