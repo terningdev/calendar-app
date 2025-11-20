@@ -972,7 +972,21 @@ const Calendar = () => {
               info.el.style.marginRight = '0px';
               info.el.style.borderRight = 'none';
               info.el.style.zIndex = '3';
+              info.el.style.position = 'relative';
               info.el.classList.add('multi-day-start-tile');
+              
+              // Add subtle right extension to visually connect
+              const rightExtension = document.createElement('div');
+              rightExtension.style.cssText = `
+                position: absolute !important;
+                right: -1px !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                width: 2px !important;
+                background-color: ${info.event.backgroundColor} !important;
+                z-index: 4 !important;
+              `;
+              info.el.appendChild(rightExtension);
               
               // Add arrow indicator for continuation
               const arrow = document.createElement('span');
@@ -1031,6 +1045,19 @@ const Calendar = () => {
                     connectedTile.style.marginRight = '0px';
                     connectedTile.style.borderLeft = 'none';
                     connectedTile.classList.add('multi-day-end-tile');
+                    
+                    // Add left extension for seamless connection
+                    const leftExtension = document.createElement('div');
+                    leftExtension.style.cssText = `
+                      position: absolute !important;
+                      left: -1px !important;
+                      top: 0 !important;
+                      bottom: 0 !important;
+                      width: 2px !important;
+                      background-color: ${info.event.backgroundColor} !important;
+                      z-index: 4 !important;
+                    `;
+                    connectedTile.appendChild(leftExtension);
                   } else {
                     // Middle tile styling - no rounded corners, connected on both sides
                     connectedTile.style.borderRadius = '0px';
@@ -1040,12 +1067,30 @@ const Calendar = () => {
                     connectedTile.style.borderRight = 'none';
                     connectedTile.classList.add('multi-day-middle-tile');
                     
-                    // Add continuation arrow for middle tiles
-                    const middleArrow = document.createElement('span');
-                    middleArrow.innerHTML = '→';
-                    middleArrow.className = 'multi-day-arrow';
-                    middleArrow.style.cssText = arrow.style.cssText;
-                    connectedTile.appendChild(middleArrow);
+                    // Add left and right extensions for seamless connection
+                    const leftExtension = document.createElement('div');
+                    leftExtension.style.cssText = `
+                      position: absolute !important;
+                      left: -1px !important;
+                      top: 0 !important;
+                      bottom: 0 !important;
+                      width: 2px !important;
+                      background-color: ${info.event.backgroundColor} !important;
+                      z-index: 4 !important;
+                    `;
+                    connectedTile.appendChild(leftExtension);
+                    
+                    const rightExtension = document.createElement('div');
+                    rightExtension.style.cssText = `
+                      position: absolute !important;
+                      right: -1px !important;
+                      top: 0 !important;
+                      bottom: 0 !important;
+                      width: 2px !important;
+                      background-color: ${info.event.backgroundColor} !important;
+                      z-index: 4 !important;
+                    `;
+                    connectedTile.appendChild(rightExtension);
                   }
                   
                   // Ensure proper styling for all connected tiles
