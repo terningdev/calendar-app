@@ -1,7 +1,10 @@
 # Deployment Status Setup Guide
 
 ## Overview
+
 The Deployment Status popup provides real-time notifications about your Render deployments directly in your app. No more switching to the Render dashboard!
+
+**🔒 Security Note:** API credentials are now stored securely on the backend server, not exposed in the frontend code.
 
 ## Setup Instructions
 
@@ -13,20 +16,26 @@ The Deployment Status popup provides real-time notifications about your Render d
 4. Go to Account Settings → API Keys
 5. Create a new API key or use an existing one
 
-### 2. Configure Environment Variables
+### 2. Configure Backend Environment Variables
 
-Update your environment files with your actual Render credentials:
+**IMPORTANT:** Add these to your **backend** environment variables, NOT the frontend.
 
-**For Development (.env.development):**
+**On Render Dashboard:**
+1. Go to your service settings
+2. Navigate to "Environment" tab
+3. Add these environment variables:
+
 ```bash
-REACT_APP_RENDER_SERVICE_ID=srv-xxxxxxxxxxxxxxxxxxxxx
-REACT_APP_RENDER_API_KEY=rnd_xxxxxxxxxxxxxxxxxxxxx
+RENDER_SERVICE_ID=srv-xxxxxxxxxxxxxxxxxxxxx
+RENDER_API_KEY=rnd_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-**For Production (.env.production):**
+**For Local Development:**
+Update `backend/.env.production` or create a local `.env` file in the backend folder:
+
 ```bash
-REACT_APP_RENDER_SERVICE_ID=srv-xxxxxxxxxxxxxxxxxxxxx
-REACT_APP_RENDER_API_KEY=rnd_xxxxxxxxxxxxxxxxxxxxx
+RENDER_SERVICE_ID=srv-xxxxxxxxxxxxxxxxxxxxx
+RENDER_API_KEY=rnd_xxxxxxxxxxxxxxxxxxxxx
 ```
 
 ### 3. Features

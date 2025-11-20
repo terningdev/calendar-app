@@ -10,24 +10,33 @@ const DeploymentStatus = () => {
   const [isConfigured, setIsConfigured] = useState(false);
   const [showSetupHint, setShowSetupHint] = useState(false);
 
-  // Configuration - you'll need to set these values
-  const RENDER_SERVICE_ID = process.env.REACT_APP_RENDER_SERVICE_ID;
-  const RENDER_API_KEY = process.env.REACT_APP_RENDER_API_KEY;
+  // Configuration
+  const API_URL = process.env.REACT_APP_API_URL || '/api';
   const CHECK_INTERVAL = 10000; // Check every 10 seconds
 
-  // Check if API is configured
+  // Check if backend deployment monitoring is available
   useEffect(() => {
-    const configured = RENDER_SERVICE_ID && RENDER_API_KEY && 
-                      RENDER_SERVICE_ID !== 'your_render_service_id_here' && 
-                      RENDER_API_KEY !== 'your_render_api_key_here';
-    setIsConfigured(configured);
-    
-    if (!configured) {
-      setShowSetupHint(true);
-      // Hide setup hint after 10 seconds
-      setTimeout(() => setShowSetupHint(false), 10000);
-    }
-  }, [RENDER_SERVICE_ID, RENDER_API_KEY]);
+    const checkBackendConfig = async () => {
+      try {
+        const response = await fetch(`${API_URL}/deployment/status`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          setIsConfigured(true);
+        } else if (response.status === 503) {
+          // Service not configured
+          setIsConfigured(false);
+          setShowSetupHint(true);
+          setTimeout(() => setShowSetupHint(false), 10000);
+        }
+      } catch (error) {
+        console.warn('Deployment monitoring not available:', error);
+        setIsConfigured(false);
+      }
+    };
+
+    checkBackendConfig();
+  }, [API_URL]);
 
   const checkDeploymentStatus = async () => {
     if (!isConfigured) {
@@ -35,21 +44,15 @@ const DeploymentStatus = () => {
     }
 
     try {
-      const response = await fetch(`https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys`, {
-        headers: {
-          'Authorization': `Bearer ${RENDER_API_KEY}`,
-          'Accept': 'application/json'
-        }
-      });
-
+      const response = await fetch(`${API_URL}/deployment/status`);
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      const latestDeploy = data[0]; // Most recent deployment
+      const latestDeploy = await response.json();
 
-      if (latestDeploy) {
+      if (latestDeploy && latestDeploy.id) {
         const currentStatus = latestDeploy.status;
         const currentId = latestDeploy.id;
         const startTime = new Date(latestDeploy.createdAt);
@@ -166,9 +169,9 @@ const DeploymentStatus = () => {
         
         <div className="deployment-status-content">
           <div className="setup-hint">
-            <p>📋 <strong>Setup Required</strong></p>
-            <p>Configure your Render API credentials to enable deployment notifications.</p>
-            <p>Check <code>DEPLOYMENT_STATUS_SETUP.md</code> for instructions.</p>
+            <p>📋 <strong>Backend Configuration Required</strong></p>
+            <p>Configure Render API credentials on the server to enable deployment notifications.</p>
+            <p>Set <code>RENDER_SERVICE_ID</code> and <code>RENDER_API_KEY</code> environment variables on your backend.</p>
           </div>
         </div>
 
@@ -229,7 +232,7 @@ const DeploymentStatus = () => {
         {(deploymentStatus === 'build_failed' || deploymentStatus === 'deploy_failed') && (
           <div className="action-buttons">
             <a 
-              href={`https://dashboard.render.com/web/${RENDER_SERVICE_ID}`}
+              href="https://dashboard.render.com"
               target="_blank"
               rel="noopener noreferrer"
               className="render-link"

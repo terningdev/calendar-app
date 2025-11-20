@@ -306,6 +306,15 @@ try {
   console.error('❌ Error loading permissions routes:', error.message);
 }
 
+// Deployment status routes - load with error handling
+try {
+  const deploymentRoutes = require('./routes/deployment');
+  app.use('/api/deployment', deploymentRoutes);
+  console.log('✅ Deployment routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading deployment routes:', error.message);
+}
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   console.log('🏥 Health check endpoint called');
