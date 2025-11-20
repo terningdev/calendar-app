@@ -455,28 +455,74 @@ const Calendar = () => {
 
     const finalEvents = [...ticketEvents];
     
-    // Debug: Log final events array for multi-day tickets
-    const multiDayEvents = finalEvents.filter(e => {
-      const start = new Date(e.start);
-      const end = new Date(e.end);
+    // Create individual day events for multi-day tickets to force spanning
+    const expandedEvents = [];
+    
+    finalEvents.forEach(event => {
+      const start = new Date(event.start);
+      const end = new Date(event.end);
       const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-      return daysDiff > 1;
+      
+      if (daysDiff > 1 && event.allDay) {
+        console.log(`🔍 EXPANDING MULTI-DAY EVENT: ${event.title} across ${daysDiff} days`);
+        
+        // Create event for each day
+        for (let i = 0; i < daysDiff; i++) {
+          const eventDate = new Date(start);
+          eventDate.setDate(start.getDate() + i);
+          
+          const isFirst = i === 0;
+          const isLast = i === daysDiff - 1;
+          const isMiddle = !isFirst && !isLast;
+          
+          let displayTitle = event.title;
+          if (isMiddle) {
+            displayTitle = `↔ ${event.title} ↔`;
+          } else if (isLast) {
+            displayTitle = `← ${event.title}`;
+          } else if (daysDiff > 1) {
+            displayTitle = `${event.title} →`;
+          }
+          
+          expandedEvents.push({
+            ...event,
+            id: `${event.id}_day_${i}`,
+            start: eventDate.toISOString().split('T')[0],
+            end: eventDate.toISOString().split('T')[0],
+            title: displayTitle,
+            className: `${event.className} multi-day-segment ${isFirst ? 'multi-day-start' : ''} ${isLast ? 'multi-day-end' : ''} ${isMiddle ? 'multi-day-middle' : ''}`,
+            extendedProps: {
+              ...event.extendedProps,
+              originalEventId: event.id,
+              dayIndex: i,
+              totalDays: daysDiff,
+              isFirstDay: isFirst,
+              isLastDay: isLast,
+              isMiddleDay: isMiddle
+            }
+          });
+        }
+      } else {
+        // Single day event - keep as is
+        expandedEvents.push(event);
+      }
     });
     
-    if (multiDayEvents.length > 0) {
-      console.log(`🔍 FINAL MULTI-DAY EVENTS BEING PASSED TO FULLCALENDAR (${multiDayEvents.length}):`, 
-        multiDayEvents.map(e => ({
+    // Debug: Log multi-day events
+    const multiDaySegments = expandedEvents.filter(e => e.extendedProps?.originalEventId);
+    if (multiDaySegments.length > 0) {
+      console.log(`🔍 CREATED ${multiDaySegments.length} MULTI-DAY SEGMENTS:`, 
+        multiDaySegments.map(e => ({
           id: e.id,
           title: e.title,
           start: e.start,
-          end: e.end,
-          className: e.className,
-          allDay: e.allDay
+          dayIndex: e.extendedProps.dayIndex,
+          totalDays: e.extendedProps.totalDays
         }))
       );
     }
 
-    return finalEvents;
+    return expandedEvents;
   };
 
   // Get vakt and absence data for a specific date
@@ -914,85 +960,25 @@ const Calendar = () => {
             return ['single-day-event'];
           }}
           eventDidMount={(info) => {
-            // Robust multi-day visual spanning solution
-            console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
+            console.log(`� EVENT MOUNTED: ${info.event.title}`);
             console.log(`  Event start: ${info.event.start}`);
             console.log(`  Event end: ${info.event.end}`);
             console.log(`  Event allDay: ${info.event.allDay}`);
             console.log(`  Event className: ${info.event.classNames}`);
             
-            const isMultiDay = info.event.classNames.includes('multi-day-event');
-            console.log(`  Is multi-day: ${isMultiDay}`);
-            
-            if (isMultiDay) {
-              console.log(`🔍 IMPLEMENTING VISUAL MULTI-DAY SPANNING: ${info.event.title}`);
-              
-              // Calculate the span duration
-              const startDate = new Date(info.event.start);
-              const endDate = new Date(info.event.end);
-              const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-              
-              if (daysDiff > 1) {
-                // Create visual spanning by absolutely positioning overlays
-                const originalElement = info.el;
-                const originalRect = originalElement.getBoundingClientRect();
-                const calendarEl = originalElement.closest('.fc-daygrid-body');
-                
-                if (calendarEl) {
-                  // Get day cell width
-                  const dayCell = originalElement.closest('.fc-daygrid-day');
-                  const dayCellWidth = dayCell ? dayCell.getBoundingClientRect().width : 0;
-                  
-                  if (dayCellWidth > 0) {
-                    // Style the original element as the start of the span
-                    originalElement.style.position = 'relative';
-                    originalElement.style.zIndex = '5';
-                    originalElement.style.borderTopRightRadius = '0px';
-                    originalElement.style.borderBottomRightRadius = '0px';
-                    
-                    // Create spanning overlay
-                    const spanOverlay = document.createElement('div');
-                    spanOverlay.className = 'multi-day-span-overlay';
-                    spanOverlay.style.cssText = `
-                      position: absolute !important;
-                      top: 0 !important;
-                      left: 100% !important;
-                      height: 100% !important;
-                      width: ${(daysDiff - 1) * dayCellWidth}px !important;
-                      background-color: ${info.event.backgroundColor} !important;
-                      border: 1px solid ${info.event.borderColor} !important;
-                      border-left: none !important;
-                      border-top-right-radius: 3px !important;
-                      border-bottom-right-radius: 3px !important;
-                      z-index: 4 !important;
-                      pointer-events: none !important;
-                      display: flex !important;
-                      align-items: center !important;
-                      justify-content: center !important;
-                      color: ${info.event.textColor} !important;
-                      font-size: 11px !important;
-                      overflow: hidden !important;
-                    `;
-                    
-                    // Add continuation text
-                    spanOverlay.textContent = `continues...`;
-                    
-                    // Append to the original element
-                    originalElement.appendChild(spanOverlay);
-                    
-                    console.log(`  Created visual span overlay: ${daysDiff - 1} additional days`);
-                  }
-                }
-              }
+            // Check if this is a multi-day segment
+            const isMultiDaySegment = info.event.extendedProps?.originalEventId;
+            if (isMultiDaySegment) {
+              const { dayIndex, totalDays, isFirstDay, isLastDay, isMiddleDay } = info.event.extendedProps;
+              console.log(`  Multi-day segment: ${dayIndex + 1}/${totalDays} (${isFirstDay ? 'start' : isLastDay ? 'end' : 'middle'})`);
             }
           }}
           eventContent={(eventInfo) => {
-            // Force proper content for multi-day events
-            const isMultiDay = eventInfo.event.classNames.includes('multi-day-event');
+            // Handle multi-day segments
+            const isMultiDaySegment = eventInfo.event.extendedProps?.originalEventId;
             
-            if (isMultiDay) {
-              console.log(`🔍 FORCING MULTI-DAY CONTENT: ${eventInfo.event.title}`);
-              
+            if (isMultiDaySegment) {
+              console.log(`🔍 RENDERING MULTI-DAY SEGMENT: ${eventInfo.event.title}`);
               return {
                 html: `<div class="fc-event-main-frame">
                   <div class="fc-event-title-container">
@@ -1127,7 +1113,6 @@ const Calendar = () => {
             hour12: false
           }}
           // Force proper multi-day rendering
-          dayMaxEventRows={false}
           eventConstraint={undefined}
           buttonText={{
             today: 'Today',

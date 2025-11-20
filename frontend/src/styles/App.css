@@ -2650,6 +2650,33 @@ body {
   margin-bottom: 1px !important;
 }
 
+/* Multi-day segment styling for connected appearance */
+.multi-day-segment {
+  border-radius: 0 !important;
+  border-left: 1px solid rgba(255,255,255,0.3) !important;
+  border-right: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+.multi-day-start {
+  border-top-left-radius: 3px !important;
+  border-bottom-left-radius: 3px !important;
+  border-left: 2px solid currentColor !important;
+  border-right: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+.multi-day-end {
+  border-top-right-radius: 3px !important;
+  border-bottom-right-radius: 3px !important;
+  border-right: 2px solid currentColor !important;
+  border-left: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+.multi-day-middle {
+  border-radius: 0 !important;
+  border-left: 1px solid rgba(255,255,255,0.3) !important;
+  border-right: 1px solid rgba(255,255,255,0.3) !important;
+}
+
 .single-day-event {
   border-radius: 3px !important;
   margin-bottom: 1px !important;
