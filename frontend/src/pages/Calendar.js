@@ -394,18 +394,10 @@ const Calendar = () => {
       const eventObject = {
         id: ticket._id,
         title: displayTitle,
-        // For multi-day events, try using Date objects with specific times
-        start: ticket.endDate && ticket.endDate !== ticket.startDate 
-          ? new Date(finalStartDate + 'T00:00:00') 
-          : finalStartDate,
-        end: ticket.endDate && ticket.endDate !== ticket.startDate 
-          ? new Date(finalEndDate + 'T00:00:00') 
-          : finalEndDate,
-        // For multi-day events, use allDay: true with Date objects
-        ...(ticket.endDate && ticket.endDate !== ticket.startDate 
-          ? { allDay: true } // Use allDay: true for multi-day events with Date objects
-          : { allDay: true } // Set allDay true for single-day events
-        ),
+        // Use standard date string format for all events
+        start: finalStartDate,
+        end: finalEndDate,
+        allDay: true, // Always use allDay for proper spanning
         extendedProps: {
           ticket: ticket,
           description: ticket.description,
@@ -855,6 +847,7 @@ const Calendar = () => {
             center: 'title',
             right: isMobile ? 'dayGridMonth,timeGridWeek,listWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
           }}
+          nextDayThreshold="00:00:00"
           customButtons={{
             filterButton: {
               text: 'Filter',
@@ -867,6 +860,9 @@ const Calendar = () => {
           eventClick={handleEventClick}
           dateClick={handleDateClick}
           dayMaxEvents={getMaxTicketsForCell()}
+          dayMaxEventRows={false}
+          showNonCurrentDates={true}
+          fixedWeekCount={false}
           moreLinkClick="popover"
           moreLinkClassNames="fc-more-link-custom"
           moreLinkContent={(args) => `+${args.num}`}
