@@ -453,12 +453,7 @@ const Calendar = () => {
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
-        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event',
-        // For multi-day events, force block display and spanning behavior
-        ...(ticket.endDate && ticket.endDate !== ticket.startDate && {
-          eventDisplay: 'block',
-          display: 'block'
-        })
+        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'
       };
 
       // Log the final event object for multi-day tickets
@@ -912,12 +907,11 @@ const Calendar = () => {
           moreLinkClick="popover"
           moreLinkClassNames="fc-more-link-custom"
           moreLinkContent={(args) => `+${args.num}`}
-          eventDisplay="block"
+          eventDisplay="auto"
           displayEventTime={false}
           displayEventEnd={false}
           eventOverlap={true}
           selectOverlap={true}
-          eventMaxStack={10}
           progressiveEventRendering={true}
           eventSourceSuccess={(events) => {
             console.log(`🔍 FullCalendar received ${events.length} events for rendering`);
@@ -928,19 +922,19 @@ const Calendar = () => {
             return true;
           }}
           eventClassNames={(info) => {
-            // Force proper class names for multi-day events
+            // Simple class assignment for multi-day events
             const event = info.event;
             const isMultiDay = event.classNames.includes('multi-day-event');
             
             if (isMultiDay) {
-              console.log(`🔍 FORCING MULTI-DAY CLASSES: ${event.title}`);
-              return ['multi-day-event', 'fc-daygrid-block-event', 'fc-h-event'];
+              console.log(`🔍 MULTI-DAY EVENT CLASS: ${event.title}`);
+              return ['multi-day-event'];
             }
             
-            return ['single-day-event', 'fc-daygrid-block-event', 'fc-h-event'];
+            return ['single-day-event'];
           }}
           eventDidMount={(info) => {
-            // Multi-day spanning solution: Create connected visual tiles
+            // Simple multi-day event styling - let FullCalendar handle the spanning
             console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
             console.log(`  Event start: ${info.event.start}`);
             console.log(`  Event end: ${info.event.end}`);
@@ -951,191 +945,30 @@ const Calendar = () => {
             console.log(`  Is multi-day: ${isMultiDay}`);
             
             if (isMultiDay) {
-              console.log(`🔍 CREATING CONNECTED MULTI-DAY TILES: ${info.event.title}`);
+              console.log(`🔍 MULTI-DAY EVENT - USING FULLCALENDAR NATIVE SPANNING: ${info.event.title}`);
               
-              // Get event dates
-              const startDateStr = info.event.startStr.split('T')[0];
-              const endDateStr = info.event.endStr.split('T')[0];
-              
-              // Calculate duration
-              const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number);
-              const [endYear, endMonth, endDay] = endDateStr.split('-').map(Number);
-              const startDateLocal = new Date(startYear, startMonth - 1, startDay);
-              const endDateLocal = new Date(endYear, endMonth - 1, endDay);
-              const daysDiff = Math.ceil((endDateLocal - startDateLocal) / (1000 * 60 * 60 * 24));
-              
-              console.log(`  Creating connected tiles for ${daysDiff} days (${startDateStr} to ${endDateStr})`);
-              
-              // Style the first tile as the start of a connected span
-              info.el.style.borderTopRightRadius = '0px';
-              info.el.style.borderBottomRightRadius = '0px';
-              info.el.style.marginRight = '0px';
-              info.el.style.borderRight = 'none';
-              info.el.style.zIndex = '3';
+              // Let FullCalendar handle the spanning, just ensure proper styling
+              info.el.style.zIndex = '2';
               info.el.style.position = 'relative';
-              info.el.classList.add('multi-day-start-tile');
               
-              // Add subtle right extension to visually connect
-              const rightExtension = document.createElement('div');
-              rightExtension.style.cssText = `
-                position: absolute !important;
-                right: -1px !important;
-                top: 0 !important;
-                bottom: 0 !important;
-                width: 2px !important;
-                background-color: ${info.event.backgroundColor} !important;
-                z-index: 4 !important;
-              `;
-              info.el.appendChild(rightExtension);
-              
-              // Add arrow indicator for continuation
-              const arrow = document.createElement('span');
-              arrow.innerHTML = '→';
-              arrow.className = 'multi-day-arrow';
-              arrow.style.cssText = `
-                position: absolute !important;
-                right: 2px !important;
-                top: 50% !important;
-                transform: translateY(-50%) !important;
-                color: white !important;
-                font-weight: bold !important;
-                font-size: 14px !important;
-                z-index: 10 !important;
-                text-shadow: 1px 1px 1px rgba(0,0,0,0.5) !important;
-                pointer-events: none !important;
-              `;
-              info.el.appendChild(arrow);
-              
-              // Create connected tiles for subsequent days
-              let currentDate = new Date(startDateLocal);
-              currentDate.setDate(currentDate.getDate() + 1); // Start from next day
-              
-              for (let dayIndex = 1; dayIndex < daysDiff; dayIndex++) {
-                const year = currentDate.getFullYear();
-                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-                const day = String(currentDate.getDate()).padStart(2, '0');
-                const dateStr = `${year}-${month}-${day}`;
-                
-                console.log(`  Creating connected tile ${dayIndex} for ${dateStr}`);
-                
-                // Find the target day cell
-                const dayCell = document.querySelector(`[data-date="${dateStr}"]`);
-                if (dayCell) {
-                  // Create connected tile
-                  const connectedTile = info.el.cloneNode(true);
-                  
-                  // Remove the arrow from cloned tiles first
-                  const clonedArrow = connectedTile.querySelector('span');
-                  if (clonedArrow) clonedArrow.remove();
-                  
-                  // Reset classes for connected tile
-                  connectedTile.classList.remove('fc-event-start', 'fc-event-end', 'multi-day-start-tile');
-                  connectedTile.classList.add('multi-day-connected-tile');
-                  
-                  // Determine if this is the last tile
-                  const isLastTile = (dayIndex === daysDiff - 1);
-                  
-                  if (isLastTile) {
-                    // Last tile styling - connect on left, round on right
-                    connectedTile.style.borderTopLeftRadius = '0px';
-                    connectedTile.style.borderBottomLeftRadius = '0px';
-                    connectedTile.style.borderTopRightRadius = '3px';
-                    connectedTile.style.borderBottomRightRadius = '3px';
-                    connectedTile.style.marginLeft = '0px';
-                    connectedTile.style.marginRight = '0px';
-                    connectedTile.style.borderLeft = 'none';
-                    connectedTile.classList.add('multi-day-end-tile');
-                    
-                    // Add left extension for seamless connection
-                    const leftExtension = document.createElement('div');
-                    leftExtension.style.cssText = `
-                      position: absolute !important;
-                      left: -1px !important;
-                      top: 0 !important;
-                      bottom: 0 !important;
-                      width: 2px !important;
-                      background-color: ${info.event.backgroundColor} !important;
-                      z-index: 4 !important;
-                    `;
-                    connectedTile.appendChild(leftExtension);
-                  } else {
-                    // Middle tile styling - no rounded corners, connected on both sides
-                    connectedTile.style.borderRadius = '0px';
-                    connectedTile.style.marginLeft = '0px';
-                    connectedTile.style.marginRight = '0px';
-                    connectedTile.style.borderLeft = 'none';
-                    connectedTile.style.borderRight = 'none';
-                    connectedTile.classList.add('multi-day-middle-tile');
-                    
-                    // Add left and right extensions for seamless connection
-                    const leftExtension = document.createElement('div');
-                    leftExtension.style.cssText = `
-                      position: absolute !important;
-                      left: -1px !important;
-                      top: 0 !important;
-                      bottom: 0 !important;
-                      width: 2px !important;
-                      background-color: ${info.event.backgroundColor} !important;
-                      z-index: 4 !important;
-                    `;
-                    connectedTile.appendChild(leftExtension);
-                    
-                    const rightExtension = document.createElement('div');
-                    rightExtension.style.cssText = `
-                      position: absolute !important;
-                      right: -1px !important;
-                      top: 0 !important;
-                      bottom: 0 !important;
-                      width: 2px !important;
-                      background-color: ${info.event.backgroundColor} !important;
-                      z-index: 4 !important;
-                    `;
-                    connectedTile.appendChild(rightExtension);
-                  }
-                  
-                  // Ensure proper styling for all connected tiles
-                  connectedTile.style.cssText += `
-                    display: block !important;
-                    visibility: visible !important;
-                    opacity: 1 !important;
-                    position: relative !important;
-                    width: 100% !important;
-                    background-color: ${info.event.backgroundColor} !important;
-                    border-top: 1px solid ${info.event.borderColor} !important;
-                    border-bottom: 1px solid ${info.event.borderColor} !important;
-                    z-index: 3 !important;
-                    box-sizing: border-box !important;
-                    min-height: 20px !important;
-                  `;
-                  
-                  // Find container for the connected tile
-                  let container = dayCell.querySelector('.fc-daygrid-day-events');
-                  if (!container) {
-                    const dayTop = dayCell.querySelector('.fc-daygrid-day-top');
-                    if (dayTop) {
-                      container = document.createElement('div');
-                      container.className = 'fc-daygrid-day-events';
-                      container.style.cssText = 'position: relative; z-index: 2;';
-                      dayTop.appendChild(container);
-                    }
-                  }
-                  
-                  if (!container) {
-                    container = dayCell.querySelector('.fc-daygrid-day-top') || dayCell;
-                  }
-                  
-                  // Add the connected tile
-                  container.appendChild(connectedTile);
-                  
-                  console.log(`  Added connected tile ${dayIndex} for ${dateStr}`);
-                } else {
-                  console.warn(`  Could not find day cell for ${dateStr}`);
-                }
-                
-                currentDate.setDate(currentDate.getDate() + 1);
+              // Add continuation indicator only if this appears to be a start segment
+              if (info.isStart) {
+                const arrow = document.createElement('span');
+                arrow.innerHTML = '→';
+                arrow.className = 'multi-day-arrow';
+                arrow.style.cssText = `
+                  position: absolute !important;
+                  right: 4px !important;
+                  top: 50% !important;
+                  transform: translateY(-50%) !important;
+                  color: white !important;
+                  font-weight: bold !important;
+                  font-size: 12px !important;
+                  z-index: 10 !important;
+                  text-shadow: 1px 1px 1px rgba(0,0,0,0.5) !important;
+                `;
+                info.el.appendChild(arrow);
               }
-              
-              console.log(`  Completed connected tiles for ${info.event.title}`);
             }
           }}
           eventContent={(eventInfo) => {
