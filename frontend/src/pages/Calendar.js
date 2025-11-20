@@ -394,11 +394,16 @@ const Calendar = () => {
       const eventObject = {
         id: ticket._id,
         title: displayTitle,
-        start: finalStartDate,
-        end: finalEndDate,
-        // For multi-day events, use allDay: true with date-only strings (FullCalendar standard)
+        // For multi-day events, try using Date objects with specific times
+        start: ticket.endDate && ticket.endDate !== ticket.startDate 
+          ? new Date(finalStartDate + 'T00:00:00') 
+          : finalStartDate,
+        end: ticket.endDate && ticket.endDate !== ticket.startDate 
+          ? new Date(finalEndDate + 'T00:00:00') 
+          : finalEndDate,
+        // For multi-day events, use allDay: true with Date objects
         ...(ticket.endDate && ticket.endDate !== ticket.startDate 
-          ? { allDay: true } // Use allDay: true for multi-day events with date-only strings
+          ? { allDay: true } // Use allDay: true for multi-day events with Date objects
           : { allDay: true } // Set allDay true for single-day events
         ),
         extendedProps: {
