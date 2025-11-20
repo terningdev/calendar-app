@@ -21,6 +21,53 @@ const Calendar = () => {
   const { refreshTrigger } = useRegion();
   const calendarRef = useRef(null);
   const mobileSearchRef = useRef(null);
+
+  // Add CSS for connected multi-day tiles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .multi-day-start-tile {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        position: relative;
+      }
+      
+      .multi-day-middle-tile {
+        border-radius: 0 !important;
+        margin-left: -1px !important;
+        margin-right: -1px !important;
+        position: relative;
+      }
+      
+      .multi-day-end-tile {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        margin-left: -1px !important;
+        position: relative;
+      }
+      
+      .multi-day-connected-tile {
+        z-index: 2 !important;
+        position: relative !important;
+      }
+      
+      /* Ensure proper stacking */
+      .fc-daygrid-day-events {
+        z-index: 2 !important;
+        position: relative !important;
+      }
+      
+      /* Improve spacing between events */
+      .fc-daygrid-event {
+        margin-bottom: 1px !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
@@ -865,238 +912,147 @@ const Calendar = () => {
             return ['single-day-event', 'fc-daygrid-block-event', 'fc-h-event'];
           }}
           eventDidMount={(info) => {
-            // Debug what FullCalendar is doing with ALL events first
-            console.log(`🔍 FULLCALENDAR MOUNTED ANY EVENT: ${info.event.title}`);
+            // Multi-day spanning solution: Create connected visual tiles
+            console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
             console.log(`  Event start: ${info.event.start}`);
             console.log(`  Event end: ${info.event.end}`);
             console.log(`  Event allDay: ${info.event.allDay}`);
             console.log(`  Event className: ${info.event.classNames}`);
-            console.log(`  Event extendedProps:`, info.event.extendedProps);
-            console.log(`  DOM element classes:`, info.el.className);
             
-            // Check if it's a multi-day event
             const isMultiDay = info.event.classNames.includes('multi-day-event');
             console.log(`  Is multi-day: ${isMultiDay}`);
             
             if (isMultiDay) {
-              console.log(`🔍 FULLCALENDAR MOUNTED MULTI-DAY EVENT: ${info.event.title}`);
-              console.log(`  DOM element:`, info.el);
-              console.log(`  Event view: ${info.view.type}`);
-              console.log(`  DOM element HTML:`, info.el.outerHTML);
+              console.log(`🔍 CREATING CONNECTED MULTI-DAY TILES: ${info.event.title}`);
               
-              // Log current classes before modification
-              console.log(`  Classes BEFORE modification:`, info.el.className);
+              // Get event dates
+              const startDateStr = info.event.startStr.split('T')[0];
+              const endDateStr = info.event.endStr.split('T')[0];
               
-              // Check if this is truly spanning multiple days in the calendar
-              const eventStart = info.event.start;
-              const eventEnd = info.event.end;
-              
-              console.log(`  Event start object:`, eventStart);
-              console.log(`  Event end object:`, eventEnd);
-              
-              // Use the event's date strings directly to avoid timezone issues
-              const startDateStr = info.event.startStr.split('T')[0]; // Get just the date part
-              const endDateStr = info.event.endStr.split('T')[0];     // Get just the date part
-              
-              // Parse dates in local timezone using date parts to avoid timezone conversion
+              // Calculate duration
               const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number);
               const [endYear, endMonth, endDay] = endDateStr.split('-').map(Number);
-              
-              const startDateLocal = new Date(startYear, startMonth - 1, startDay); // month is 0-indexed
+              const startDateLocal = new Date(startYear, startMonth - 1, startDay);
               const endDateLocal = new Date(endYear, endMonth - 1, endDay);
               const daysDiff = Math.ceil((endDateLocal - startDateLocal) / (1000 * 60 * 60 * 24));
               
-              console.log(`  Start date string: ${startDateStr}`);
-              console.log(`  End date string: ${endDateStr}`);
-              console.log(`  Start date local object: ${startDateLocal}`);
-              console.log(`  End date local object: ${endDateLocal}`);
-              console.log(`  Days difference calculated: ${daysDiff}`);
+              console.log(`  Creating connected tiles for ${daysDiff} days (${startDateStr} to ${endDateStr})`);
               
-              if (daysDiff > 1) {
-                // FORCE MULTI-DAY RENDERING: Clone this element for each day
-                console.log(`  Creating continuation elements for ${daysDiff} days`);
+              // Style the first tile as the start of a connected span
+              info.el.style.borderTopRightRadius = '0px';
+              info.el.style.borderBottomRightRadius = '0px';
+              info.el.style.marginRight = '-1px'; // Overlap border with next tile
+              info.el.style.zIndex = '2';
+              info.el.classList.add('multi-day-start-tile');
+              
+              // Add arrow indicator for continuation
+              const arrow = document.createElement('span');
+              arrow.innerHTML = '→';
+              arrow.style.cssText = `
+                position: absolute;
+                right: 3px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: white;
+                font-weight: bold;
+                font-size: 12px;
+                z-index: 10;
+              `;
+              info.el.appendChild(arrow);
+              
+              // Create connected tiles for subsequent days
+              let currentDate = new Date(startDateLocal);
+              currentDate.setDate(currentDate.getDate() + 1); // Start from next day
+              
+              for (let dayIndex = 1; dayIndex < daysDiff; dayIndex++) {
+                const year = currentDate.getFullYear();
+                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                const day = String(currentDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
                 
-                // Get the calendar container
-                const calendar = info.view.calendar;
-                const calendarEl = calendar.el;
+                console.log(`  Creating connected tile ${dayIndex} for ${dateStr}`);
                 
-                // Force create elements for continuation days using local date parsing
-                let currentDate = new Date(startYear, startMonth - 1, startDay); // Start from correct local date
-                let dayIndex = 0;
-                
-                while (currentDate < endDateLocal) {
-                  // Format date in local timezone to avoid UTC conversion
-                  const year = currentDate.getFullYear();
-                  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-                  const day = String(currentDate.getDate()).padStart(2, '0');
-                  const dateStr = `${year}-${month}-${day}`;
-                  console.log(`  Processing day ${dayIndex}: ${dateStr}`);
+                // Find the target day cell
+                const dayCell = document.querySelector(`[data-date="${dateStr}"]`);
+                if (dayCell) {
+                  // Create connected tile
+                  const connectedTile = info.el.cloneNode(true);
                   
-                  // Find the day cell for this date
-                  const dayCell = calendarEl.querySelector(`[data-date="${dateStr}"]`);
-                  if (dayCell) {
-                    console.log(`  Found day cell for ${dateStr}:`, dayCell);
-                    
-                    if (dayIndex > 0) {
-                      // Create a continuation element for days after the first
-                      const continuationEl = info.el.cloneNode(true);
-                      
-                      // Remove original event classes and add continuation classes
-                      continuationEl.classList.remove('fc-event-start', 'fc-event-end');
-                      continuationEl.classList.add('fc-event-continues', 'fc-event-continuation');
-                      
-                      // Ensure all required FullCalendar classes are present
-                      const requiredClasses = ['fc-event', 'fc-daygrid-event', 'fc-daygrid-block-event', 'fc-h-event'];
-                      requiredClasses.forEach(className => {
-                        if (!continuationEl.classList.contains(className)) {
-                          continuationEl.classList.add(className);
-                        }
-                      });
-                      
-                      continuationEl.setAttribute('data-multi-day-continuation', 'true');
-                      continuationEl.setAttribute('data-day-index', dayIndex.toString());
-                      
-                      // Clear and set comprehensive styling for visibility
-                      continuationEl.style.cssText = '';  // Clear existing styles
-                      continuationEl.style.display = 'block';
-                      continuationEl.style.visibility = 'visible';
-                      continuationEl.style.opacity = '1';
-                      continuationEl.style.position = 'relative';
-                      continuationEl.style.width = '100%';
-                      continuationEl.style.height = 'auto';
-                      continuationEl.style.minHeight = '20px';
-                      continuationEl.style.backgroundColor = info.event.backgroundColor;
-                      continuationEl.style.borderColor = info.event.borderColor;
-                      continuationEl.style.border = `1px solid ${info.event.borderColor}`;
-                      continuationEl.style.zIndex = '10';
-                      continuationEl.style.margin = '1px 0';
-                      continuationEl.style.padding = '2px 4px';
-                      continuationEl.style.boxSizing = 'border-box';
-                      continuationEl.style.overflow = 'hidden';
-                      continuationEl.style.pointerEvents = 'auto';
-                      
-                      // Find the day content area - try multiple strategies to find the right container
-                      let targetContainer = null;
-                      let containerType = 'unknown';
-                      
-                      // Strategy 1: Try to find existing events container
-                      targetContainer = dayCell.querySelector('.fc-daygrid-day-events');
-                      if (targetContainer) {
-                        containerType = 'existing-events';
-                      }
-                      
-                      // Strategy 2: Create events container within day-top if not found
-                      if (!targetContainer) {
-                        const dayTop = dayCell.querySelector('.fc-daygrid-day-top');
-                        if (dayTop) {
-                          targetContainer = document.createElement('div');
-                          targetContainer.className = 'fc-daygrid-day-events';
-                          targetContainer.style.cssText = 'position: relative; z-index: 2; width: 100%;';
-                          dayTop.appendChild(targetContainer);
-                          containerType = 'created-in-day-top';
-                        }
-                      }
-                      
-                      // Strategy 3: Fallback to day-top
-                      if (!targetContainer) {
-                        targetContainer = dayCell.querySelector('.fc-daygrid-day-top');
-                        containerType = 'day-top-fallback';
-                      }
-                      
-                      // Strategy 4: Fallback to day-frame
-                      if (!targetContainer) {
-                        targetContainer = dayCell.querySelector('.fc-daygrid-day-frame');
-                        containerType = 'day-frame-fallback';
-                      }
-                      
-                      // Strategy 5: Last resort - create in day cell
-                      if (!targetContainer) {
-                        targetContainer = document.createElement('div');
-                        targetContainer.className = 'fc-daygrid-day-events custom-container';
-                        targetContainer.style.cssText = 'position: relative; z-index: 10; width: 100%; min-height: 20px;';
-                        dayCell.appendChild(targetContainer);
-                        containerType = 'custom-created';
-                      }
-                      
-                      
-                      // Add the continuation element to the container
-                      targetContainer.appendChild(continuationEl);
-                      
-                      console.log(`  Added continuation element to day ${dayIndex} (${dateStr}) in container: ${containerType}`);
-                      console.log(`  Continuation element style: ${continuationEl.style.cssText}`);
-                      console.log(`  Container classes: ${targetContainer.className}`);
-                      console.log(`  Container style: ${targetContainer.style.cssText}`);
-                      
-                      // Force reflow and verify placement
-                      void continuationEl.offsetHeight;
-                      void targetContainer.offsetHeight;
-                      
-                      // Immediate visibility check
-                      const immediateRect = continuationEl.getBoundingClientRect();
-                      console.log(`  Immediate element bounds: ${immediateRect.width}x${immediateRect.height} at (${immediateRect.x}, ${immediateRect.y})`);
-                      
-                      // Delayed verification to ensure the element is actually visible
-                      setTimeout((() => {
-                        const currentDayIndex = dayIndex; // Capture dayIndex value
-                        return () => {
-                          const rect = continuationEl.getBoundingClientRect();
-                          const containerRect = targetContainer.getBoundingClientRect();
-                          const isVisible = rect.width > 0 && rect.height > 0;
-                          const isInDOM = document.contains(continuationEl);
-                          
-                          console.log(`  🔍 Continuation verification for day ${currentDayIndex}:`);
-                          console.log(`    Element in DOM: ${isInDOM}`);
-                          console.log(`    Element visible: ${isVisible}`);
-                          console.log(`    Element bounds: ${rect.width}x${rect.height} at (${rect.x}, ${rect.y})`);
-                          console.log(`    Container bounds: ${containerRect.width}x${containerRect.height} at (${containerRect.x}, ${containerRect.y})`);
-                          
-                          if (!isVisible && isInDOM) {
-                            console.error(`  ⚠️ Element is in DOM but not visible! Debugging styles:`);
-                            const computedStyle = window.getComputedStyle(continuationEl);
-                            console.log(`    Computed display: ${computedStyle.display}`);
-                            console.log(`    Computed visibility: ${computedStyle.visibility}`);
-                            console.log(`    Computed opacity: ${computedStyle.opacity}`);
-                            console.log(`    Computed position: ${computedStyle.position}`);
-                            console.log(`    Computed z-index: ${computedStyle.zIndex}`);
-                          }
-                        };
-                      })(), 100);
-                    } else {
-                      // Skip the first day as it already has the original event
-                      console.log(`  Skipping day ${dayIndex} (original event already exists): ${dateStr}`);
-                    }
+                  // Remove the arrow from cloned tiles first
+                  const clonedArrow = connectedTile.querySelector('span');
+                  if (clonedArrow) clonedArrow.remove();
+                  
+                  // Reset classes for connected tile
+                  connectedTile.classList.remove('fc-event-start', 'fc-event-end', 'multi-day-start-tile');
+                  connectedTile.classList.add('multi-day-connected-tile');
+                  
+                  // Determine if this is the last tile
+                  const isLastTile = (dayIndex === daysDiff - 1);
+                  
+                  if (isLastTile) {
+                    // Last tile styling
+                    connectedTile.style.borderTopLeftRadius = '0px';
+                    connectedTile.style.borderBottomLeftRadius = '0px';
+                    connectedTile.style.borderTopRightRadius = '3px';
+                    connectedTile.style.borderBottomRightRadius = '3px';
+                    connectedTile.style.marginLeft = '-1px';
+                    connectedTile.style.marginRight = '0px';
+                    connectedTile.classList.add('multi-day-end-tile');
                   } else {
-                    console.log(`  Day cell NOT found for ${dateStr}`);
+                    // Middle tile styling
+                    connectedTile.style.borderRadius = '0px';
+                    connectedTile.style.marginLeft = '-1px';
+                    connectedTile.style.marginRight = '-1px';
+                    connectedTile.classList.add('multi-day-middle-tile');
+                    
+                    // Add continuation arrow for middle tiles
+                    const middleArrow = document.createElement('span');
+                    middleArrow.innerHTML = '→';
+                    middleArrow.style.cssText = arrow.style.cssText;
+                    connectedTile.appendChild(middleArrow);
                   }
                   
-                  currentDate.setDate(currentDate.getDate() + 1);
-                  dayIndex++;
+                  // Ensure proper styling for all connected tiles
+                  connectedTile.style.cssText += `
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    position: relative !important;
+                    width: 100% !important;
+                    background-color: ${info.event.backgroundColor} !important;
+                    border: 1px solid ${info.event.borderColor} !important;
+                    z-index: 2 !important;
+                    box-sizing: border-box !important;
+                  `;
+                  
+                  // Find container for the connected tile
+                  let container = dayCell.querySelector('.fc-daygrid-day-events');
+                  if (!container) {
+                    const dayTop = dayCell.querySelector('.fc-daygrid-day-top');
+                    if (dayTop) {
+                      container = document.createElement('div');
+                      container.className = 'fc-daygrid-day-events';
+                      container.style.cssText = 'position: relative; z-index: 2;';
+                      dayTop.appendChild(container);
+                    }
+                  }
+                  
+                  if (!container) {
+                    container = dayCell.querySelector('.fc-daygrid-day-top') || dayCell;
+                  }
+                  
+                  // Add the connected tile
+                  container.appendChild(connectedTile);
+                  
+                  console.log(`  Added connected tile ${dayIndex} for ${dateStr}`);
+                } else {
+                  console.warn(`  Could not find day cell for ${dateStr}`);
                 }
+                
+                currentDate.setDate(currentDate.getDate() + 1);
               }
               
-              // Force multi-day styling and remove conflicting classes
-              info.el.classList.remove('fc-event-start', 'fc-event-end');
-              info.el.classList.add('fc-event-start', 'fc-event-continues');
-              
-              // Log classes after modification
-              console.log(`  Classes AFTER modification:`, info.el.className);
-              
-              // Force the element to be visible and spanning
-              info.el.style.display = 'block !important';
-              info.el.style.width = '100% !important';
-              info.el.style.position = 'relative !important';
-              info.el.style.zIndex = '1';
-              info.el.style.backgroundColor = info.event.backgroundColor;
-              info.el.style.border = `1px solid ${info.event.borderColor}`;
-              
-              // Add a visual indicator that we've processed this
-              info.el.setAttribute('data-multi-day-processed', 'true');
-              
-              // Force a rerender to ensure the changes take effect
-              setTimeout(() => {
-                console.log(`  Final classes after timeout:`, info.el.className);
-                console.log(`  Final HTML after timeout:`, info.el.outerHTML);
-              }, 100);
+              console.log(`  Completed connected tiles for ${info.event.title}`);
             }
           }}
           eventContent={(eventInfo) => {
