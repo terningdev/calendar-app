@@ -898,13 +898,18 @@ const Calendar = () => {
               const startDateStr = info.event.startStr.split('T')[0]; // Get just the date part
               const endDateStr = info.event.endStr.split('T')[0];     // Get just the date part
               
-              // Parse dates correctly
-              const startDateLocal = new Date(startDateStr + 'T00:00:00');
-              const endDateLocal = new Date(endDateStr + 'T00:00:00');
+              // Parse dates in local timezone using date parts to avoid timezone conversion
+              const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number);
+              const [endYear, endMonth, endDay] = endDateStr.split('-').map(Number);
+              
+              const startDateLocal = new Date(startYear, startMonth - 1, startDay); // month is 0-indexed
+              const endDateLocal = new Date(endYear, endMonth - 1, endDay);
               const daysDiff = Math.ceil((endDateLocal - startDateLocal) / (1000 * 60 * 60 * 24));
               
               console.log(`  Start date string: ${startDateStr}`);
               console.log(`  End date string: ${endDateStr}`);
+              console.log(`  Start date local object: ${startDateLocal}`);
+              console.log(`  End date local object: ${endDateLocal}`);
               console.log(`  Days difference calculated: ${daysDiff}`);
               
               if (daysDiff > 1) {
@@ -915,8 +920,8 @@ const Calendar = () => {
                 const calendar = info.view.calendar;
                 const calendarEl = calendar.el;
                 
-                // Force create elements for continuation days
-                let currentDate = new Date(startDateStr + 'T00:00:00');
+                // Force create elements for continuation days using local date parsing
+                let currentDate = new Date(startYear, startMonth - 1, startDay); // Start from correct local date
                 let dayIndex = 0;
                 
                 while (currentDate < endDateLocal) {
