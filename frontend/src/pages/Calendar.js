@@ -944,48 +944,123 @@ const Calendar = () => {
                       // Remove original event classes and add continuation classes
                       continuationEl.classList.remove('fc-event-start', 'fc-event-end');
                       continuationEl.classList.add('fc-event-continues', 'fc-event-continuation');
+                      
+                      // Ensure all required FullCalendar classes are present
+                      const requiredClasses = ['fc-event', 'fc-daygrid-event', 'fc-daygrid-block-event', 'fc-h-event'];
+                      requiredClasses.forEach(className => {
+                        if (!continuationEl.classList.contains(className)) {
+                          continuationEl.classList.add(className);
+                        }
+                      });
+                      
                       continuationEl.setAttribute('data-multi-day-continuation', 'true');
                       continuationEl.setAttribute('data-day-index', dayIndex.toString());
                       
-                      // Ensure visibility and proper styling
+                      // Clear and set comprehensive styling for visibility
+                      continuationEl.style.cssText = '';  // Clear existing styles
                       continuationEl.style.display = 'block';
                       continuationEl.style.visibility = 'visible';
                       continuationEl.style.opacity = '1';
                       continuationEl.style.position = 'relative';
                       continuationEl.style.width = '100%';
+                      continuationEl.style.height = 'auto';
+                      continuationEl.style.minHeight = '20px';
                       continuationEl.style.backgroundColor = info.event.backgroundColor;
                       continuationEl.style.borderColor = info.event.borderColor;
+                      continuationEl.style.border = `1px solid ${info.event.borderColor}`;
                       continuationEl.style.zIndex = '10';
+                      continuationEl.style.margin = '1px 0';
+                      continuationEl.style.padding = '2px 4px';
+                      continuationEl.style.boxSizing = 'border-box';
+                      continuationEl.style.overflow = 'hidden';
+                      continuationEl.style.pointerEvents = 'auto';
                       
-                      // Find the day content area - try multiple selectors to find the right container
+                      // Find the day content area - try multiple strategies to find the right container
                       let targetContainer = null;
+                      let containerType = 'unknown';
                       
-                      // Try to find existing events container first
+                      // Strategy 1: Try to find existing events container
                       targetContainer = dayCell.querySelector('.fc-daygrid-day-events');
+                      if (targetContainer) {
+                        containerType = 'existing-events';
+                      }
                       
+                      // Strategy 2: Create events container within day-top if not found
                       if (!targetContainer) {
-                        // Try to find day content
+                        const dayTop = dayCell.querySelector('.fc-daygrid-day-top');
+                        if (dayTop) {
+                          targetContainer = document.createElement('div');
+                          targetContainer.className = 'fc-daygrid-day-events';
+                          targetContainer.style.cssText = 'position: relative; z-index: 2; width: 100%;';
+                          dayTop.appendChild(targetContainer);
+                          containerType = 'created-in-day-top';
+                        }
+                      }
+                      
+                      // Strategy 3: Fallback to day-top
+                      if (!targetContainer) {
                         targetContainer = dayCell.querySelector('.fc-daygrid-day-top');
+                        containerType = 'day-top-fallback';
                       }
                       
+                      // Strategy 4: Fallback to day-frame
                       if (!targetContainer) {
-                        // Try day frame
                         targetContainer = dayCell.querySelector('.fc-daygrid-day-frame');
+                        containerType = 'day-frame-fallback';
                       }
                       
+                      // Strategy 5: Last resort - create in day cell
                       if (!targetContainer) {
-                        // Create our own events container
                         targetContainer = document.createElement('div');
-                        targetContainer.className = 'fc-daygrid-day-events';
-                        targetContainer.style.position = 'relative';
-                        targetContainer.style.zIndex = '10';
+                        targetContainer.className = 'fc-daygrid-day-events custom-container';
+                        targetContainer.style.cssText = 'position: relative; z-index: 10; width: 100%; min-height: 20px;';
                         dayCell.appendChild(targetContainer);
+                        containerType = 'custom-created';
                       }
                       
-                      // Add the continuation element
+                      
+                      // Add the continuation element to the container
                       targetContainer.appendChild(continuationEl);
-                      console.log(`  Added continuation element to day ${dayIndex} (${dateStr}) in container:`, targetContainer.className);
-                      console.log(`  Continuation element style:`, continuationEl.style.cssText);
+                      
+                      console.log(`  Added continuation element to day ${dayIndex} (${dateStr}) in container: ${containerType}`);
+                      console.log(`  Continuation element style: ${continuationEl.style.cssText}`);
+                      console.log(`  Container classes: ${targetContainer.className}`);
+                      console.log(`  Container style: ${targetContainer.style.cssText}`);
+                      
+                      // Force reflow and verify placement
+                      void continuationEl.offsetHeight;
+                      void targetContainer.offsetHeight;
+                      
+                      // Immediate visibility check
+                      const immediateRect = continuationEl.getBoundingClientRect();
+                      console.log(`  Immediate element bounds: ${immediateRect.width}x${immediateRect.height} at (${immediateRect.x}, ${immediateRect.y})`);
+                      
+                      // Delayed verification to ensure the element is actually visible
+                      setTimeout((() => {
+                        const currentDayIndex = dayIndex; // Capture dayIndex value
+                        return () => {
+                          const rect = continuationEl.getBoundingClientRect();
+                          const containerRect = targetContainer.getBoundingClientRect();
+                          const isVisible = rect.width > 0 && rect.height > 0;
+                          const isInDOM = document.contains(continuationEl);
+                          
+                          console.log(`  🔍 Continuation verification for day ${currentDayIndex}:`);
+                          console.log(`    Element in DOM: ${isInDOM}`);
+                          console.log(`    Element visible: ${isVisible}`);
+                          console.log(`    Element bounds: ${rect.width}x${rect.height} at (${rect.x}, ${rect.y})`);
+                          console.log(`    Container bounds: ${containerRect.width}x${containerRect.height} at (${containerRect.x}, ${containerRect.y})`);
+                          
+                          if (!isVisible && isInDOM) {
+                            console.error(`  ⚠️ Element is in DOM but not visible! Debugging styles:`);
+                            const computedStyle = window.getComputedStyle(continuationEl);
+                            console.log(`    Computed display: ${computedStyle.display}`);
+                            console.log(`    Computed visibility: ${computedStyle.visibility}`);
+                            console.log(`    Computed opacity: ${computedStyle.opacity}`);
+                            console.log(`    Computed position: ${computedStyle.position}`);
+                            console.log(`    Computed z-index: ${computedStyle.zIndex}`);
+                          }
+                        };
+                      })(), 100);
                     } else {
                       // Skip the first day as it already has the original event
                       console.log(`  Skipping day ${dayIndex} (original event already exists): ${dateStr}`);
