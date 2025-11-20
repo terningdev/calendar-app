@@ -22,29 +22,51 @@ const Calendar = () => {
   const calendarRef = useRef(null);
   const mobileSearchRef = useRef(null);
 
-  // Remove any CSS that might interfere with FullCalendar's native multi-day spanning
+  // Enhanced CSS for visual multi-day spanning
   useEffect(() => {
     // Clean up any existing custom styles
     const existingStyles = document.querySelectorAll('style[data-calendar-custom]');
     existingStyles.forEach(style => style.remove());
     
-    // Add minimal styling that won't interfere with native spanning
+    // Add comprehensive styling for visual spanning
     const style = document.createElement('style');
     style.setAttribute('data-calendar-custom', 'true');
     style.textContent = `
-      /* Minimal styling to ensure events display properly */
+      /* Multi-day event styling */
       .fc-event {
         cursor: pointer;
+        position: relative !important;
+        overflow: visible !important;
       }
       
-      /* Ensure multi-day events can span properly */
+      /* Ensure proper layering */
       .fc-daygrid-event {
         margin-bottom: 1px !important;
+        z-index: 2 !important;
       }
       
-      /* Remove any custom borders that might interfere */
-      .multi-day-event {
-        /* Let FullCalendar handle all styling */
+      /* Multi-day span overlay */
+      .multi-day-span-overlay {
+        box-sizing: border-box !important;
+      }
+      
+      /* Ensure day cells can contain overflowing elements */
+      .fc-daygrid-day {
+        position: relative !important;
+        overflow: visible !important;
+      }
+      
+      .fc-daygrid-day-events {
+        overflow: visible !important;
+        position: relative !important;
+        z-index: 2 !important;
+      }
+      
+      /* Prevent text selection on overlays */
+      .multi-day-span-overlay {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
       }
     `;
     document.head.appendChild(style);
@@ -892,7 +914,7 @@ const Calendar = () => {
             return ['single-day-event'];
           }}
           eventDidMount={(info) => {
-            // Minimal logging - let FullCalendar handle all multi-day rendering natively
+            // Robust multi-day visual spanning solution
             console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
             console.log(`  Event start: ${info.event.start}`);
             console.log(`  Event end: ${info.event.end}`);
@@ -903,8 +925,65 @@ const Calendar = () => {
             console.log(`  Is multi-day: ${isMultiDay}`);
             
             if (isMultiDay) {
-              console.log(`🔍 MULTI-DAY EVENT - LETTING FULLCALENDAR HANDLE NATIVE SPANNING: ${info.event.title}`);
-              // Do absolutely nothing - let FullCalendar handle everything
+              console.log(`🔍 IMPLEMENTING VISUAL MULTI-DAY SPANNING: ${info.event.title}`);
+              
+              // Calculate the span duration
+              const startDate = new Date(info.event.start);
+              const endDate = new Date(info.event.end);
+              const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+              
+              if (daysDiff > 1) {
+                // Create visual spanning by absolutely positioning overlays
+                const originalElement = info.el;
+                const originalRect = originalElement.getBoundingClientRect();
+                const calendarEl = originalElement.closest('.fc-daygrid-body');
+                
+                if (calendarEl) {
+                  // Get day cell width
+                  const dayCell = originalElement.closest('.fc-daygrid-day');
+                  const dayCellWidth = dayCell ? dayCell.getBoundingClientRect().width : 0;
+                  
+                  if (dayCellWidth > 0) {
+                    // Style the original element as the start of the span
+                    originalElement.style.position = 'relative';
+                    originalElement.style.zIndex = '5';
+                    originalElement.style.borderTopRightRadius = '0px';
+                    originalElement.style.borderBottomRightRadius = '0px';
+                    
+                    // Create spanning overlay
+                    const spanOverlay = document.createElement('div');
+                    spanOverlay.className = 'multi-day-span-overlay';
+                    spanOverlay.style.cssText = `
+                      position: absolute !important;
+                      top: 0 !important;
+                      left: 100% !important;
+                      height: 100% !important;
+                      width: ${(daysDiff - 1) * dayCellWidth}px !important;
+                      background-color: ${info.event.backgroundColor} !important;
+                      border: 1px solid ${info.event.borderColor} !important;
+                      border-left: none !important;
+                      border-top-right-radius: 3px !important;
+                      border-bottom-right-radius: 3px !important;
+                      z-index: 4 !important;
+                      pointer-events: none !important;
+                      display: flex !important;
+                      align-items: center !important;
+                      justify-content: center !important;
+                      color: ${info.event.textColor} !important;
+                      font-size: 11px !important;
+                      overflow: hidden !important;
+                    `;
+                    
+                    // Add continuation text
+                    spanOverlay.textContent = `continues...`;
+                    
+                    // Append to the original element
+                    originalElement.appendChild(spanOverlay);
+                    
+                    console.log(`  Created visual span overlay: ${daysDiff - 1} additional days`);
+                  }
+                }
+              }
             }
           }}
           eventContent={(eventInfo) => {
