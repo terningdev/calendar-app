@@ -26,40 +26,68 @@ const Calendar = () => {
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
+      /* Connected multi-day tile styling */
       .multi-day-start-tile {
         border-top-right-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
-        position: relative;
+        position: relative !important;
+        z-index: 3 !important;
+        margin-right: 0px !important;
+        border-right: none !important;
       }
       
       .multi-day-middle-tile {
         border-radius: 0 !important;
-        margin-left: -1px !important;
-        margin-right: -1px !important;
-        position: relative;
+        margin-left: 0px !important;
+        margin-right: 0px !important;
+        position: relative !important;
+        z-index: 3 !important;
+        border-left: none !important;
+        border-right: none !important;
       }
       
       .multi-day-end-tile {
         border-top-left-radius: 0 !important;
         border-bottom-left-radius: 0 !important;
-        margin-left: -1px !important;
-        position: relative;
+        margin-left: 0px !important;
+        position: relative !important;
+        z-index: 3 !important;
+        border-left: none !important;
       }
       
       .multi-day-connected-tile {
-        z-index: 2 !important;
+        z-index: 3 !important;
         position: relative !important;
       }
       
-      /* Ensure proper stacking */
+      /* Force proper spacing and alignment */
       .fc-daygrid-day-events {
         z-index: 2 !important;
         position: relative !important;
       }
       
-      /* Improve spacing between events */
+      /* Ensure events are properly stacked */
       .fc-daygrid-event {
         margin-bottom: 1px !important;
+      }
+      
+      /* Special handling for connected tiles to overlap properly */
+      .multi-day-start-tile + .fc-daygrid-event,
+      .multi-day-middle-tile + .fc-daygrid-event,
+      .multi-day-connected-tile + .fc-daygrid-event {
+        margin-top: 0px !important;
+      }
+      
+      /* Ensure continuation arrows are visible */
+      .multi-day-arrow {
+        color: white !important;
+        font-weight: bold !important;
+        position: absolute !important;
+        right: 3px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 10 !important;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.5) !important;
       }
     `;
     document.head.appendChild(style);
@@ -941,22 +969,26 @@ const Calendar = () => {
               // Style the first tile as the start of a connected span
               info.el.style.borderTopRightRadius = '0px';
               info.el.style.borderBottomRightRadius = '0px';
-              info.el.style.marginRight = '-1px'; // Overlap border with next tile
-              info.el.style.zIndex = '2';
+              info.el.style.marginRight = '0px';
+              info.el.style.borderRight = 'none';
+              info.el.style.zIndex = '3';
               info.el.classList.add('multi-day-start-tile');
               
               // Add arrow indicator for continuation
               const arrow = document.createElement('span');
               arrow.innerHTML = '→';
+              arrow.className = 'multi-day-arrow';
               arrow.style.cssText = `
-                position: absolute;
-                right: 3px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: white;
-                font-weight: bold;
-                font-size: 12px;
-                z-index: 10;
+                position: absolute !important;
+                right: 2px !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                color: white !important;
+                font-weight: bold !important;
+                font-size: 14px !important;
+                z-index: 10 !important;
+                text-shadow: 1px 1px 1px rgba(0,0,0,0.5) !important;
+                pointer-events: none !important;
               `;
               info.el.appendChild(arrow);
               
@@ -990,24 +1022,28 @@ const Calendar = () => {
                   const isLastTile = (dayIndex === daysDiff - 1);
                   
                   if (isLastTile) {
-                    // Last tile styling
+                    // Last tile styling - connect on left, round on right
                     connectedTile.style.borderTopLeftRadius = '0px';
                     connectedTile.style.borderBottomLeftRadius = '0px';
                     connectedTile.style.borderTopRightRadius = '3px';
                     connectedTile.style.borderBottomRightRadius = '3px';
-                    connectedTile.style.marginLeft = '-1px';
+                    connectedTile.style.marginLeft = '0px';
                     connectedTile.style.marginRight = '0px';
+                    connectedTile.style.borderLeft = 'none';
                     connectedTile.classList.add('multi-day-end-tile');
                   } else {
-                    // Middle tile styling
+                    // Middle tile styling - no rounded corners, connected on both sides
                     connectedTile.style.borderRadius = '0px';
-                    connectedTile.style.marginLeft = '-1px';
-                    connectedTile.style.marginRight = '-1px';
+                    connectedTile.style.marginLeft = '0px';
+                    connectedTile.style.marginRight = '0px';
+                    connectedTile.style.borderLeft = 'none';
+                    connectedTile.style.borderRight = 'none';
                     connectedTile.classList.add('multi-day-middle-tile');
                     
                     // Add continuation arrow for middle tiles
                     const middleArrow = document.createElement('span');
                     middleArrow.innerHTML = '→';
+                    middleArrow.className = 'multi-day-arrow';
                     middleArrow.style.cssText = arrow.style.cssText;
                     connectedTile.appendChild(middleArrow);
                   }
@@ -1020,9 +1056,11 @@ const Calendar = () => {
                     position: relative !important;
                     width: 100% !important;
                     background-color: ${info.event.backgroundColor} !important;
-                    border: 1px solid ${info.event.borderColor} !important;
-                    z-index: 2 !important;
+                    border-top: 1px solid ${info.event.borderColor} !important;
+                    border-bottom: 1px solid ${info.event.borderColor} !important;
+                    z-index: 3 !important;
                     box-sizing: border-box !important;
+                    min-height: 20px !important;
                   `;
                   
                   // Find container for the connected tile
