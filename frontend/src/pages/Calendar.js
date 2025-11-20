@@ -925,7 +925,11 @@ const Calendar = () => {
                 let dayIndex = 0;
                 
                 while (currentDate < endDateLocal) {
-                  const dateStr = currentDate.toISOString().split('T')[0];
+                  // Format date in local timezone to avoid UTC conversion
+                  const year = currentDate.getFullYear();
+                  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                  const day = String(currentDate.getDate()).padStart(2, '0');
+                  const dateStr = `${year}-${month}-${day}`;
                   console.log(`  Processing day ${dayIndex}: ${dateStr}`);
                   
                   // Find the day cell for this date
