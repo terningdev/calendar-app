@@ -453,7 +453,11 @@ const Calendar = () => {
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
-        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'
+        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event',
+        // For multi-day events, ensure proper display
+        ...(ticket.endDate && ticket.endDate !== ticket.startDate && {
+          display: 'block'
+        })
       };
 
       // Log the final event object for multi-day tickets
@@ -891,6 +895,13 @@ const Calendar = () => {
             left: isMobile ? 'prev,next' : 'prev,next today filterButton',
             center: 'title',
             right: isMobile ? 'dayGridMonth,timeGridWeek,listWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+          }}
+          views={{
+            dayGridMonth: {
+              dayMaxEventRows: false,
+              eventDisplay: 'block',
+              progressiveEventRendering: false
+            }
           }}
           customButtons={{
             filterButton: {
