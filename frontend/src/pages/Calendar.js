@@ -22,78 +22,36 @@ const Calendar = () => {
   const calendarRef = useRef(null);
   const mobileSearchRef = useRef(null);
 
-  // Add CSS for connected multi-day tiles
+  // Remove any CSS that might interfere with FullCalendar's native multi-day spanning
   useEffect(() => {
+    // Clean up any existing custom styles
+    const existingStyles = document.querySelectorAll('style[data-calendar-custom]');
+    existingStyles.forEach(style => style.remove());
+    
+    // Add minimal styling that won't interfere with native spanning
     const style = document.createElement('style');
+    style.setAttribute('data-calendar-custom', 'true');
     style.textContent = `
-      /* Connected multi-day tile styling */
-      .multi-day-start-tile {
-        border-top-right-radius: 0 !important;
-        border-bottom-right-radius: 0 !important;
-        position: relative !important;
-        z-index: 3 !important;
-        margin-right: 0px !important;
-        border-right: none !important;
+      /* Minimal styling to ensure events display properly */
+      .fc-event {
+        cursor: pointer;
       }
       
-      .multi-day-middle-tile {
-        border-radius: 0 !important;
-        margin-left: 0px !important;
-        margin-right: 0px !important;
-        position: relative !important;
-        z-index: 3 !important;
-        border-left: none !important;
-        border-right: none !important;
-      }
-      
-      .multi-day-end-tile {
-        border-top-left-radius: 0 !important;
-        border-bottom-left-radius: 0 !important;
-        margin-left: 0px !important;
-        position: relative !important;
-        z-index: 3 !important;
-        border-left: none !important;
-      }
-      
-      .multi-day-connected-tile {
-        z-index: 3 !important;
-        position: relative !important;
-      }
-      
-      /* Force proper spacing and alignment */
-      .fc-daygrid-day-events {
-        z-index: 2 !important;
-        position: relative !important;
-      }
-      
-      /* Ensure events are properly stacked */
+      /* Ensure multi-day events can span properly */
       .fc-daygrid-event {
         margin-bottom: 1px !important;
       }
       
-      /* Special handling for connected tiles to overlap properly */
-      .multi-day-start-tile + .fc-daygrid-event,
-      .multi-day-middle-tile + .fc-daygrid-event,
-      .multi-day-connected-tile + .fc-daygrid-event {
-        margin-top: 0px !important;
-      }
-      
-      /* Ensure continuation arrows are visible */
-      .multi-day-arrow {
-        color: white !important;
-        font-weight: bold !important;
-        position: absolute !important;
-        right: 3px !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        z-index: 10 !important;
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.5) !important;
+      /* Remove any custom borders that might interfere */
+      .multi-day-event {
+        /* Let FullCalendar handle all styling */
       }
     `;
     document.head.appendChild(style);
     
     return () => {
-      document.head.removeChild(style);
+      const customStyles = document.querySelectorAll('style[data-calendar-custom]');
+      customStyles.forEach(style => style.remove());
     };
   }, []);
   
@@ -453,11 +411,7 @@ const Calendar = () => {
         backgroundColor: getTicketColor(ticket),
         borderColor: getTicketColor(ticket),
         textColor: '#ffffff',
-        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event',
-        // For multi-day events, ensure proper display
-        ...(ticket.endDate && ticket.endDate !== ticket.startDate && {
-          display: 'block'
-        })
+        className: ticket.endDate && ticket.endDate !== ticket.startDate ? 'multi-day-event' : 'single-day-event'
       };
 
       // Log the final event object for multi-day tickets
@@ -896,13 +850,6 @@ const Calendar = () => {
             center: 'title',
             right: isMobile ? 'dayGridMonth,timeGridWeek,listWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
           }}
-          views={{
-            dayGridMonth: {
-              dayMaxEventRows: false,
-              eventDisplay: 'block',
-              progressiveEventRendering: false
-            }
-          }}
           customButtons={{
             filterButton: {
               text: 'Filter',
@@ -918,7 +865,6 @@ const Calendar = () => {
           moreLinkClick="popover"
           moreLinkClassNames="fc-more-link-custom"
           moreLinkContent={(args) => `+${args.num}`}
-          eventDisplay="auto"
           displayEventTime={false}
           displayEventEnd={false}
           eventOverlap={true}
@@ -945,7 +891,7 @@ const Calendar = () => {
             return ['single-day-event'];
           }}
           eventDidMount={(info) => {
-            // Simple multi-day event styling - let FullCalendar handle the spanning
+            // Minimal logging - let FullCalendar handle all multi-day rendering natively
             console.log(`🔍 FULLCALENDAR MOUNTED EVENT: ${info.event.title}`);
             console.log(`  Event start: ${info.event.start}`);
             console.log(`  Event end: ${info.event.end}`);
@@ -956,30 +902,8 @@ const Calendar = () => {
             console.log(`  Is multi-day: ${isMultiDay}`);
             
             if (isMultiDay) {
-              console.log(`🔍 MULTI-DAY EVENT - USING FULLCALENDAR NATIVE SPANNING: ${info.event.title}`);
-              
-              // Let FullCalendar handle the spanning, just ensure proper styling
-              info.el.style.zIndex = '2';
-              info.el.style.position = 'relative';
-              
-              // Add continuation indicator only if this appears to be a start segment
-              if (info.isStart) {
-                const arrow = document.createElement('span');
-                arrow.innerHTML = '→';
-                arrow.className = 'multi-day-arrow';
-                arrow.style.cssText = `
-                  position: absolute !important;
-                  right: 4px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  color: white !important;
-                  font-weight: bold !important;
-                  font-size: 12px !important;
-                  z-index: 10 !important;
-                  text-shadow: 1px 1px 1px rgba(0,0,0,0.5) !important;
-                `;
-                info.el.appendChild(arrow);
-              }
+              console.log(`🔍 MULTI-DAY EVENT - LETTING FULLCALENDAR HANDLE NATIVE SPANNING: ${info.event.title}`);
+              // Do absolutely nothing - let FullCalendar handle everything
             }
           }}
           eventContent={(eventInfo) => {
